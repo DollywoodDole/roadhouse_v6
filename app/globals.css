@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-dm-mono: 'DM Mono', 'Courier New', monospace;
+  --gold: #C9922A;
+  --gold-light: #F0C060;
+  --gold-dark: #8B6318;
+  --black: #0A0806;
+  --surface: #111009;
+  --card: #1A1712;
+  --elevated: #242016;
+  --border: #2A2318;
+  --text: #E8DCC8;
+  --muted: #8A7D6A;
+  --sidebar-width: 280px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--black);
+  color: var(--text);
+  font-family: var(--font-dm-mono);
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* Selection */
+::selection { background: rgba(201, 146, 42, 0.3); color: var(--gold-light); }
+
+/* Gold text shimmer utility */
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #8B6318 0%,
+    #C9922A 25%,
+    #F0C060 50%,
+    #C9922A 75%,
+    #8B6318 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Grain overlay */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Gold divider */
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
+}
+
+/* Section padding with sidebar offset */
+.main-content {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+/* Live indicator */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulseLive 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+}
+
+@keyframes pulseLive {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+/* Card hover glow */
+.card-glow {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.card-glow:hover {
+  box-shadow: 0 0 30px rgba(201, 146, 42, 0.08), 0 0 0 1px rgba(201, 146, 42, 0.2);
+}
+
+/* Stripe button */
+.stripe-btn {
+  background: linear-gradient(135deg, #8B6318 0%, #C9922A 50%, #8B6318 100%);
+  background-size: 200% auto;
+  transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stripe-btn:hover {
+  background-position: right center;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(201, 146, 42, 0.3);
+}
+.stripe-btn:active {
+  transform: translateY(0);
+}
+
+/* Mobile nav overlay */
+.nav-overlay {
+  background: rgba(10, 8, 6, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* Membership badge gradient borders */
+.tier-regular { border-color: #6B7280; }
+.tier-ranch { border-color: #C9922A; }
+.tier-partner { border-color: #F0C060; }
+
+/* Kick embed container */
+.kick-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+}
+.kick-container iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
+
+/* ─── Solana Wallet Adapter Overrides ─────────────────────────────────────── */
+/* Override default modal styles to match RoadHouse aesthetic */
+
+.wallet-adapter-modal-wrapper {
+  background: rgba(10, 8, 6, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.wallet-adapter-modal {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 60px rgba(0,0,0,0.8) !important;
+}
+
+.wallet-adapter-modal-title {
+  font-family: var(--font-cormorant) !important;
+  font-style: italic !important;
+  font-weight: 300 !important;
+  color: var(--gold-light) !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+.wallet-adapter-modal-list li {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  transition: border-color 0.2s !important;
+}
+
+.wallet-adapter-modal-list li:hover {
+  border-color: rgba(201, 146, 42, 0.4) !important;
+  background: var(--elevated) !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: transparent !important;
+  color: var(--text) !important;
+  font-family: var(--font-dm-mono) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.1em !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: transparent !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background: var(--elevated) !important;
+  color: var(--muted) !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  background: var(--card) !important;
+  color: var(--gold) !important;
+}
+
+/* Collapse adapter's default button — we use ConnectButton instead */
+.wallet-adapter-button-trigger {
+  display: none !important;
+}

@@ -1,0 +1,163 @@
+# RoadHouse Capital — CI/CD Pipeline
+# Runs on every push and PR to main.
+# Deploys to Vercel on merge to main.
+#
+# Required GitHub Secrets (Settings > Secrets > Actions):
+#   VERCEL_TOKEN          — from vercel.com/account/tokens
+#   VERCEL_ORG_ID         — from .vercel/project.json after first `vercel link`
+#   VERCEL_PROJECT_ID     — from .vercel/project.json after first `vercel link`
+#
+# Required GitHub Variables (Settings > Variables > Actions):
+#   NEXT_PUBLIC_SOLANA_NETWORK    — devnet or mainnet-beta
+#   NEXT_PUBLIC_APP_URL           — https://roadhouse.capital
+#
+# All NEXT_PUBLIC_* vars must also be set in Vercel Dashboard >
+# Project Settings > Environment Variables for builds to work.
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+
+  # ── Lint & Type Check ────────────────────────────────────────────────────────
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+  # ── Build check ──────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      # Minimal set of env vars required for next build to succeed
+      # Real values are set in Vercel — these are build-time stubs for CI only
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://roadhouse.capital' }}
+      NEXT_PUBLIC_SOLANA_NETWORK: ${{ vars.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet' }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_stub' }}
+      NEXT_PUBLIC_CONTACT_EMAIL: ${{ vars.NEXT_PUBLIC_CONTACT_EMAIL || 'roadhousesyndicate@gmail.com' }}
+      NEXT_PUBLIC_FOUNDER_EMAIL: ${{ vars.NEXT_PUBLIC_FOUNDER_EMAIL || 'daltonellscheid@gmail.com' }}
+      # Server-side secrets — only stubs needed for build (not runtime)
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_stub' }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_stub' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+          retention-days: 1
+
+  # ── Deploy to Vercel (main branch only) ──────────────────────────────────────
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://roadhouse.capital
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to production
+        run: |
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --build-env NEXT_PUBLIC_APP_URL=https://roadhouse.capital \
+            --build-env NEXT_PUBLIC_SOLANA_NETWORK=${{ vars.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet' }}
+
+  # ── Preview deploy on PRs ─────────────────────────────────────────────────────
+  preview:
+    name: Preview Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy preview
+        id: preview
+        run: |
+          PREVIEW_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})
+          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🤠 **RoadHouse Preview Deployed**\n\n🔗 ${{ steps.preview.outputs.preview_url }}\n\n_Praetorian Holdings Corp. · roadhouse.capital_`
+            })

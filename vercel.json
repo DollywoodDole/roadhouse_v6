@@ -1,0 +1,74 @@
+{
+  "framework": "nextjs",
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "cleanUrls": true,
+  "trailingSlash": false,
+
+  "rewrites": [
+    {
+      "source": "/rpc/:path*",
+      "destination": "https://api.devnet.solana.com/:path*",
+      "comment": "Proxy Solana RPC through Vercel to avoid CORS and expose your own RPC endpoint. Swap destination for your Helius/QuickNode URL when on mainnet."
+    }
+  ],
+
+  "redirects": [
+    {
+      "source": "/join",
+      "destination": "/#mint",
+      "permanent": false
+    },
+    {
+      "source": "/discord",
+      "destination": "https://discord.gg/wwhhKcnQJ3",
+      "permanent": false
+    },
+    {
+      "source": "/kick",
+      "destination": "https://kick.com/dollywooddole",
+      "permanent": false
+    },
+    {
+      "source": "/x",
+      "destination": "https://x.com/dollywooddole",
+      "permanent": false
+    }
+  ],
+
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control",      "value": "no-store, no-cache, must-revalidate" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    },
+    {
+      "source": "/rpc/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "https://roadhouse.capital" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" },
+        { "key": "Cache-Control",                "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options",     "value": "DENY" },
+        { "key": "X-XSS-Protection",    "value": "1; mode=block" },
+        { "key": "Referrer-Policy",     "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",  "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ],
+
+  "crons": [],
+
+  "env": {
+    "COMMENT": "Do NOT put real secret values here. This file is committed to git. Set all secrets in Vercel Dashboard > Project > Settings > Environment Variables."
+  }
+}
