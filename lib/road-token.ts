@@ -34,7 +34,7 @@ export function useRoadToken(): RoadTokenState {
   const { publicKey, connected } = useWallet()
 
   const [balance, setBalance] = useState(0)
-  const [rawBalance, setRawBalance] = useState(0n)
+  const [rawBalance, setRawBalance] = useState(BigInt(0))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

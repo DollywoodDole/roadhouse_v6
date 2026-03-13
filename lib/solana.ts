@@ -1,25 +1,20 @@
 /**
  * RoadHouse Capital — Solana Configuration
- * Network: Devnet (set NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta for production)
+ * All Solana objects are lazy — never instantiated at module load time.
+ * This prevents SSR/build crashes since @solana/web3.js is browser-only.
  */
 
-import { Connection, clusterApiUrl, PublicKey } from '@solana/web3.js'
+import { clusterApiUrl, PublicKey } from '@solana/web3.js'
 
-// ─── Network ──────────────────────────────────────────────────────────────────
 export type SolanaNetwork = 'devnet' | 'mainnet-beta'
 
 export const NETWORK: SolanaNetwork =
   (process.env.NEXT_PUBLIC_SOLANA_NETWORK as SolanaNetwork) ?? 'devnet'
 
-// RPC resolution priority:
-//  1. Explicit NEXT_PUBLIC_SOLANA_RPC env var (Helius/QuickNode custom endpoint)
-//  2. /rpc proxy rewrite via vercel.json (avoids CORS in browser, hides endpoint URL)
-//  3. Public clusterApiUrl fallback (rate-limited, dev only)
 function resolveRpc(): string {
   if (process.env.NEXT_PUBLIC_SOLANA_RPC) {
     return process.env.NEXT_PUBLIC_SOLANA_RPC
   }
-  // In browser on production: use the Vercel RPC proxy
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
     return `${window.location.origin}/rpc`
   }
@@ -27,7 +22,19 @@ function resolveRpc(): string {
 }
 
 export const RPC_ENDPOINT = resolveRpc()
-export const connection = new Connection(RPC_ENDPOINT, 'confirmed')
+
+// ── Lazy connection — only created in browser, never at module load ────────────
+let _connection: import('@solana/web3.js').Connection | null = null
+export function getConnection() {
+  if (typeof window === 'undefined') {
+    throw new Error('Solana Connection is only available in the browser')
+  }
+  if (!_connection) {
+    const { Connection } = require('@solana/web3.js')
+    _connection = new Connection(RPC_ENDPOINT, 'confirmed')
+  }
+  return _connection!
+}
 
 // ─── $ROAD Token ──────────────────────────────────────────────────────────────
 export const ROAD_MINT_ADDRESS =
@@ -53,7 +60,7 @@ export const NFT_COLLECTIONS = {
   partner:   process.env.NEXT_PUBLIC_NFT_PARTNER_COLLECTION  ?? '',
 } as const
 
-// ─── Membership Tier Thresholds ($ROAD required) ──────────────────────────────
+// ─── Membership Tier Thresholds ───────────────────────────────────────────────
 export const TIER_THRESHOLDS = {
   guest:     0,
   regular:   100,
@@ -84,5 +91,5 @@ export const TIER_LABELS: Record<TierKey, string> = {
 }
 
 // ─── Treasury ─────────────────────────────────────────────────────────────────
-export const TREASURY_WALLET  = process.env.NEXT_PUBLIC_TREASURY_WALLET  ?? ''
+export const TREASURY_WALLET = process.env.NEXT_PUBLIC_TREASURY_WALLET ?? ''
 export const MULTISIG_WALLET  = process.env.NEXT_PUBLIC_MULTISIG_WALLET  ?? ''

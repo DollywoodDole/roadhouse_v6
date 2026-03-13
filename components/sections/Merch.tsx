@@ -84,6 +84,10 @@ export default function Merch() {
   const [sizes, setSizes] = useState<Record<string, string>>({})
 
   const buy = async (item: typeof MERCH[0]) => {
+    if (!item.priceId) {
+      alert('This item is not yet available. Check back soon.')
+      return
+    }
     setLoading(item.id)
     try {
       await handleCheckout(item.priceId, sizes[item.id] || item.sizes[0] || 'N/A', item.name)
