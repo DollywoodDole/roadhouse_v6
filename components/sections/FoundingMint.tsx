@@ -204,10 +204,10 @@ export default function FoundingMint() {
             <div className="flex-1 flex flex-col items-center justify-center gap-3 py-6 text-center">
               <Shield size={28} className="text-rh-faint" />
               <div className="text-[12px] text-rh-muted">
-                Founding NFT collection deploying soon.
+                Founding NFT mint opens soon.
               </div>
               <div className="text-[10px] text-rh-faint">
-                Set <code className="text-gold/70">NEXT_PUBLIC_NFT_FOUNDING_COLLECTION</code> once the Candy Machine is deployed.
+                500 total · 0.5 SOL · Soul-bound 12 months
               </div>
               <a
                 href="#membership"

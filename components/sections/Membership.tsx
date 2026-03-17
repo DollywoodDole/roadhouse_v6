@@ -73,7 +73,7 @@ const TIERS = [
 
 async function startSubscription(priceId: string | null | undefined) {
   if (!priceId) {
-    alert('This membership tier is not yet available. Check back soon or contact {siteConfig.contactEmail}.')
+    alert(`This membership tier is not yet available. Check back soon or contact ${siteConfig.contactEmail}.`)
     return
   }
   const res = await fetch('/api/subscription', {

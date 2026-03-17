@@ -97,7 +97,7 @@ export default function CoconutCowboy() {
             <div className="space-y-3">
               {[
                 { q: 'Where to buy?', a: 'Select retailers in Alberta, Canada and Milwaukee, USA. Store locator at coconutcowboy.ca.' },
-                { q: 'Stocking inquiries?', a: 'Send business and retail inquiries to {siteConfig.founderEmail} with your business info and location.' },
+                { q: 'Stocking inquiries?', a: `Send business and retail inquiries to ${siteConfig.founderEmail} with your business info and location.` },
                 { q: 'What is the ABV?', a: '22% ABV — lower than standard spirits, making it remarkably smooth and cocktail-friendly.' },
                 { q: 'Submit your Cowboy photos?', a: 'Absolutely. Submit through coconutcowboy.ca and join the gang.' },
               ].map(item => (

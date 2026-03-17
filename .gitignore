@@ -45,6 +45,9 @@ Thumbs.db
 .vscode/settings.json
 .idea/
 
+# ── Claude Code ───────────────────────────
+.claude/
+
 # ── Vercel ────────────────────────────────
 .vercel
 
@@ -59,3 +62,4 @@ yarn-debug.log*
 yarn-error.log*
 
 .vercel
+.env*.local

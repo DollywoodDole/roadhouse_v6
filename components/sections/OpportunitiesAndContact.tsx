@@ -30,7 +30,7 @@ const ROLES = [
     title: 'Rare Talent',
     desc: "Don't see your role listed? If you bring something exceptional — physics, synthesis, software, design, community management, tokenomics — reach out. The RoadHouse is always interested in what we haven't thought of yet.",
     tags: ['Any Discipline', 'High Standards', 'Discretion Required'],
-    apply: 'mailto:{siteConfig.contactEmail}',
+    apply: `mailto:${siteConfig.contactEmail}`,
     applyLabel: 'Send Email',
   },
 ]
@@ -51,16 +51,30 @@ export default function OpportunitiesAndContact() {
   const [formData, setFormData] = useState({ name: '', email: '', type: 'Select a category', message: '' })
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.type === 'Select a category') return
     setSending(true)
-    // Build mailto link as primary submission (replace with actual API/form handler)
-    const subject = encodeURIComponent(`RoadHouse Inquiry — ${formData.type}`)
-    const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nType: ${formData.type}\n\n${formData.message}`)
-    window.location.href = `mailto:${siteConfig.contactEmail}?subject=${subject}&body=${body}`
-    setTimeout(() => { setSending(false); setSent(true) }, 500)
+    setSendError(null)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setSendError(data.error || 'Failed to send. Please try again.')
+      } else {
+        setSent(true)
+      }
+    } catch {
+      setSendError('Network error. Please try again.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -148,8 +162,8 @@ export default function OpportunitiesAndContact() {
             </h3>
             <div className="space-y-3 mb-8">
               {[
-                { icon: '✉', label: 'Business Email', value: '{siteConfig.contactEmail}', href: `mailto:${siteConfig.contactEmail}` },
-                { icon: '✉', label: 'Direct / Founder', value: '{siteConfig.founderEmail}', href: `mailto:${siteConfig.founderEmail}` },
+                { icon: '✉', label: 'Business Email', value: siteConfig.contactEmail, href: `mailto:${siteConfig.contactEmail}` },
+                { icon: '✉', label: 'Direct / Founder', value: siteConfig.founderEmail, href: `mailto:${siteConfig.founderEmail}` },
                 { icon: '𝕏', label: 'X / Twitter DMs', value: '@dollywooddole', href: 'https://x.com/dollywooddole' },
                 { icon: '▶', label: 'Kick Stream', value: 'kick.com/dollywooddole', href: 'https://kick.com/dollywooddole' },
                 { icon: '💬', label: 'Discord', value: 'Via membership or DM on X', href: 'https://discord.gg/wwhhKcnQJ3' },
@@ -197,7 +211,7 @@ export default function OpportunitiesAndContact() {
                 <div className="text-xl font-light italic text-rh-text mb-2" style={{ fontFamily: 'var(--font-cormorant)' }}>
                   Message Sent
                 </div>
-                <p className="text-[12px] text-rh-muted">Your email client opened. We read and respond to every legitimate inquiry.</p>
+                <p className="text-[12px] text-rh-muted">Message received. We read and respond to every legitimate inquiry.</p>
                 <button onClick={() => setSent(false)} className="mt-4 text-[10px] tracking-widest uppercase text-gold hover:underline">
                   Send Another
                 </button>
@@ -254,6 +268,10 @@ export default function OpportunitiesAndContact() {
                     placeholder="Keep it concise. We read everything."
                   />
                 </div>
+
+                {sendError && (
+                  <p className="text-[11px] text-red-400 text-center">{sendError}</p>
+                )}
 
                 <button
                   type="submit"
