@@ -102,12 +102,20 @@ const ENV_SCHEMA: EnvVar[] = [
     example: 'daltonellscheid@gmail.com',
   },
 
+  // ── Email (Resend) ─────────────────────────────────────────────────────────
+  { key: 'RESEND_API_KEY',    required: false, serverOnly: true, description: 'Resend API key — enables the contact form POST endpoint', example: 're_...' },
+  { key: 'RESEND_FROM_EMAIL', required: false, serverOnly: true, description: 'Verified sender address in Resend (default: noreply@roadhouse.capital)', example: 'noreply@roadhouse.capital' },
+
   // ── Discord ─────────────────────────────────────────────────────────────────
-  { key: 'DISCORD_BOT_TOKEN',      required: false, serverOnly: true, description: 'Discord bot token for role automation' },
+  { key: 'DISCORD_BOT_TOKEN',       required: false, serverOnly: true, description: 'Discord bot token for role automation' },
+  { key: 'DISCORD_APP_ID',         required: false, description: 'Discord Application ID (from Developer Portal)' },
+  { key: 'DISCORD_PUBLIC_KEY',     required: false, serverOnly: true, description: 'Discord app public key for verifying interaction signatures' },
   { key: 'DISCORD_GUILD_ID',       required: false, description: 'Discord server (guild) ID' },
   { key: 'DISCORD_ROLE_REGULAR',   required: false, description: 'Discord role ID for Regular tier' },
   { key: 'DISCORD_ROLE_RANCH_HAND',required: false, description: 'Discord role ID for Ranch Hand tier' },
   { key: 'DISCORD_ROLE_PARTNER',   required: false, description: 'Discord role ID for Partner tier' },
+  { key: 'DISCORD_VERIFY_SECRET',  required: false, serverOnly: true, description: 'Random secret for signing Discord /verify magic link tokens (min 32 chars)' },
+  { key: 'DISCORD_ADMIN_SECRET',   required: false, serverOnly: true, description: 'Shared secret for /api/discord/assign-role and /api/discord/revoke-role admin endpoints' },
 ]
 
 // ── Server-side validator ─────────────────────────────────────────────────────
