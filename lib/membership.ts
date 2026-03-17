@@ -9,7 +9,7 @@
  */
 
 export type MembershipTier = 'regular' | 'ranchHand' | 'partner'
-export type ProductType    = 'membership' | 'merch' | 'event' | 'sponsorship'
+export type ProductType    = 'membership' | 'merch' | 'event' | 'adventure' | 'sponsorship'
 
 // ── Tier metadata ─────────────────────────────────────────────────────────────
 
@@ -56,6 +56,13 @@ export function getProductType(priceId: string): ProductType | null {
   ])
   if (events.has(priceId)) return 'event'
 
+  const adventures = new Set([
+    process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE,
+    process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI,
+    process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_MED,
+  ])
+  if (adventures.has(priceId)) return 'adventure'
+
   const sponsorships = new Set([
     process.env.NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_TB,
     process.env.NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_FR,
@@ -64,6 +71,18 @@ export function getProductType(priceId: string): ProductType | null {
   if (sponsorships.has(priceId)) return 'sponsorship'
 
   return null
+}
+
+export function getAdventureName(priceId: string): string {
+  const {
+    NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE,
+    NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI,
+    NEXT_PUBLIC_STRIPE_PRICE_ADV_MED,
+  } = process.env
+  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE) return 'Lake Trip — BC/AB (Summer 2026)'
+  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI)  return 'Ski Trip — Panorama or Whitefish (Winter 2026/27)'
+  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_MED)  return 'Mediterranean (Summer 2027)'
+  return 'Adventure'
 }
 
 export function getSponsorshipName(priceId: string): string {

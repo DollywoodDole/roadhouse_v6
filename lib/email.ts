@@ -93,6 +93,70 @@ export async function sendWelcomeEmail(params: {
   })
 }
 
+// ── Upgrade email — tier change ───────────────────────────────────────────────
+
+export async function sendUpgradeEmail(params: {
+  customerEmail: string
+  customerName:  string
+  oldTier:       MembershipTier
+  newTier:       MembershipTier
+}): Promise<void> {
+  const oldMeta = TIER_META[params.oldTier]
+  const newMeta = TIER_META[params.newTier]
+  await send({
+    to:      params.customerEmail,
+    subject: `Membership Upgraded — ${newMeta.displayName}`,
+    text: [
+      `${params.customerName || 'Hey'},`,
+      ``,
+      `Your membership has been upgraded from ${oldMeta.displayName} to ${newMeta.displayName}.`,
+      ``,
+      `What's changed:`,
+      `  · ${newMeta.roadPerMonth} in $ROAD per month (was ${oldMeta.roadPerMonth})`,
+      `  · ${newMeta.price}`,
+      `  · Updated Discord role — you may need to rejoin any newly gated channels`,
+      ``,
+      `Manage billing: ${APP_URL}/portal`,
+      ``,
+      `— Dalton`,
+      `RoadHouse Capital · Where Standards Matter`,
+    ].join('\n'),
+    replyTo: adminEmail(),
+  })
+}
+
+// ── Adventure confirmation — to customer ──────────────────────────────────────
+
+export async function sendAdventureConfirmationEmail(params: {
+  customerEmail: string
+  customerName:  string
+  adventureName: string
+  sessionId:     string
+}): Promise<void> {
+  await send({
+    to:      params.customerEmail,
+    subject: `Adventure Spot Confirmed — ${params.adventureName}`,
+    text: [
+      `${params.customerName || 'Hey'},`,
+      ``,
+      `Your spot for ${params.adventureName} is confirmed.`,
+      ``,
+      `Order ref: ${params.sessionId}`,
+      ``,
+      `Full logistics, itinerary, and pre-trip details will be sent`,
+      `as the date approaches. Keep an eye on Discord for community`,
+      `coordination and group planning.`,
+      ``,
+      `Discord: https://discord.gg/wwhhKcnQJ3`,
+      `Questions: ${adminEmail()}`,
+      ``,
+      `— Dalton`,
+      `RoadHouse Capital · Where Standards Matter`,
+    ].join('\n'),
+    replyTo: adminEmail(),
+  })
+}
+
 // ── Merch fulfillment — to admin ──────────────────────────────────────────────
 
 export async function sendMerchFulfillmentEmail(params: {

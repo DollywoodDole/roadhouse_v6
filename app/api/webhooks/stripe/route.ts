@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { stripe, APP_URL } from '@/lib/stripe'
 import { requireEnv } from '@/lib/env'
-import { getMembershipTier, getProductType, getSponsorshipName } from '@/lib/membership'
+import { getMembershipTier, getProductType, getSponsorshipName, getAdventureName } from '@/lib/membership'
 import {
   grantMembershipRole,
   handleSubscriptionUpdated,
@@ -29,9 +29,11 @@ import {
 } from '@/lib/discord'
 import {
   sendWelcomeEmail,
+  sendUpgradeEmail,
   sendMerchFulfillmentEmail,
   sendMerchConfirmationEmail,
   sendEventConfirmationEmail,
+  sendAdventureConfirmationEmail,
   sendSponsorAlertEmail,
   sendSponsorAutoReply,
   sendOffboardingEmail,
@@ -222,6 +224,16 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
         sessionId: session.id,
       })
     }
+
+    if (productType === 'adventure' && customerEmail) {
+      const adventureName = getAdventureName(priceId)
+      await sendAdventureConfirmationEmail({
+        customerEmail,
+        customerName,
+        adventureName,
+        sessionId: session.id,
+      })
+    }
   }
 }
 
@@ -248,12 +260,19 @@ async function onSubscriptionUpdated(event: Stripe.Event) {
 
     if (newPriceId && oldPriceId && newPriceId !== oldPriceId) {
       const newTier = getMembershipTier(newPriceId)
+      const oldTier = getMembershipTier(oldPriceId)
       if (newTier) {
         const [email, name] = await Promise.all([
           resolveCustomerEmail(newSub.customer),
           resolveCustomerName(newSub.customer),
         ])
-        if (email) await sendWelcomeEmail({ customerEmail: email, customerName: name, tier: newTier })
+        if (email) {
+          if (oldTier) {
+            await sendUpgradeEmail({ customerEmail: email, customerName: name, oldTier, newTier })
+          } else {
+            await sendWelcomeEmail({ customerEmail: email, customerName: name, tier: newTier })
+          }
+        }
       }
     }
   } else if (['canceled', 'unpaid', 'past_due'].includes(newSub.status)) {
