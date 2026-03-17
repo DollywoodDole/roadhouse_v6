@@ -9,6 +9,9 @@
  */
 
 import { useState } from 'react'
+import ConnectedWallet from '@/components/wallet/ConnectedWallet'
+import NetworkIndicator from '@/components/wallet/NetworkIndicator'
+import WalletButton from '@/components/wallet/WalletButton'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -77,7 +80,10 @@ export default function PortalPage() {
         <a href="/" className="text-gold font-semibold tracking-wide text-lg">
           RoadHouse
         </a>
-        <span className="text-rh-muted text-sm font-mono">Member Portal</span>
+        <div className="flex items-center gap-3">
+          <NetworkIndicator />
+          <WalletButton />
+        </div>
       </header>
 
       <div className="max-w-2xl mx-auto px-6 py-16">
@@ -229,6 +235,9 @@ export default function PortalPage() {
                 Join Discord →
               </a>
             </div>
+
+            {/* Wallet */}
+            <ConnectedWallet />
 
             {/* Billing portal */}
             <div className="pt-2">

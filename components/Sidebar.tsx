@@ -5,6 +5,7 @@ import { siteConfig } from '@/lib/site-config'
 import { useState, useEffect } from 'react'
 import { X, Menu, ExternalLink } from 'lucide-react'
 import WalletStatus from '@/components/wallet/WalletStatus'
+import NetworkIndicator from '@/components/wallet/NetworkIndicator'
 
 const NAV_ITEMS = [
   { href: '#home',         icon: '⌂',  label: 'Home' },
@@ -92,8 +93,11 @@ export default function Sidebar() {
             >
               RoadHouse
             </div>
-            <div className="text-[10px] tracking-[0.25em] text-rh-muted uppercase mt-0.5">
-              roadhouse.capital
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="text-[10px] tracking-[0.25em] text-rh-muted uppercase">
+                roadhouse.capital
+              </div>
+              <NetworkIndicator />
             </div>
           </div>
           <button onClick={() => setOpen(false)} className="lg:hidden text-rh-muted hover:text-gold transition-colors p-1">
