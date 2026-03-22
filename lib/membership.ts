@@ -9,7 +9,7 @@
  */
 
 export type MembershipTier = 'regular' | 'ranchHand' | 'partner'
-export type ProductType    = 'membership' | 'merch' | 'event' | 'adventure' | 'sponsorship'
+export type ProductType    = 'membership' | 'merch' | 'digital' | 'event' | 'adventure' | 'sponsorship'
 
 // ── Tier metadata ─────────────────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ export function getDigitalProduct(priceId: string): DigitalProductType | null {
 
 export function getProductType(priceId: string): ProductType | null {
   if (getMembershipTier(priceId))  return 'membership'
-  if (getDigitalProduct(priceId))  return 'merch'  // digital products routed as merch for fulfillment email
+  if (getDigitalProduct(priceId))  return 'digital'
 
   const merch = new Set([
     process.env.NEXT_PUBLIC_STRIPE_PRICE_TEE,
@@ -81,6 +81,13 @@ export function getProductType(priceId: string): ProductType | null {
   if (sponsorships.has(priceId)) return 'sponsorship'
 
   return null
+}
+
+export function getDigitalProductName(priceId: string): string {
+  const { NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK, NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT } = process.env
+  if (NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK && priceId === NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK) return 'Creator Playbook'
+  if (NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT  && priceId === NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT)  return 'Strategy Toolkit'
+  return 'Digital Product'
 }
 
 export function getAdventureName(priceId: string): string {

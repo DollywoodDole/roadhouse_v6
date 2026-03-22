@@ -125,6 +125,33 @@ export async function sendUpgradeEmail(params: {
   })
 }
 
+// ── Digital product delivery — to customer ────────────────────────────────────
+
+export async function sendDigitalProductEmail(params: {
+  customerEmail: string
+  customerName:  string
+  productName:   string
+  sessionId:     string
+}): Promise<void> {
+  await send({
+    to:      params.customerEmail,
+    subject: `Your Download — ${params.productName}`,
+    text: [
+      `${params.customerName || 'Hey'},`,
+      ``,
+      `Your purchase of ${params.productName} is confirmed.`,
+      ``,
+      `Order ref: ${params.sessionId}`,
+      ``,
+      `Dalton will send your download link within 24 hours.`,
+      `Questions? ${adminEmail()}`,
+      ``,
+      `— RoadHouse Capital`,
+    ].join('\n'),
+    replyTo: adminEmail(),
+  })
+}
+
 // ── Adventure confirmation — to customer ──────────────────────────────────────
 
 export async function sendAdventureConfirmationEmail(params: {

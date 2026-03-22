@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { stripe, APP_URL } from '@/lib/stripe'
 import { requireEnv } from '@/lib/env'
-import { getMembershipTier, getProductType, getSponsorshipName, getAdventureName } from '@/lib/membership'
+import { getMembershipTier, getProductType, getSponsorshipName, getAdventureName, getDigitalProductName } from '@/lib/membership'
 import {
   grantMembershipRole,
   handleSubscriptionUpdated,
@@ -32,6 +32,7 @@ import {
   sendUpgradeEmail,
   sendMerchFulfillmentEmail,
   sendMerchConfirmationEmail,
+  sendDigitalProductEmail,
   sendEventConfirmationEmail,
   sendAdventureConfirmationEmail,
   sendSponsorAlertEmail,
@@ -39,15 +40,42 @@ import {
   sendOffboardingEmail,
   sendPaymentFailedEmail,
 } from '@/lib/email'
+import { initRoadBalance } from '@/lib/road-balance'
 
-// ── Idempotency guard ─────────────────────────────────────────────────────────
+// ── Idempotency guard — KV-backed, falls back to in-memory ───────────────────
+// Uses Upstash SET NX EX: atomic "set if not exists" with 24h TTL.
+// Falls back to an in-memory Set if KV is not provisioned (dev / cold start).
 
 const _processed = new Set<string>()
 
-function markProcessed(eventId: string): boolean {
+async function isNewEvent(eventId: string): Promise<boolean> {
+  const url   = process.env.KV_REST_API_URL
+  const token = process.env.KV_REST_API_TOKEN
+
+  if (url && token) {
+    try {
+      // SET evt:{id} 1 NX EX 86400 — returns "OK" if new, null if duplicate
+      const res = await fetch(
+        `${url}/set/${encodeURIComponent(`evt:${eventId}`)}?nx=true&ex=86400`,
+        {
+          method:  'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body:    JSON.stringify(1),
+          cache:   'no-store',
+        }
+      )
+      if (res.ok) {
+        const { result } = await res.json()
+        return result === 'OK'  // null means key already existed
+      }
+    } catch {
+      // fall through to in-memory guard
+    }
+  }
+
+  // In-memory fallback (works within a single Vercel instance)
   if (_processed.has(eventId)) return false
   _processed.add(eventId)
-  // Keep memory bounded to ~1000 events per instance
   if (_processed.size > 1000) {
     const oldest = _processed.values().next().value
     if (oldest) _processed.delete(oldest)
@@ -82,8 +110,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  // Idempotency check
-  if (!markProcessed(event.id)) {
+  // Idempotency check — KV-backed with in-memory fallback
+  if (!await isNewEvent(event.id)) {
     console.log(JSON.stringify({ evt: 'webhook.duplicate', eventId: event.id, type: event.type }))
     return NextResponse.json({ received: true, duplicate: true })
   }
@@ -95,6 +123,10 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed':
         await onCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+        break
+
+      case 'customer.subscription.created':
+        await onSubscriptionCreated(event.data.object as Stripe.Subscription)
         break
 
       case 'customer.subscription.updated':
@@ -166,6 +198,16 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     if (productType === 'membership' && tier && customerEmail) {
       await sendWelcomeEmail({ customerEmail, customerName, tier })
+
+      // Initialise $ROAD balance record in KV (idempotent — skips if already exists)
+      if (customerId) {
+        try {
+          await initRoadBalance(customerId, customerEmail, tier)
+        } catch (err) {
+          // Non-fatal — KV may not be provisioned yet
+          console.warn(JSON.stringify({ evt: 'road.init_failed', error: String(err) }))
+        }
+      }
     }
 
     if (productType === 'sponsorship' && customerEmail) {
@@ -195,6 +237,15 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
     const itemName       = session.metadata?.item    ?? expanded.line_items?.data?.[0]?.description ?? 'Item'
     const size           = session.metadata?.size    ?? 'N/A'
     const shippingAddr   = formatAddress(session.shipping_details)
+
+    if (productType === 'digital' && customerEmail) {
+      await sendDigitalProductEmail({
+        customerEmail,
+        customerName,
+        productName: getDigitalProductName(priceId),
+        sessionId:   session.id,
+      })
+    }
 
     if (productType === 'merch' && customerEmail) {
       await Promise.all([
@@ -235,6 +286,25 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
       })
     }
   }
+}
+
+// ── customer.subscription.created ────────────────────────────────────────────
+// Belt-and-suspenders Discord role grant. checkout.session.completed fires first
+// but may not carry discord_user_id — this catches anything that slipped through.
+
+async function onSubscriptionCreated(sub: Stripe.Subscription) {
+  console.log(JSON.stringify({ evt: 'subscription.created', subId: sub.id, status: sub.status }))
+
+  if (sub.status !== 'active') return
+
+  const discordUserId = sub.metadata?.discord_user_id
+  if (!discordUserId) return  // discord_user_id must be set at checkout for role automation
+
+  const priceId = sub.items.data[0]?.price?.id
+  const tier    = priceId ? getMembershipTier(priceId) : null
+  if (!tier) return
+
+  await grantMembershipRole(discordUserId, tier)
 }
 
 // ── customer.subscription.updated ────────────────────────────────────────────
