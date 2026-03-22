@@ -15,14 +15,22 @@
  *                            propagation. Omit to register globally (up to 1hr delay).
  */
 
-import * as dotenv from 'dotenv'
 import * as path from 'path'
 import * as fs from 'fs'
 
-// Load .env.local if present
+// Load .env.local without dotenv dependency
 const envPath = path.resolve(process.cwd(), '.env.local')
 if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath })
+  const lines = fs.readFileSync(envPath, 'utf8').split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    const key = trimmed.slice(0, eq).trim()
+    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '')
+    if (key && !(key in process.env)) process.env[key] = val
+  }
 }
 
 const APP_ID   = process.env.DISCORD_APP_ID
