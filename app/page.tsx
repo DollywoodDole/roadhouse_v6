@@ -6,6 +6,8 @@ import CommunityFeed from '@/components/sections/CommunityFeed'
 import Merch from '@/components/sections/Merch'
 import Membership from '@/components/sections/Membership'
 import Events from '@/components/sections/Events'
+import Adventures from '@/components/sections/Adventures'
+import Compound from '@/components/sections/Compound'
 import Sponsorships from '@/components/sections/Sponsorships'
 import Guilds from '@/components/sections/Guilds'
 import Roadmap from '@/components/sections/Roadmap'
@@ -13,6 +15,7 @@ import CoconutCowboy from '@/components/sections/CoconutCowboy'
 import OpportunitiesAndContact from '@/components/sections/OpportunitiesAndContact'
 import RoadToken from '@/components/sections/RoadToken'
 import FoundingMint from '@/components/sections/FoundingMint'
+import SectionDivider from '@/components/ui/SectionDivider'
 
 export default function Home() {
   return (
@@ -21,21 +24,39 @@ export default function Home() {
 
       <main className="main-content flex-1 w-full">
         <Hero />
+        <SectionDivider />
         <KickStream />
+        <SectionDivider />
         <CommunityFeed />
+        <SectionDivider />
         <Merch />
+        <SectionDivider />
         <Membership />
+        <SectionDivider />
         <Events />
+        <SectionDivider />
+        <Adventures />
+        <SectionDivider />
+        <Compound />
+        <SectionDivider />
         <Sponsorships />
+        <SectionDivider />
         <Guilds />
+        <SectionDivider />
         <RoadToken />
+        <SectionDivider />
         <FoundingMint />
+        <SectionDivider />
         <Roadmap />
+        <SectionDivider />
         <CoconutCowboy />
+        <SectionDivider />
         <OpportunitiesAndContact />
 
+        <SectionDivider />
+
         {/* Footer */}
-        <footer className="px-8 lg:px-16 py-12 border-t border-rh-border">
+        <footer className="px-8 lg:px-16 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-1">
               <div

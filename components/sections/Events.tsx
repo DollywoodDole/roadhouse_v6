@@ -18,6 +18,7 @@ const EVENTS = [
     status: 'upcoming',
     badge: 'Free',
     priceId: null,
+    cta: null,
   },
   {
     id: 'sk-meetup-2026',
@@ -31,6 +32,7 @@ const EVENTS = [
     status: 'upcoming',
     badge: 'Members',
     priceId: siteConfig.stripe.events.skMeetup,
+    cta: 'Get Ticket',
   },
   {
     id: 'rh-summit-2026',
@@ -44,6 +46,21 @@ const EVENTS = [
     status: 'early-access',
     badge: 'Early Access',
     priceId: siteConfig.stripe.events.summit,
+    cta: 'Get Ticket',
+  },
+  {
+    id: 'rh-summit-vip-2026',
+    name: 'RoadHouse Summit — VIP',
+    type: 'In-Person · TBA',
+    date: 'Q4 2026',
+    location: 'Location TBA',
+    price: 29900,
+    display: '$299 CAD',
+    desc: 'Reserved seating, backstage access, and post-event dinner with the founding team. Limited supply — 25 passes total.',
+    status: 'early-access',
+    badge: 'VIP',
+    priceId: siteConfig.stripe.events.summitVip,
+    cta: 'Reserve VIP',
   },
   {
     id: 'compound-opening',
@@ -57,6 +74,7 @@ const EVENTS = [
     status: 'announced',
     badge: 'Announced',
     priceId: null,
+    cta: null,
   },
 ]
 
@@ -91,10 +109,10 @@ export default function Events() {
   }
 
   return (
-    <section id="events" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="events" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Frontier Guild — Events & Gatherings</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Upcoming <span className="text-gold">Events</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">
@@ -158,7 +176,7 @@ export default function Events() {
                   {loading === event.id ? (
                     <Loader2 size={12} className="animate-spin" />
                   ) : (
-                    'Get Ticket'
+                    event.cta ?? 'Get Ticket'
                   )}
                 </button>
               ) : event.price === 0 && event.status === 'upcoming' ? (

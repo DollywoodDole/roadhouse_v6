@@ -69,10 +69,10 @@ const GUILDS = [
 
 export default function Guilds() {
   return (
-    <section id="guilds" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="guilds" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">DAO Architecture — Governance via Snapshot & Aragon</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Four Guilds. <span className="text-gold">One Ecosystem.</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-2xl tracking-wide">

@@ -64,23 +64,30 @@ export const siteConfig = {
       phone:    process.env.NEXT_PUBLIC_STRIPE_PRICE_PHONE ?? null,
     },
     events: {
-      skMeetup: process.env.NEXT_PUBLIC_STRIPE_PRICE_SKMT ?? null,
-      summit:   process.env.NEXT_PUBLIC_STRIPE_PRICE_SUMMIT ?? null,
+      skMeetup:  process.env.NEXT_PUBLIC_STRIPE_PRICE_SKMT       ?? null,
+      summit:    process.env.NEXT_PUBLIC_STRIPE_PRICE_SUMMIT     ?? null,
+      summitVip: process.env.NEXT_PUBLIC_STRIPE_PRICE_SUMMIT_VIP ?? null,
     },
     sponsorships: {
       trailBlazer: process.env.NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_TB ?? null,
       frontier:    process.env.NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_FR ?? null,
       praetor:     process.env.NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_PR ?? null,
     },
+    adventures: {
+      lake: process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE ?? null,
+      ski:  process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI  ?? null,
+      med:  process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_MED  ?? null,
+    },
   },
 
-  // ── Discord Role IDs ───────────────────────────────────────────────────────
+  // ── Discord ────────────────────────────────────────────────────────────────
   discord: {
-    guildId:    process.env.DISCORD_GUILD_ID ?? '',
+    inviteUrl:  'https://discord.gg/wwhhKcnQJ3',
+    guildId:    process.env.DISCORD_GUILD_ID       ?? '',
     roles: {
-      regular:  process.env.DISCORD_ROLE_REGULAR ?? '',
+      regular:  process.env.DISCORD_ROLE_REGULAR   ?? '',
       ranch:    process.env.DISCORD_ROLE_RANCH_HAND ?? '',
-      partner:  process.env.DISCORD_ROLE_PARTNER ?? '',
+      partner:  process.env.DISCORD_ROLE_PARTNER   ?? '',
     },
   },
 } as const

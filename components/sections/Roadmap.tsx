@@ -83,10 +83,10 @@ const statusLabel: Record<string, string> = {
 
 export default function Roadmap() {
   return (
-    <section id="roadmap" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="roadmap" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Praetorian Holdings — Q2 2026 through Year 2</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Implementation <span className="text-gold">Roadmap</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">

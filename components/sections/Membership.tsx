@@ -3,7 +3,7 @@
 import { siteConfig } from '@/lib/site-config'
 
 import { useState } from 'react'
-import { Loader2, Check } from 'lucide-react'
+import { Loader2, Check, ExternalLink } from 'lucide-react'
 
 const TIERS = [
   {
@@ -15,9 +15,10 @@ const TIERS = [
     lux: '100 $ROAD',
     icon: '◇',
     borderClass: 'tier-regular',
+    discordRole: 'Regular',
     priceId: siteConfig.stripe.subscriptions.regular,
     features: [
-      'Community Discord access',
+      'Community Discord access (#regular role)',
       'Member-only chat channels',
       'Minor proposal voting rights',
       'RoadHouse newsletter',
@@ -36,10 +37,11 @@ const TIERS = [
     icon: '◆',
     borderClass: 'tier-ranch',
     highlight: true,
+    discordRole: 'Ranch Hand',
     priceId: siteConfig.stripe.subscriptions.ranch,
     features: [
       'All Regular benefits',
-      'Guild participation rights',
+      'Guild channels access (#ranch-hand role)',
       'Revenue-share eligibility',
       'Treasury proposal voting',
       'Exclusive VOD archive access',
@@ -57,9 +59,11 @@ const TIERS = [
     lux: '2,000 $ROAD',
     icon: '⬡',
     borderClass: 'tier-partner',
+    discordRole: 'Partner',
     priceId: siteConfig.stripe.subscriptions.partner,
     features: [
       'All Ranch Hand benefits',
+      'Leadership channels (#partner role)',
       'Guild leadership candidacy',
       'Full treasury visibility',
       'Direct sponsorship deal access',
@@ -99,10 +103,10 @@ export default function Membership() {
   }
 
   return (
-    <section id="membership" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="membership" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Membership Ladder — Earned, Not Purchased</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Digital <span className="text-gold">Membership</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">
@@ -116,16 +120,16 @@ export default function Membership() {
       <div className="mb-10 p-4 bg-rh-card border border-rh-border rounded-lg flex items-center gap-4 max-w-2xl">
         <span className="text-3xl">💬</span>
         <div className="flex-1">
-          <div className="text-sm text-rh-text font-medium mb-0.5">Members get Discord access</div>
-          <div className="text-[11px] text-rh-muted">Join the private Discord server — active community, guild channels, and direct access to the team.</div>
+          <div className="text-sm text-rh-text font-medium mb-0.5">Discord role assigned automatically</div>
+          <div className="text-[11px] text-rh-muted">Subscribe → role assigned within seconds. Guild channels, direct access to the team, and community feed.</div>
         </div>
         <a
-          href="https://discord.gg/wwhhKcnQJ3"
+          href={siteConfig.discord.inviteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-4 py-2 text-[10px] tracking-widest uppercase border border-[#5865F2]/40 text-[#7289DA] hover:bg-[#5865F2]/10 rounded transition-colors whitespace-nowrap"
+          className="px-4 py-2 text-[10px] tracking-widest uppercase border border-[#5865F2]/40 text-[#7289DA] hover:bg-[#5865F2]/10 rounded transition-colors whitespace-nowrap flex items-center gap-1.5"
         >
-          Join Discord
+          Join Discord <ExternalLink size={10} />
         </a>
       </div>
 

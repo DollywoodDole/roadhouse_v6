@@ -120,14 +120,14 @@ export default function FoundingMint() {
   }
 
   return (
-    <section id="mint" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="mint" className="px-8 lg:px-16 py-20">
 
       {/* Header */}
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">
           Limited · 500 Total · Soul-Bound 12 Months
         </div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Founding <span className="text-gold">Membership NFT</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide leading-relaxed">

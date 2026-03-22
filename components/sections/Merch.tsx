@@ -97,10 +97,10 @@ export default function Merch() {
   }
 
   return (
-    <section id="merch" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="merch" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Praetorian Holdings — Merchandise</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Merch <span className="text-gold">Store</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">

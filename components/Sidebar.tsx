@@ -14,6 +14,8 @@ const NAV_ITEMS = [
   { href: '#merch',        icon: '🛒', label: 'Merch Store' },
   { href: '#membership',   icon: '★',  label: 'Membership' },
   { href: '#events',       icon: '◆',  label: 'Events' },
+  { href: '#adventures',   icon: '◈',  label: 'Adventures' },
+  { href: '#compound',     icon: '⬡',  label: 'The Compound' },
   { href: '#sponsorships', icon: '⬡',  label: 'Sponsorships' },
   { href: '#guilds',       icon: '◇',  label: 'Guild Architecture' },
   { href: '#token',        icon: '$',  label: '$ROAD Token' },

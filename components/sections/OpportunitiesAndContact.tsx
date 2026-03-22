@@ -80,10 +80,10 @@ export default function OpportunitiesAndContact() {
   return (
     <>
       {/* Opportunities */}
-      <section id="opportunities" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+      <section id="opportunities" className="px-8 lg:px-16 py-20">
         <div className="mb-10">
           <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Talent With Standards Always Welcome</div>
-          <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+          <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
             Open <span className="text-gold">Opportunities</span>
           </h2>
           <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">
@@ -142,10 +142,10 @@ export default function OpportunitiesAndContact() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+      <section id="contact" className="px-8 lg:px-16 py-20">
         <div className="mb-10">
           <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Serious Inquiries · Serious People</div>
-          <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+          <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
             Get in <span className="text-gold">Touch</span>
           </h2>
           <div className="gold-line mt-4 max-w-xs" />

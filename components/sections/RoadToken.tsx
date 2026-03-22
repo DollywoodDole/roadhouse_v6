@@ -72,12 +72,12 @@ export default function RoadToken() {
     : null
 
   return (
-    <section id="token" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="token" className="px-8 lg:px-16 py-20">
 
       {/* Header */}
       <div className="mb-12">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Solana SPL · Fixed Supply · Utility + Governance</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           The <span className="text-gold">$ROAD</span> Token
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide leading-relaxed">

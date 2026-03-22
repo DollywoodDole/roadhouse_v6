@@ -79,9 +79,9 @@ export function getAdventureName(priceId: string): string {
     NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI,
     NEXT_PUBLIC_STRIPE_PRICE_ADV_MED,
   } = process.env
-  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE) return 'Lake Trip — BC/AB (Summer 2026)'
-  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI)  return 'Ski Trip — Panorama or Whitefish (Winter 2026/27)'
-  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_MED)  return 'Mediterranean (Summer 2027)'
+  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE) return 'Lake Trip — BC/AB (Summer 2026) · Up to 5 people'
+  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI)  return 'Ski Trip — Panorama or Whitefish (Winter 2026/27) · Up to 4 people'
+  if (priceId === NEXT_PUBLIC_STRIPE_PRICE_ADV_MED)  return 'Mediterranean (Summer 2027) · 2 people per pass'
   return 'Adventure'
 }
 

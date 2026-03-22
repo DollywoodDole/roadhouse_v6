@@ -31,7 +31,7 @@ Email:         Resend — from roadhousesyndicate@gmail.com
 Discord:       Bot via REST API — role gating by Stripe tier
 Storage:       Vercel KV — off-chain $ROAD balance tracking
 Deploy:        Vercel (iad1 region) — vercel.json configured
-Domain:        https://roadhouse.capital (canonical) 
+Domain:        https://roadhouse.capital (canonical)
 ```
 
 ---
@@ -126,10 +126,12 @@ fonts: {
 
 /emails              ← React Email templates
 /scripts
-  mint-road-token.ts  ← npm run mint-token
-  add-road-metadata.ts ← npm run add-metadata
+  create-stripe-prices.ts ← Run once to generate all Stripe price IDs
+  mint-road-token.ts      ← npm run mint-token
+  add-road-metadata.ts    ← npm run add-metadata
 
 /docs
+  stripe-products.md  ← All Stripe product + price ID documentation
   tokenomics.md       ← Public $ROAD tokenomics paper
   governance-spec.md  ← DAO governance architecture
   env-guide.md        ← Env var documentation (no values)
@@ -145,6 +147,9 @@ npm run build        # Production build
 npm run lint         # ESLint
 npm run mint-token   # Deploy $ROAD SPL token (devnet)
 npm run add-metadata # Add Metaplex metadata to $ROAD
+
+# Generate all Stripe products + price IDs (run once)
+STRIPE_SECRET_KEY=sk_live_... npx ts-node --project tsconfig.scripts.json scripts/create-stripe-prices.ts
 
 # Stripe webhook local testing
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
@@ -175,25 +180,44 @@ DISCORD_ROLE_RANCH_HAND
 DISCORD_ROLE_PARTNER
 ```
 
-### Stripe Price IDs (all required):
+### Stripe Price IDs (all required — run scripts/create-stripe-prices.ts to generate):
 ```
+# Memberships
+NEXT_PUBLIC_STRIPE_SUB_REGULAR          # $19.99/mo CAD
+NEXT_PUBLIC_STRIPE_SUB_RANCH            # $99.99/mo CAD
+NEXT_PUBLIC_STRIPE_SUB_PARTNER          # $199.98/mo CAD
+
+# Merch
 NEXT_PUBLIC_STRIPE_PRICE_TEE
 NEXT_PUBLIC_STRIPE_PRICE_HAT
 NEXT_PUBLIC_STRIPE_PRICE_HOODIE
 NEXT_PUBLIC_STRIPE_PRICE_STICKERS
 NEXT_PUBLIC_STRIPE_PRICE_GLASS
 NEXT_PUBLIC_STRIPE_PRICE_PHONE
-NEXT_PUBLIC_STRIPE_SUB_REGULAR
-NEXT_PUBLIC_STRIPE_SUB_RANCH
-NEXT_PUBLIC_STRIPE_SUB_PARTNER
-NEXT_PUBLIC_STRIPE_PRICE_SKMT
-NEXT_PUBLIC_STRIPE_PRICE_SUMMIT
-NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE
-NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI
-NEXT_PUBLIC_STRIPE_PRICE_ADV_MED
-NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_TB
-NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_FR
-NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_PR
+
+# Digital Products
+NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK       # $129.99 CAD
+NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT        # $295.99 CAD
+
+# Events
+NEXT_PUBLIC_STRIPE_PRICE_SKMT           # $999 CAD
+NEXT_PUBLIC_STRIPE_PRICE_SUMMIT         # $1,599 CAD
+NEXT_PUBLIC_STRIPE_PRICE_SUMMIT_VIP     # $299 CAD
+
+# Adventures
+NEXT_PUBLIC_STRIPE_PRICE_ADV_LAKE       # $199 CAD deposit
+NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI        # $299 CAD deposit (opens after Snapshot vote)
+NEXT_PUBLIC_STRIPE_PRICE_ADV_MED        # $1,000 CAD hold ($500 non-refundable within 14 days)
+
+# Sponsorships
+NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_TB     # $1,000/mo CAD
+NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_FR     # $2,500/mo CAD
+NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_PR     # $10,000/mo CAD
+```
+
+### Feature Flags:
+```
+NEXT_PUBLIC_SKI_VOTE_RESOLVED=false     # Set true to open Ski Trip deposits after Snapshot vote
 ```
 
 ### Web3 (set when contracts deploy — devnet first):
@@ -230,7 +254,7 @@ Fix in this exact order. Do not skip ahead.
   - Fix: build `/app/api/contact/route.ts` — Resend to roadhousesyndicate@gmail.com, auto-reply to submitter, rate limit 3/IP/hr, honeypot field
 
 ### 🟠 M1 — Web2 Perfect (April)
-- **#4** — Create all Stripe products + populate all price ID env vars
+- **#4** — Create all Stripe products + populate all price ID env vars (run `scripts/create-stripe-prices.ts`)
 - **#5** — Stripe webhook handler: all lifecycle events (sub created/updated/deleted, payment failed, checkout completed)
 - **#6** — Discord bot: assign/revoke roles via Stripe webhooks, `/verify` command
 - **#7** — Transactional emails via Resend: welcome, upgrade, cancellation, merch, event, adventure, sponsor, contact
@@ -245,12 +269,12 @@ Fix in this exact order. Do not skip ahead.
 - **#14** — Wallet connect polished: Phantom + Solflare devnet, register wallet → KV
 - **#15** — Squads multisig: architecture spec + devnet deploy
 - **#16** — DAO governance spec: Snapshot + Aragon, `/docs/governance-spec.md`
-- **#17** — Founding NFT: Candy Machine v3 spec + art brief (500 supply, 0.5 SOL, soul-bound 12mo)
+- **#17** — Founding NFT: Candy Machine v3 spec + art brief (500 supply, 3 SOL, soul-bound 12mo, undisclosed $ROAD airdrop at mainnet)
 
 ### 🟢 M3 — Adventure NFTs + DAO (June)
-- **#18** — Adventure #001: Lake Trip (BC/AB, summer 2026, `/adventures/lake-trip`)
-- **#19** — Adventure #002: Ski Trip (Panorama or Whitefish, winter 2026/27, community vote)
-- **#20** — Adventure #003: Mediterranean (2027, Ranch Hand+ gated, waitlist only for now)
+- **#18** — Adventure #001: Lake Trip (BC/AB, summer 2026, `/adventures/lake-trip`, $199 deposit)
+- **#19** — Adventure #002: Ski Trip (Panorama or Whitefish, winter 2026/27, community vote, deposits open post-vote)
+- **#20** — Adventure #003: Mediterranean (2027, Ranch Hand+ gated, $1,000 hold, $500 non-refundable within 14 days of event)
 - **#21** — `/adventures` hub page: all three cards + philosophy + FAQ
 - **#22** — Four guilds activated in Discord + `/guilds` page with live application links
 - **#23** — Claude orchestrator agent: dispatches all agents, approval queue, daily Discord digest
@@ -265,9 +289,9 @@ Fix in this exact order. Do not skip ahead.
 
 | Stripe Product | $ROAD/mo | Discord Env Var | Key Gate |
 |---|---|---|---|
-| Regular ($9.99/mo) | 100 | `DISCORD_ROLE_REGULAR` | Community chat |
-| Ranch Hand ($29.99/mo) | 500 | `DISCORD_ROLE_RANCH_HAND` | Guild access + VOD |
-| Partner ($99.99/mo) | 2,000 | `DISCORD_ROLE_PARTNER` | Leadership + 1-on-1 |
+| Regular ($19.99/mo) | 100 | `DISCORD_ROLE_REGULAR` | Community chat |
+| Ranch Hand ($99.99/mo) | 500 | `DISCORD_ROLE_RANCH_HAND` | Guild access + VOD |
+| Partner ($199.98/mo) | 2,000 | `DISCORD_ROLE_PARTNER` | Leadership + group call (max 8) |
 | Steward (invite-only) | 10,000 | Manual | Multisig co-signer |
 | Praetor (invite-only) | 50,000 | Manual | Board advisory |
 
@@ -320,20 +344,32 @@ const ACCRUAL = { regular: 100, ranch: 500, partner: 2000 }
 
 ---
 
+## Founding NFT
+
+- **Supply:** 500
+- **Price:** 3 SOL
+- **Soul-bound:** 12 months post-mint (non-transferable)
+- **$ROAD airdrop:** Founding holders qualify for an undisclosed allocation at mainnet launch. Amount is not public. Will be announced at launch.
+- **No CAD price shown on site** — SOL only
+- **Revenue split:** 70% treasury · 20% operations · 10% founder
+
+---
+
 ## Adventure NFTs
 
 Three products. Real trips. On-chain credential + POAP on attendance.
 
-| # | Experience | Season | Price Est. | Supply | Eligibility | Stripe Env |
+| # | Experience | Season | Deposit | Refund Policy | Supply | Eligibility |
 |---|---|---|---|---|---|---|
-| 001 | Lake Trip — BC/AB | Summer 2026 | $500–$1,500 CAD | Group cap | All tiers | `ADV_LAKE` |
-| 002 | Ski Trip — Panorama or Whitefish | Winter 2026/27 | $1,000–$2,500 CAD | Group cap | All tiers | `ADV_SKI` |
-| 003 | Mediterranean | Summer 2027 | $3,000–$6,000 CAD | ~25 (scarce) | Ranch Hand+ | `ADV_MED` |
+| 001 | Lake Trip — BC/AB | Summer 2026 | $199 CAD | Full refund 30+ days out | Group cap | All tiers |
+| 002 | Ski Trip — Panorama or Whitefish | Winter 2026/27 | $299 CAD | Opens after Snapshot vote | Group cap | All tiers |
+| 003 | Mediterranean | Summer 2027 | $1,000 CAD | $500 non-refundable within 14 days of event | ~25 (scarce) | Ranch Hand+ |
 
 - NFTs are transferable — spot is the token, sell if you can't attend
 - 5% royalty on secondary → community treasury
 - Ski trip location decided by community Snapshot vote (Panorama vs Whitefish)
-- Mediterranean is waitlist-only until Founding NFT sells out
+- Ski trip deposits gated behind `NEXT_PUBLIC_SKI_VOTE_RESOLVED=true`
+- Mediterranean gated: require active Ranch Hand+ subscription at checkout
 
 ---
 
@@ -402,15 +438,24 @@ Any Regular+ member can apply. Applications at `/guilds`.
 
 ---
 
-## Sponsorship Tiers (for reference when building sponsorship pages)
+## Sponsorship Tiers
 
 | Tier | Rate | Reach | Key Deliverable |
 |---|---|---|---|
-| Trail Blazer | $500 CAD/mo | ~5k/mo | Stream overlay + 1x/week social shoutout |
-| Frontier | $1,500 CAD/mo | ~20k/mo | 5-min stream segment/week + 2x TikTok/mo |
-| Praetor | $5,000 CAD/mo | ~100k+/mo | IP licensing + Summit presenting sponsor |
+| Trail Blazer | $1,000 CAD/mo | ~5k/mo | Stream overlay + social shoutout + monthly analytics |
+| Frontier | $2,500 CAD/mo | ~20k/mo | 5-min stream segment/week + 2x TikTok/mo + co-branded event |
+| Praetor | $10,000 CAD/mo | ~100k+/mo | IP licensing + Summit presenting sponsor + custom series + monthly founder call |
 
 Payment: Stripe or e-transfer. Contact: roadhousesyndicate@gmail.com
+
+---
+
+## Digital Products
+
+| Product | Price | Description |
+|---|---|---|
+| Creator Playbook | $129.99 CAD | Stream-to-capital framework. PDF + Notion template pack. |
+| Strategy Toolkit | $295.99 CAD | Canvases, calculators, scenario tools for creator economy operators. |
 
 ---
 

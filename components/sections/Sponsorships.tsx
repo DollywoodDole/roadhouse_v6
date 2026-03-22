@@ -108,10 +108,10 @@ export default function Sponsorships() {
   const [loading, setLoading] = useState<string | null>(null)
 
   return (
-    <section id="sponsorships" className="px-8 lg:px-16 py-20 border-t border-rh-border">
+    <section id="sponsorships" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
         <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-2">Praetorian Holdings — Brand Partnerships</div>
-        <h2 className="text-4xl lg:text-5xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h2 className="text-5xl lg:text-7xl font-light italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Sponsor the <span className="text-gold">RoadHouse</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">
