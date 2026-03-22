@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "mint-token": "npx ts-node --project tsconfig.scripts.json scripts/mint-road-token.ts",
-    "add-metadata": "npx ts-node --project tsconfig.scripts.json scripts/add-road-metadata.ts"
+    "add-metadata": "npx ts-node --project tsconfig.scripts.json scripts/add-road-metadata.ts",
+    "create-prices": "npx ts-node --project tsconfig.scripts.json scripts/create-stripe-prices.ts"
   },
   "dependencies": {
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
