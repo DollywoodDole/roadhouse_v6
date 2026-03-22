@@ -9,7 +9,7 @@ const PACKAGES = [
   {
     id: 'trail-blazer',
     name: 'Trail Blazer',
-    price: '$500',
+    price: '$1,000',
     period: 'CAD / month',
     priceId: siteConfig.stripe.sponsorships.trailBlazer,
     features: [
@@ -18,6 +18,7 @@ const PACKAGES = [
       'Social media shoutout (1× / week on X + TikTok)',
       'Discord sponsor role',
       'Logo in newsletter',
+      'Monthly analytics report',
     ],
     reach: '~5k / mo',
     badge: null,
@@ -25,7 +26,7 @@ const PACKAGES = [
   {
     id: 'frontier',
     name: 'Frontier',
-    price: '$1,500',
+    price: '$2,500',
     period: 'CAD / month',
     priceId: siteConfig.stripe.sponsorships.frontier,
     features: [
@@ -42,7 +43,7 @@ const PACKAGES = [
   {
     id: 'praetor',
     name: 'Praetor',
-    price: '$5,000',
+    price: '$10,000',
     period: 'CAD / month',
     priceId: siteConfig.stripe.sponsorships.praetor,
     features: [

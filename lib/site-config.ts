@@ -78,6 +78,16 @@ export const siteConfig = {
       ski:  process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_SKI  ?? null,
       med:  process.env.NEXT_PUBLIC_STRIPE_PRICE_ADV_MED  ?? null,
     },
+    digital: {
+      playbook: process.env.NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK ?? null,
+      toolkit:  process.env.NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT  ?? null,
+    },
+  },
+
+  // ── Feature Flags ──────────────────────────────────────────────────────────
+  features: {
+    // Set NEXT_PUBLIC_SKI_VOTE_RESOLVED=true after Snapshot vote closes to open deposits
+    skiVoteResolved: process.env.NEXT_PUBLIC_SKI_VOTE_RESOLVED === 'true',
   },
 
   // ── Discord ────────────────────────────────────────────────────────────────

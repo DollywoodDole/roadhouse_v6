@@ -2,7 +2,7 @@
 
 import { siteConfig } from '@/lib/site-config'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
-import { Loader2, ExternalLink, Lock } from 'lucide-react'
+import { Loader2, ExternalLink, Lock, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 
@@ -44,9 +44,10 @@ export default function Adventures() {
     }
   }
 
-  const lake = siteConfig.stripe.adventures.lake
-  const ski  = siteConfig.stripe.adventures.ski
-  const med  = siteConfig.stripe.adventures.med
+  const lake           = siteConfig.stripe.adventures.lake
+  const ski            = siteConfig.stripe.adventures.ski
+  const med            = siteConfig.stripe.adventures.med
+  const skiVoteResolved = siteConfig.features.skiVoteResolved
 
   return (
     <section id="adventures" className="px-8 lg:px-16 py-20">
@@ -146,9 +147,15 @@ export default function Adventures() {
             </span>
             <div className="flex items-start justify-between mb-8 pl-16">
               <div />
-              <span className="px-2 py-0.5 text-[9px] tracking-widest uppercase border rounded text-gold border-gold/30 bg-gold/5">
-                Community Vote Open
-              </span>
+              {skiVoteResolved ? (
+                <span className="px-2 py-0.5 text-[9px] tracking-widest uppercase border rounded text-green-400 border-green-400/30 bg-green-400/5">
+                  Deposits Open
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 text-[9px] tracking-widest uppercase border rounded text-gold border-gold/30 bg-gold/5">
+                  Community Vote Open
+                </span>
+              )}
             </div>
             <div className="flex-1">
               <div className="text-[10px] tracking-[0.3em] uppercase text-gold mb-1">Panorama or Whitefish · Winter 2026/27</div>
@@ -162,20 +169,39 @@ export default function Adventures() {
                 $299 CAD deposit
               </div>
               <div className="text-[10px] text-rh-faint mb-3">Est. $1,000–$2,500 total · Party of up to 4</div>
-              <p className="text-[11px] text-rh-muted leading-relaxed mb-3">
-                Location decided by $ROAD holders. Vote open on Snapshot. Deposits open after the vote closes — October 2026.
-              </p>
-              <div className="text-[10px] text-rh-faint tracking-wider">All tiers welcome</div>
+              {skiVoteResolved ? (
+                <p className="text-[11px] text-rh-muted leading-relaxed mb-3">
+                  Location locked by community vote. Secure your deposit to claim your spot.
+                </p>
+              ) : (
+                <p className="text-[11px] text-rh-muted leading-relaxed mb-3">
+                  Location decided by $ROAD holders. Vote open on Snapshot. Deposits open after the vote closes.
+                </p>
+              )}
+              <div className="flex items-center gap-1.5 text-[10px] text-rh-faint tracking-wider">
+                {skiVoteResolved && <CheckCircle2 size={10} className="text-green-400" />}
+                <span>All tiers welcome</span>
+              </div>
             </div>
             <div className="mt-5">
-              <a
-                href="https://snapshot.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full py-2.5 text-[10px] tracking-widest uppercase border border-gold/30 text-gold hover:bg-gold/5 rounded transition-colors"
-              >
-                Vote on Location <ExternalLink size={10} />
-              </a>
+              {skiVoteResolved && ski ? (
+                <button
+                  onClick={() => reserve('ski', ski, 'ski-trip')}
+                  disabled={loading === 'ski'}
+                  className="stripe-btn w-full py-2.5 text-rh-black text-[10px] tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
+                >
+                  {loading === 'ski' ? <Loader2 size={12} className="animate-spin" /> : 'Reserve Your Spot'}
+                </button>
+              ) : (
+                <a
+                  href="https://snapshot.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 w-full py-2.5 text-[10px] tracking-widest uppercase border border-gold/30 text-gold hover:bg-gold/5 rounded transition-colors"
+                >
+                  Vote on Location <ExternalLink size={10} />
+                </a>
+              )}
             </div>
           </div>
 
@@ -203,11 +229,12 @@ export default function Adventures() {
                 Mediterranean
               </h3>
               <div className="text-xl font-light text-gold mb-0.5" style={{ fontFamily: 'var(--font-cormorant)' }}>
-                $500 CAD hold
+                $1,000 CAD hold
               </div>
               <div className="text-[10px] text-rh-faint mb-3">Est. $3,000–$6,000 total · You + one guest</div>
               <p className="text-[11px] text-rh-muted leading-relaxed mb-3">
-                The flagship. Scarce by design. 25 spots maximum. Ranch Hand tier or above required to hold a spot. Waitlist opens now — no commitment until 2026.
+                The flagship. Scarce by design. 25 spots maximum. Ranch Hand tier or above required to hold a spot.
+                $500 of the hold is non-refundable within 14 days of the event.
               </p>
               <div className="flex items-center gap-1.5 text-[10px] text-rh-faint tracking-wider">
                 <Lock size={10} />

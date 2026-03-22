@@ -18,9 +18,9 @@ export const TIER_META: Record<MembershipTier, {
   price:        string
   roadPerMonth: string
 }> = {
-  regular:  { displayName: 'Regular',    price: '$9.99/mo CAD',  roadPerMonth: '100 $ROAD'    },
-  ranchHand:{ displayName: 'Ranch Hand', price: '$29.99/mo CAD', roadPerMonth: '500 $ROAD'    },
-  partner:  { displayName: 'Partner',    price: '$99.99/mo CAD', roadPerMonth: '2,000 $ROAD'  },
+  regular:  { displayName: 'Regular',    price: '$19.99/mo CAD',  roadPerMonth: '100 $ROAD'    },
+  ranchHand:{ displayName: 'Ranch Hand', price: '$99.99/mo CAD',  roadPerMonth: '500 $ROAD'    },
+  partner:  { displayName: 'Partner',    price: '$199.98/mo CAD', roadPerMonth: '2,000 $ROAD'  },
 }
 
 // ── Price ID lookup helpers (evaluated at runtime) ────────────────────────────
@@ -37,8 +37,18 @@ export function getMembershipTier(priceId: string): MembershipTier | null {
   return null
 }
 
+export type DigitalProductType = 'playbook' | 'toolkit'
+
+export function getDigitalProduct(priceId: string): DigitalProductType | null {
+  const { NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK, NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT } = process.env
+  if (NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK && priceId === NEXT_PUBLIC_STRIPE_PRICE_PLAYBOOK) return 'playbook'
+  if (NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT  && priceId === NEXT_PUBLIC_STRIPE_PRICE_TOOLKIT)  return 'toolkit'
+  return null
+}
+
 export function getProductType(priceId: string): ProductType | null {
-  if (getMembershipTier(priceId)) return 'membership'
+  if (getMembershipTier(priceId))  return 'membership'
+  if (getDigitalProduct(priceId))  return 'merch'  // digital products routed as merch for fulfillment email
 
   const merch = new Set([
     process.env.NEXT_PUBLIC_STRIPE_PRICE_TEE,

@@ -12,10 +12,9 @@ import { NETWORK } from '@/lib/solana'
 // ── Mint config ───────────────────────────────────────────────────────────────
 const MINT_CONFIG = {
   supply:        500,
-  priceSOL:      0.5,         // 0.5 SOL per Founding NFT
-  priceDisplay:  '0.5 SOL',
-  priceCAD:      '~$75 CAD',  // approximate at launch
-  maxPerWallet:  1,           // soul-bound concept — one per wallet
+  priceSOL:      3,            // 3 SOL per Founding NFT
+  priceDisplay:  '3 SOL',
+  maxPerWallet:  1,            // soul-bound concept — one per wallet
   revenueShare: {
     treasury:   0.70,
     operations: 0.20,
@@ -25,7 +24,7 @@ const MINT_CONFIG = {
 
 const FOUNDING_BENEFITS = [
   { icon: '★', text: 'Steward-tier access for 12 months' },
-  { icon: '◆', text: '1,000 $ROAD airdrop at mainnet launch' },
+  { icon: '◆', text: 'Undisclosed $ROAD allocation at mainnet launch' },
   { icon: '⬡', text: 'VIP access to first three RoadHouse events' },
   { icon: '◇', text: 'Exclusive Founding Member Discord role' },
   { icon: '⚜', text: 'Name in permanent founding member register' },
@@ -190,7 +189,7 @@ export default function FoundingMint() {
             <div className="text-5xl font-light text-gold" style={{ fontFamily: 'var(--font-cormorant)' }}>
               {MINT_CONFIG.priceDisplay}
             </div>
-            <div className="mb-1.5 text-[11px] text-rh-faint">{MINT_CONFIG.priceCAD}</div>
+            <div className="mb-1.5 text-[11px] text-rh-faint">500 total · Soul-bound 12mo</div>
           </div>
 
           {/* Supply */}
@@ -199,23 +198,38 @@ export default function FoundingMint() {
             <div className="text-[12px] text-rh-text font-medium">{MINT_CONFIG.supply} NFTs</div>
           </div>
 
-          {/* NFT not deployed yet */}
+          {/* NFT not deployed yet — pre-launch waitlist */}
           {!nftReady && mintState === 'idle' && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 py-6 text-center">
-              <Shield size={28} className="text-rh-faint" />
-              <div className="text-[12px] text-rh-muted">
-                Founding NFT mint opens soon.
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 py-6 text-center">
+              <Shield size={28} className="text-gold/40" />
+              <div>
+                <div className="text-[13px] text-rh-text mb-1">
+                  Mint opens to Founding Members first.
+                </div>
+                <div className="text-[10px] text-rh-faint leading-relaxed max-w-[200px] mx-auto">
+                  500 total · 3 SOL · Soul-bound 12 months
+                </div>
               </div>
-              <div className="text-[10px] text-rh-faint">
-                500 total · 0.5 SOL · Soul-bound 12 months
+              <div className="gold-line w-12" />
+              <div className="text-[10px] text-rh-muted leading-relaxed max-w-[220px]">
+                Subscribe now to secure your place in line. Founding NFT mint will be announced to members first.
               </div>
-              <a
-                href="#membership"
-                onClick={e => { e.preventDefault(); document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' }) }}
-                className="mt-2 px-4 py-2 text-[10px] tracking-widest uppercase border border-rh-border text-rh-muted hover:border-gold/40 hover:text-gold rounded transition-colors"
-              >
-                Subscribe via Stripe in the meantime →
-              </a>
+              {siteConfig.stripe.subscriptions.regular ? (
+                <a
+                  href={`https://buy.stripe.com/checkout?price=${siteConfig.stripe.subscriptions.regular}`}
+                  className="mt-1 px-5 py-2.5 stripe-btn text-rh-black text-[10px] tracking-widest uppercase font-medium rounded transition-all hover:opacity-90"
+                >
+                  Get Early Access — Join as Regular →
+                </a>
+              ) : (
+                <a
+                  href="#membership"
+                  onClick={e => { e.preventDefault(); document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' }) }}
+                  className="mt-1 px-5 py-2.5 stripe-btn text-rh-black text-[10px] tracking-widest uppercase font-medium rounded transition-all hover:opacity-90"
+                >
+                  Get Early Access →
+                </a>
+              )}
             </div>
           )}
 
@@ -234,7 +248,7 @@ export default function FoundingMint() {
                       {publicKey?.toBase58().slice(0, 8)}...{publicKey?.toBase58().slice(-6)}
                     </span>
                     <br />
-                    Ensure you have at least <span className="text-gold">{MINT_CONFIG.priceSOL + 0.01} SOL</span> for mint + fees.
+                    Ensure you have at least <span className="text-gold">{(MINT_CONFIG.priceSOL + 0.01).toFixed(2)} SOL</span> for mint + fees.
                   </div>
                   <button
                     onClick={handleMint}
