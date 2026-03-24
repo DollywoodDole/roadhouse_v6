@@ -79,8 +79,10 @@ fonts: {
   /api
     /webhooks/stripe/route.ts   ← Stripe webhook handler (signature verified)
     /contact/route.ts           ← Contact form → Resend
-    /discord/assign-role/       ← POST: assign Discord role after subscription
-    /discord/revoke-role/       ← POST: revoke Discord role after cancellation
+    /discord/interactions/      ← POST: Ed25519-verified Discord slash commands (/verify)
+    /discord/verify/            ← GET/POST: magic link flow → Stripe lookup → role grant
+    /discord/assign-role/       ← POST: admin endpoint — assign Discord role manually
+    /discord/revoke-role/       ← POST: admin endpoint — revoke Discord role manually
     /road/balance/route.ts      ← GET: member's off-chain $ROAD balance
     /road/accrue/route.ts       ← POST: monthly $ROAD accrual (cron)
     /wallet/register/route.ts   ← POST: register wallet address for airdrop
@@ -125,10 +127,17 @@ fonts: {
   wallet.ts           ← Wallet connect helpers
 
 /emails              ← React Email templates
+/.github
+  /workflows
+    ci.yml                   ← Lint + build + Vercel deploy on push to main
+    road-accrual.yml         ← Monthly $ROAD accrual cron (1st of month, 00:00 UTC)
+
 /scripts
-  create-stripe-prices.ts ← Run once to generate all Stripe price IDs
-  mint-road-token.ts      ← npm run mint-token
-  add-road-metadata.ts    ← npm run add-metadata
+  create-stripe-prices.ts       ← Run once to generate all Stripe price IDs
+  mint-road-token.ts            ← npm run mint-token
+  add-road-metadata.ts          ← npm run add-metadata
+  register-discord-commands.ts  ← npm run register-commands (run once)
+  test-e2e.ts                   ← npm run test-e2e — full webhook + KV smoke test
 
 /docs
   stripe-products.md  ← All Stripe product + price ID documentation
@@ -215,6 +224,16 @@ NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_FR     # $2,500/mo CAD
 NEXT_PUBLIC_STRIPE_PRICE_SPONSOR_PR     # $10,000/mo CAD
 ```
 
+### Discord + Cron:
+```
+DISCORD_PUBLIC_KEY        # From Discord Developer Portal → App → General Information
+DISCORD_APP_ID            # From Discord Developer Portal → App → General Information
+DISCORD_BOT_TOKEN         # Bot token — not the public key
+DISCORD_VERIFY_SECRET     # Random secret for /verify magic link tokens — openssl rand -base64 32
+DISCORD_ADMIN_SECRET      # Protects /api/discord/assign-role and /api/discord/revoke-role
+CRON_SECRET               # Authenticates POST /api/road/accrue from GitHub Actions cron
+```
+
 ### Feature Flags:
 ```
 NEXT_PUBLIC_SKI_VOTE_RESOLVED=false     # Set true to open Ski Trip deposits after Snapshot vote
@@ -244,29 +263,28 @@ ANTHROPIC_API_KEY
 
 Fix in this exact order. Do not skip ahead.
 
-### 🔴 HOTFIX — Fix immediately (live site broken)
-- **#1** — `{siteConfig.contactEmail}` and `{siteConfig.founderEmail}` rendering as raw text in DOM
-  - Fix: replace all occurrences with backtick template literals — `` href={`mailto:${siteConfig.contactEmail}`} ``
-  - Affected: Rare Talent section, Coconut Cowboy FAQ, footer contact links
-- **#2** — Founding NFT section shows dev placeholder text to the public
-  - Fix: replace with pre-launch waitlist CTA linking to `NEXT_PUBLIC_STRIPE_SUB_REGULAR` checkout
-- **#3** — Contact form has no POST endpoint
-  - Fix: build `/app/api/contact/route.ts` — Resend to roadhousesyndicate@gmail.com, auto-reply to submitter, rate limit 3/IP/hr, honeypot field
+### ✅ HOTFIX — Complete
+- ✅ **#1** — `{siteConfig.contactEmail}` / `{siteConfig.founderEmail}` raw text in DOM — fixed
+- ✅ **#2** — Founding NFT section dev placeholder — replaced with pre-launch waitlist CTA
+- ✅ **#3** — Contact form POST endpoint — `/app/api/contact/route.ts` built (Resend, auto-reply, rate limit, honeypot)
 
-### 🟠 M1 — Web2 Perfect (April)
-- **#4** — Create all Stripe products + populate all price ID env vars (run `scripts/create-stripe-prices.ts`)
-- **#5** — Stripe webhook handler: all lifecycle events (sub created/updated/deleted, payment failed, checkout completed)
-- **#6** — Discord bot: assign/revoke roles via Stripe webhooks, `/verify` command
-- **#7** — Transactional emails via Resend: welcome, upgrade, cancellation, merch, event, adventure, sponsor, contact
-- **#8** — Member portal at `/portal`: tier display, $ROAD balance, Stripe Customer Portal link
-- **#9** — Merch checkout: capture size in Stripe metadata, fulfillment email to Dalton
+### ✅ M1 — Web2 Perfect (April)
+- ✅ **#4** — Create all Stripe products + populate all price ID env vars (run `scripts/create-stripe-prices.ts`)
+- ✅ **#5** — Stripe webhook handler: all lifecycle events (sub created/updated/deleted, payment failed, checkout completed)
+- ✅ **#6** — Discord bot: assign/revoke roles via Stripe webhooks, `/verify` command
+  - ⚠️ Still required in Vercel: `DISCORD_PUBLIC_KEY`, `DISCORD_APP_ID`, `DISCORD_BOT_TOKEN`, `DISCORD_VERIFY_SECRET`, `DISCORD_ADMIN_SECRET`
+  - ⚠️ Run once after setting those vars: `npm run register-commands` (registers `/verify` slash command)
+  - ⚠️ Set Interactions Endpoint URL in Discord Developer Portal: `https://roadhouse.capital/api/discord/interactions`
+- ✅ **#7** — Transactional emails via Resend: welcome, upgrade, cancellation, merch, event, adventure, sponsor, contact
+- ✅ **#8** — Member portal at `/portal`: tier display, $ROAD balance, Stripe Customer Portal link
+- ✅ **#9** — Merch checkout: capture size in Stripe metadata, fulfillment email to Dalton
 - **#10** — Legal: Incorporate Praetorian Holdings Corp. (SK) — tracked here for SR&ED hour logging
 - **#11** — Agent: Sponsorship prospecting pipeline — 20 qualified prospects + email drafts
 
 ### 🟡 M2 — Web3 Architecture (May — design only, no mainnet)
 - **#12** — $ROAD tokenomics spec locked + legal opinion documented
-- **#13** — Off-chain $ROAD balance tracking in Vercel KV (web2 bridge)
-- **#14** — Wallet connect polished: Phantom + Solflare devnet, register wallet → KV
+- ✅ **#13** — Off-chain $ROAD balance tracking in Vercel KV (web2 bridge)
+- ✅ **#14** — Wallet connect polished: Phantom + Solflare devnet, register wallet → KV
 - **#15** — Squads multisig: architecture spec + devnet deploy
 - **#16** — DAO governance spec: Snapshot + Aragon, `/docs/governance-spec.md`
 - **#17** — Founding NFT: Candy Machine v3 spec + art brief (500 supply, 3 SOL, soul-bound 12mo, undisclosed $ROAD airdrop at mainnet)

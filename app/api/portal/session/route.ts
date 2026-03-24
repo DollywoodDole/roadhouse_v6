@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, APP_URL } from '@/lib/stripe'
 import { getMembershipTier, TIER_META } from '@/lib/membership'
+import { getRoadBalance } from '@/lib/road-balance'
 
 export async function POST(req: NextRequest) {
   let body: { email?: string }
@@ -56,14 +57,27 @@ export async function POST(req: NextRequest) {
     tier     = priceId ? getMembershipTier(priceId) : null
     tierMeta = tier ? TIER_META[tier] : null
 
-    // Estimate off-chain $ROAD accrued based on subscription age
-    // This is a floor estimate until Vercel KV tracking (issue #13) is live
-    if (tier && tierMeta) {
-      const monthsActive = Math.floor(
-        (Date.now() - sub.start_date * 1000) / (1000 * 60 * 60 * 24 * 30)
-      )
-      const rateMap = { regular: 100, ranchHand: 500, partner: 2000 }
-      roadBalance = (monthsActive + 1) * rateMap[tier] // +1 for current month
+    // Try KV first — fall back to subscription-age estimate if not provisioned
+    try {
+      const kvRecord = await getRoadBalance(customer.id)
+      if (kvRecord) {
+        roadBalance = kvRecord.balance
+      } else if (tier && tierMeta) {
+        const monthsActive = Math.floor(
+          (Date.now() - sub.start_date * 1000) / (1000 * 60 * 60 * 24 * 30)
+        )
+        const rateMap: Record<string, number> = { regular: 100, ranchHand: 500, partner: 2000 }
+        roadBalance = (monthsActive + 1) * (rateMap[tier] ?? 0)
+      }
+    } catch {
+      // KV not provisioned — fall back to estimate
+      if (tier && tierMeta) {
+        const monthsActive = Math.floor(
+          (Date.now() - sub.start_date * 1000) / (1000 * 60 * 60 * 24 * 30)
+        )
+        const rateMap: Record<string, number> = { regular: 100, ranchHand: 500, partner: 2000 }
+        roadBalance = (monthsActive + 1) * (rateMap[tier] ?? 0)
+      }
     }
   }
 

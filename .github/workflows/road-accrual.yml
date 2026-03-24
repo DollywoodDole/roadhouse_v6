@@ -1,0 +1,45 @@
+# RoadHouse Capital — Monthly $ROAD Accrual
+# Runs on the 1st of every month at midnight UTC.
+# POSTs to /api/road/accrue with CRON_SECRET.
+#
+# Required secrets (Settings > Secrets > Actions):
+#   CRON_SECRET           — must match CRON_SECRET Vercel env var
+#
+# Required variables (Settings > Variables > Actions):
+#   NEXT_PUBLIC_APP_URL   — https://roadhouse.capital
+
+name: Monthly $ROAD Accrual
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+jobs:
+  accrue:
+    name: Accrue $ROAD
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: POST /api/road/accrue
+        run: |
+          APP_URL="${{ vars.NEXT_PUBLIC_APP_URL || 'https://roadhouse.capital' }}"
+
+          RESPONSE=$(curl -s -o /tmp/body.json -w "%{http_code}" \
+            -X POST "${APP_URL}/api/road/accrue" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          echo "Status: $RESPONSE"
+          cat /tmp/body.json
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "::error::Accrual returned HTTP $RESPONSE"
+            exit 1
+          fi
+
+          node -e "
+            const d = require('/tmp/body.json');
+            console.log('Accrued ' + d.accrued + ' \$ROAD across ' + d.processed + ' members.');
+            if (d.errors?.length) console.error('Errors:', d.errors);
+          "

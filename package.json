@@ -10,7 +10,8 @@
     "mint-token": "npx ts-node --project tsconfig.scripts.json scripts/mint-road-token.ts",
     "add-metadata": "npx ts-node --project tsconfig.scripts.json scripts/add-road-metadata.ts",
     "create-prices": "npx ts-node --project tsconfig.scripts.json scripts/create-stripe-prices.ts",
-    "register-commands": "npx ts-node --project tsconfig.scripts.json scripts/register-discord-commands.ts"
+    "register-commands": "npx ts-node --project tsconfig.scripts.json scripts/register-discord-commands.ts",
+    "test-e2e": "npx ts-node --project tsconfig.scripts.json scripts/test-e2e.ts"
   },
   "dependencies": {
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
@@ -24,6 +25,7 @@
     "@solana/wallet-adapter-solflare": "^0.6.28",
     "@solana/web3.js": "^1.95.3",
     "@stripe/stripe-js": "^3.4.0",
+    "@upstash/redis": "^1.37.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.2.10",
     "lucide-react": "^0.383.0",

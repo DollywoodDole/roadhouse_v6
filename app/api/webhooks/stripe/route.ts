@@ -41,6 +41,7 @@ import {
   sendPaymentFailedEmail,
 } from '@/lib/email'
 import { initRoadBalance } from '@/lib/road-balance'
+import { Redis } from '@upstash/redis'
 
 // ── Idempotency guard — KV-backed, falls back to in-memory ───────────────────
 // Uses Upstash SET NX EX: atomic "set if not exists" with 24h TTL.
@@ -54,20 +55,10 @@ async function isNewEvent(eventId: string): Promise<boolean> {
 
   if (url && token) {
     try {
-      // SET evt:{id} 1 NX EX 86400 — returns "OK" if new, null if duplicate
-      const res = await fetch(
-        `${url}/set/${encodeURIComponent(`evt:${eventId}`)}?nx=true&ex=86400`,
-        {
-          method:  'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body:    JSON.stringify(1),
-          cache:   'no-store',
-        }
-      )
-      if (res.ok) {
-        const { result } = await res.json()
-        return result === 'OK'  // null means key already existed
-      }
+      const redis  = new Redis({ url, token })
+      // SET NX EX — returns 'OK' if key was new, null if it already existed
+      const result = await redis.set(`evt:${eventId}`, 1, { nx: true, ex: 86400 })
+      return result === 'OK'
     } catch {
       // fall through to in-memory guard
     }

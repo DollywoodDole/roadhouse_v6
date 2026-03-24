@@ -237,7 +237,7 @@ export default function PortalPage() {
             </div>
 
             {/* Wallet */}
-            <ConnectedWallet />
+            <ConnectedWallet customerId={data.customer.id} />
 
             {/* Billing portal */}
             <div className="pt-2">

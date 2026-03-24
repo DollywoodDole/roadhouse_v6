@@ -17,6 +17,9 @@ const RESEND_API = 'https://api.resend.com/emails'
 const adminEmail = () =>
   optionalEnv('NEXT_PUBLIC_CONTACT_EMAIL', 'roadhousesyndicate@gmail.com')
 
+const founderEmail = () =>
+  optionalEnv('NEXT_PUBLIC_FOUNDER_EMAIL', 'daltonellscheid@gmail.com')
+
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? 'https://roadhouse.capital'
 
@@ -195,7 +198,7 @@ export async function sendMerchFulfillmentEmail(params: {
   shippingAddress: string
 }): Promise<void> {
   await send({
-    to:      adminEmail(),
+    to:      founderEmail(),
     subject: `Merch Order — ${params.itemName}`,
     text: [
       `New merch order to fulfill.`,

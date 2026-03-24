@@ -1,20 +1,21 @@
 /**
  * RoadHouse Capital — Off-Chain $ROAD Balance Tracking
  * ──────────────────────────────────────────────────────
- * Stores member $ROAD balances in Vercel KV (Upstash Redis).
- * Uses the raw REST API — no @vercel/kv package required.
+ * Stores member $ROAD balances in Upstash Redis via @upstash/redis SDK.
  *
  * KV key schema:
- *   road:{stripeCustomerId}  →  JSON string of RoadBalance
+ *   road:{stripeCustomerId}  →  RoadBalance JSON
  */
 
+import { Redis } from '@upstash/redis'
+
 export interface RoadBalance {
-  email:           string
+  email:            string
   stripeCustomerId: string
-  walletAddress?:  string
-  balance:         number
-  tier:            'guest' | 'regular' | 'ranch' | 'partner' | 'steward' | 'praetor'
-  history:         { date: string; amount: number; reason: string }[]
+  walletAddress?:   string
+  balance:          number
+  tier:             'guest' | 'regular' | 'ranch' | 'partner' | 'steward' | 'praetor'
+  history:          { date: string; amount: number; reason: string }[]
 }
 
 export const ACCRUAL: Record<string, number> = {
@@ -23,7 +24,6 @@ export const ACCRUAL: Record<string, number> = {
   partner:   2000,
 }
 
-// ── KV tier key normalisation ─────────────────────────────────────────────────
 // getMembershipTier() returns 'ranchHand'; RoadBalance.tier uses 'ranch'
 const TIER_TO_ROAD_TIER: Record<string, RoadBalance['tier']> = {
   regular:   'regular',
@@ -31,49 +31,23 @@ const TIER_TO_ROAD_TIER: Record<string, RoadBalance['tier']> = {
   partner:   'partner',
 }
 
-// ── Raw KV REST API helpers ───────────────────────────────────────────────────
+// ── Redis client (lazy singleton) ─────────────────────────────────────────────
 
-function kvHeaders() {
+function getRedis(): Redis {
+  const url   = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN
-  if (!token) throw new Error('KV_REST_API_TOKEN is not set')
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
-
-function kvBaseUrl() {
-  const url = process.env.KV_REST_API_URL
-  if (!url) throw new Error('KV_REST_API_URL is not set')
-  return url
-}
-
-async function kvGet(key: string): Promise<string | null> {
-  const res = await fetch(`${kvBaseUrl()}/get/${encodeURIComponent(key)}`, {
-    headers: kvHeaders(),
-    cache:   'no-store',
-  })
-  if (!res.ok) throw new Error(`KV GET failed: ${res.status}`)
-  const json = await res.json()
-  return json.result ?? null
-}
-
-async function kvSet(key: string, value: string): Promise<void> {
-  const res = await fetch(`${kvBaseUrl()}/set/${encodeURIComponent(key)}`, {
-    method:  'POST',
-    headers: kvHeaders(),
-    body:    JSON.stringify(value),
-  })
-  if (!res.ok) throw new Error(`KV SET failed: ${res.status}`)
+  if (!url || !token) throw new Error('KV_REST_API_URL / KV_REST_API_TOKEN not set')
+  return new Redis({ url, token })
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function getRoadBalance(stripeCustomerId: string): Promise<RoadBalance | null> {
-  const raw = await kvGet(`road:${stripeCustomerId}`)
-  if (!raw) return null
-  return JSON.parse(raw) as RoadBalance
+  return getRedis().get<RoadBalance>(`road:${stripeCustomerId}`)
 }
 
 export async function setRoadBalance(balance: RoadBalance): Promise<void> {
-  await kvSet(`road:${balance.stripeCustomerId}`, JSON.stringify(balance))
+  await getRedis().set(`road:${balance.stripeCustomerId}`, balance)
 }
 
 /**
@@ -88,7 +62,7 @@ export async function initRoadBalance(
   const existing = await getRoadBalance(stripeCustomerId)
   if (existing) return existing
 
-  const tier = TIER_TO_ROAD_TIER[membershipTier] ?? 'guest'
+  const tier: RoadBalance['tier'] = TIER_TO_ROAD_TIER[membershipTier] ?? 'guest'
   const balance: RoadBalance = {
     email,
     stripeCustomerId,
@@ -102,7 +76,6 @@ export async function initRoadBalance(
 
 /**
  * Accrues the monthly $ROAD allocation for a single member.
- * Returns the updated balance.
  */
 export async function accrueMonthlyRoad(
   stripeCustomerId: string,
@@ -113,7 +86,7 @@ export async function accrueMonthlyRoad(
   if (amount === 0) throw new Error(`Unknown or non-accruing tier: ${membershipTier}`)
 
   const existing = await getRoadBalance(stripeCustomerId)
-  const tier = TIER_TO_ROAD_TIER[membershipTier] ?? 'guest'
+  const tier: RoadBalance['tier'] = TIER_TO_ROAD_TIER[membershipTier] ?? 'guest'
   const today = new Date().toISOString().slice(0, 10)
 
   const updated: RoadBalance = existing
@@ -122,10 +95,7 @@ export async function accrueMonthlyRoad(
         email,
         tier,
         balance: existing.balance + amount,
-        history: [
-          ...existing.history,
-          { date: today, amount, reason: `Monthly accrual — ${tier}` },
-        ],
+        history: [...existing.history, { date: today, amount, reason: `Monthly accrual — ${tier}` }],
       }
     : {
         email,

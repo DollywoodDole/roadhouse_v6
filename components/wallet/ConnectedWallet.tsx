@@ -4,19 +4,26 @@
  * RoadHouse Capital — Connected Wallet Portal Card
  * Renders inside app/portal/page.tsx.
  * Not connected: prompt with connect button.
- * Connected: network indicator, adapter name/icon, full address, copy.
+ * Connected: network indicator, adapter name/icon, full address, copy + register for airdrop.
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import { Copy, Check, Wallet } from 'lucide-react'
 import NetworkIndicator from './NetworkIndicator'
 
-export default function ConnectedWallet() {
+interface Props {
+  customerId?: string | null
+}
+
+export default function ConnectedWallet({ customerId }: Props) {
   const { publicKey, connected, wallet } = useWallet()
   const { setVisible } = useWalletModal()
-  const [copied, setCopied] = useState(false)
+  const [copied,     setCopied]     = useState(false)
+  const [registered, setRegistered] = useState(false)
+  const [regError,   setRegError]   = useState('')
+  const registeredRef = useRef(false)
 
   const copy = async () => {
     if (!publicKey) return
@@ -24,6 +31,27 @@ export default function ConnectedWallet() {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Auto-register wallet in KV when connected (once per session)
+  useEffect(() => {
+    if (!connected || !publicKey || !customerId || registeredRef.current) return
+    registeredRef.current = true
+
+    fetch('/api/wallet/register', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ customerId, walletAddress: publicKey.toBase58() }),
+    })
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok) {
+          setRegistered(true)
+        } else {
+          setRegError(json.error ?? 'Registration failed')
+        }
+      })
+      .catch(() => setRegError('Network error'))
+  }, [connected, publicKey, customerId])
 
   // ── Not connected ────────────────────────────────────────────────────────────
   if (!connected) {
@@ -74,6 +102,11 @@ export default function ConnectedWallet() {
         <span className="text-[10px] font-mono text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
           Connected
         </span>
+        {registered && (
+          <span className="text-[10px] font-mono text-gold bg-gold/10 px-1.5 py-0.5 rounded">
+            Airdrop registered
+          </span>
+        )}
       </div>
 
       {/* Full address */}
@@ -94,6 +127,10 @@ export default function ConnectedWallet() {
         {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
         {copied ? 'Copied!' : 'Copy full address'}
       </button>
+
+      {regError && (
+        <p className="mt-3 text-xs text-red-400">{regError}</p>
+      )}
     </div>
   )
 }

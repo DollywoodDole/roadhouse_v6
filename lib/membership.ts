@@ -63,6 +63,7 @@ export function getProductType(priceId: string): ProductType | null {
   const events = new Set([
     process.env.NEXT_PUBLIC_STRIPE_PRICE_SKMT,
     process.env.NEXT_PUBLIC_STRIPE_PRICE_SUMMIT,
+    process.env.NEXT_PUBLIC_STRIPE_PRICE_SUMMIT_VIP,
   ])
   if (events.has(priceId)) return 'event'
 
