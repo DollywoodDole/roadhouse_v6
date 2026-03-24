@@ -15,6 +15,7 @@ const MERCH = [
     badge: 'Bestseller',
     priceId: siteConfig.stripe.merch.tee,
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    image: '/merch/roadhouse-tee.png',
   },
   {
     id: 'rh-hat',
@@ -25,6 +26,7 @@ const MERCH = [
     badge: 'New',
     priceId: siteConfig.stripe.merch.hat,
     sizes: ['One Size'],
+    image: '/merch/roadhouse-snapback.png',
   },
   {
     id: 'cc-hoodie',
@@ -35,6 +37,7 @@ const MERCH = [
     badge: 'Collab',
     priceId: siteConfig.stripe.merch.hoodie,
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    image: null,
   },
   {
     id: 'sticker-pack',
@@ -45,6 +48,7 @@ const MERCH = [
     badge: null,
     priceId: siteConfig.stripe.merch.stickers,
     sizes: [],
+    image: '/merch/sticker-pack.png',
   },
   {
     id: 'rh-glass',
@@ -55,6 +59,7 @@ const MERCH = [
     badge: 'Limited',
     priceId: siteConfig.stripe.merch.glass,
     sizes: [],
+    image: '/merch/whiskey-glasses.png',
   },
   {
     id: 'rh-phone',
@@ -65,6 +70,7 @@ const MERCH = [
     badge: null,
     priceId: siteConfig.stripe.merch.phone,
     sizes: ['iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Pro Max'],
+    image: '/merch/phone-case.png',
   },
 ]
 
@@ -112,14 +118,20 @@ export default function Merch() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {MERCH.map(item => (
           <div key={item.id} className="bg-rh-card border border-rh-border rounded-lg overflow-hidden card-glow flex flex-col">
-            {/* Item image placeholder */}
+            {/* Item image */}
             <div
-              className="h-48 relative flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #1A1712 0%, #242016 50%, #1A1712 100%)',
-              }}
+              className="h-48 relative flex items-center justify-center overflow-hidden"
+              style={
+                item.image
+                  ? undefined
+                  : { background: 'linear-gradient(135deg, #1A1712 0%, #242016 50%, #1A1712 100%)' }
+              }
             >
-              <span className="text-5xl opacity-30">🛒</span>
+              {item.image ? (
+                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-5xl opacity-30">🛒</span>
+              )}
               {item.badge && (
                 <span className="absolute top-3 right-3 px-2 py-0.5 text-[9px] tracking-widest uppercase bg-gold text-rh-black rounded font-medium">
                   {item.badge}
