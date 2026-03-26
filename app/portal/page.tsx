@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react'
+import { siteConfig } from '@/lib/site-config'
 import ConnectedWallet from '@/components/wallet/ConnectedWallet'
 import NetworkIndicator from '@/components/wallet/NetworkIndicator'
 import WalletButton from '@/components/wallet/WalletButton'
@@ -251,8 +252,8 @@ export default function PortalPage() {
               ) : (
                 <p className="text-rh-faint text-xs text-center">
                   Billing portal unavailable — contact{' '}
-                  <a href="mailto:roadhousesyndicate@gmail.com" className="text-gold hover:underline">
-                    roadhousesyndicate@gmail.com
+                  <a href={`mailto:${siteConfig.contactEmail}`} className="text-gold hover:underline">
+                    {siteConfig.contactEmail}
                   </a>
                 </p>
               )}
