@@ -47,7 +47,7 @@ export const TOKEN_METADATA_JSON = {
   attributes: [
     { trait_type: 'Type', value: 'Governance Token' },
     { trait_type: 'Network', value: 'Solana' },
-    { trait_type: 'Total Supply', value: '1,000,000,000' },
+    { trait_type: 'Total Supply', value: '100,000,000' },
     { trait_type: 'Decimals', value: '6' },
     { trait_type: 'Issuer', value: 'Praetorian Holdings Ltd.' },
   ],

@@ -121,7 +121,7 @@ export default function RoadToken() {
       {/* Token stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
         {[
-          { label: 'Total Supply',   value: '1,000,000,000',  sub: '$ROAD — fixed forever',      icon: <Coins size={14} /> },
+          { label: 'Total Supply',   value: '100,000,000',    sub: '$ROAD — fixed forever',      icon: <Coins size={14} /> },
           { label: 'Decimals',       value: '6',              sub: 'SPL standard precision',     icon: <BarChart3 size={14} /> },
           { label: 'Mint Authority', value: 'Revoked',        sub: 'No future inflation',        icon: <Lock size={14} /> },
           { label: 'Network',        value: 'Solana',         sub: NETWORK === 'devnet' ? 'Devnet · testnet' : 'Mainnet-beta', icon: <Zap size={14} /> },

@@ -127,7 +127,7 @@ async function main() {
     AuthorityType.MintTokens,
     null
   )
-  console.log('✅ Mint authority revoked — $ROAD supply is now fixed at 1B')
+  console.log('✅ Mint authority revoked — $ROAD supply is now fixed at 100M')
 
   // ── Verify ────────────────────────────────────────────────────────────────
   const mintInfo = await getMint(connection, mint)
