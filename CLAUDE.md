@@ -1,9 +1,9 @@
 # RoadHouse v6 — Claude Code Operating Instructions
 
-> Praetorian Holdings Ltd. · Saskatchewan, Canada · roadhouse.capital
+> Praetorian Holdings Corp. · Saskatchewan, Canada · roadhouse.capital
 > Founder: Dalton Ellscheid (DollywoodDole) · daltonellscheid@gmail.com
 > Repo: github.com/DollywoodDole/roadhouse_v6
-> Entity note: Praetorian Holdings Ltd. owns all IP. Dalton Ellscheid holds permanent Class B voting control.
+> Entity note: Praetorian Holdings Corp. owns all IP. Dalton Ellscheid holds permanent Class B voting control.
 
 ---
 
@@ -503,7 +503,7 @@ Any Regular+ member can apply. Applications at `/guilds`.
 
 ## IP, Governance, and Token Rules — Non-Negotiable
 
-- **Never suggest changes that transfer IP or equity to DAO participants, token holders, or any community structure.** All IP is owned by Praetorian Holdings Ltd. This is a hard line — do not soften it in code comments, UI copy, or docs.
+- **Never suggest changes that transfer IP or equity to DAO participants, token holders, or any community structure.** All IP is owned by Praetorian Holdings Corp. This is a hard line — do not soften it in code comments, UI copy, or docs.
 - **$ROAD is utility/governance only.** Never add speculative financial language, yield promises, investment framing, or securities-adjacent claims to $ROAD descriptions anywhere in the codebase, docs, or UI.
 - **Founder authority is permanent.** Dalton Ellscheid holds Class B voting control. Do not architect governance flows that could dilute or override this.
 - **DeSci and Internal Economy layers are additive.** Do not refactor existing v6 components to accommodate them unless Dalton explicitly asks. Extend, never replace.
@@ -575,7 +575,7 @@ Payment: Stripe or e-transfer. Contact: roadhousesyndicate@gmail.com
 - X: @dollywooddole
 - Kick: kick.com/dollywooddole
 - Discord: discord.gg/wwhhKcnQJ3
-- Entity: Praetorian Holdings Ltd. — Saskatchewan CCPC
+- Entity: Praetorian Holdings Corp. — Saskatchewan CCPC
 
 ---
 

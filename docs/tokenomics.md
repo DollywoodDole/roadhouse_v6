@@ -1,6 +1,6 @@
 # $ROAD Token — Tokenomics
 
-> Praetorian Holdings Ltd. · Saskatchewan, Canada
+> Praetorian Holdings Corp. · Saskatchewan, Canada
 > Last updated: 2026-03-26
 > Status: Pre-launch — off-chain KV tracking only. No mint until mainnet authorized.
 
@@ -13,7 +13,7 @@ security, does not carry profit expectation, and is not inflationary. Its sole
 functions are membership gating, governance signalling, contributor rewards, and
 a staking multiplier for active members.
 
-All IP remains owned by Praetorian Holdings Ltd. Token holders receive no equity,
+All IP remains owned by Praetorian Holdings Corp. Token holders receive no equity,
 no dividends, and no claim on treasury assets beyond what governance proposals
 explicitly allocate.
 
@@ -129,7 +129,7 @@ Until mainnet:
 
 - Not a security
 - Not a yield-bearing instrument
-- Not equity in Praetorian Holdings Ltd.
+- Not equity in Praetorian Holdings Corp.
 - Not inflationary — supply is fixed at 100M
 - Not a replacement for $LUX — $LUX is fully deprecated; $ROAD supersedes it
   in all references, code, and documentation
@@ -140,7 +140,7 @@ Until mainnet:
 
 $ROAD is a utility token. It does not constitute an investment contract under
 the Howey Test. Holders have no expectation of profit derived from the efforts
-of others. All platform IP is owned by Praetorian Holdings Ltd. (Saskatchewan
+of others. All platform IP is owned by Praetorian Holdings Corp. (Saskatchewan
 CCPC). This document is not a prospectus or offering memorandum.
 
 SR&ED eligibility: token architecture and agent infrastructure development is
