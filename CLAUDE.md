@@ -1,14 +1,21 @@
 # RoadHouse v6 — Claude Code Operating Instructions
 
-> Praetorian Holdings Corp. · Saskatchewan, Canada · roadhouse.capital
+> Praetorian Holdings Ltd. · Saskatchewan, Canada · roadhouse.capital
 > Founder: Dalton Ellscheid (DollywoodDole) · daltonellscheid@gmail.com
 > Repo: github.com/DollywoodDole/roadhouse_v6
+> Entity note: Praetorian Holdings Ltd. owns all IP. Dalton Ellscheid holds permanent Class B voting control.
 
 ---
 
 ## What This Project Is
 
 RoadHouse is a creator-owned ecosystem converting streaming attention into community capital and investable IP. The stack is Next.js 16 + Solana SPL + Stripe + Vercel. The site is live at roadhouse.capital.
+
+Two additive layers sit on top of the core platform:
+- **Internal Economy (DeSci-adjacent)** — closed-loop economy where member activity generates $ROAD, which gates access, guild roles, and governance weight. Not speculative; utility/governance only.
+- **DeSci / Living Laboratory** — RoadHouse as a decentralized science testbed: community-directed research mandates, on-chain data provenance, and reproducible outcomes funded by the treasury.
+
+Both layers are **additive** — they extend the platform without replacing any existing v6 components.
 
 **The mandate in priority order:**
 1. Web2 perfect — Stripe flows, Discord gating, email, member portal
@@ -69,6 +76,29 @@ fonts: {
 **Brand voice:** Direct. Unfiltered. High-standard. No filler. No hype. No urgency tactics.
 **Tagline:** "Where Standards Matter."
 **Core line:** "Discretion isn't a rule — it's a reflex."
+
+### Dashboard / Standalone Component Design System (RoadHouse.jsx layer)
+
+When working on the `RoadHouse.jsx` dashboard component or any UI derived from it, use this design system — it is separate from the Tailwind token system above and must not be merged into it:
+
+```css
+/* CSS variables — do not inline hex values */
+--bg:      #0a0a08   /* near-black background */
+--accent:  #e8c84a   /* gold */
+--accent2: #ff5c35   /* red */
+--accent3: #4af0c8   /* teal */
+
+/* Fonts — all three must be loaded */
+Space Mono     /* body / data / mono */
+Bebas Neue     /* display headings */
+Syne           /* sub-headings / labels */
+```
+
+Rules for this layer:
+- Preserve the grain texture overlay on all dashboard UI.
+- Use CSS variables (`var(--accent)` etc.), never hardcode hex values.
+- All three fonts must remain loaded and applied per their roles above.
+- Do not backport these tokens into `tailwind.config.js` — the two systems coexist independently.
 
 ---
 
@@ -341,24 +371,52 @@ switch (event.type) {
 
 ---
 
-## $ROAD Off-Chain Balance (Web2 Bridge)
+## $ROAD Token
 
-**DO NOT mint $ROAD yet.** Track balances in Vercel KV. Members who connect a wallet get snapshotted at mainnet launch and receive an airdrop.
+- **Standard:** Solana SPL
+- **Total Supply:** FIXED at 100,000,000 (100M) — NOT 1B, never inflationary
+- **Why 100M:** Preserves tier exclusivity at scale. Praetor (50k tokens) = 0.05%
+  of supply — meaningful and scarce. At 1B this collapses to 0.005%.
+- **Allocation:**
+  - Founder 18% (18M, 4yr vest 1yr cliff)
+  - Creator 22% (22M merit-based)
+  - Community 25% (25M earned via accrual)
+  - Treasury 25% (25M DAO-controlled)
+  - Partners 10% (10M vested)
+- **Burn:** 3% NFT royalties + 2% event ticket revenue → quarterly burn.
+  Utility-triggered, not scheduled. No fixed burn % ever communicated publicly.
+- **Utility only:** membership gating, governance voting (advisory scope only),
+  contributor rewards, staking multiplier (1.2x at 90 days)
+- **NOT a security** — no APY, no profit expectation, no equity, no inflation
+- **Mint pubkey:** [TO BE ADDED at deployment]
+- **$LUX is fully deprecated** — use $ROAD in all references, code, and docs
+- **DO NOT mint yet** — track balances in Vercel KV; wallet snapshot at mainnet launch
 
-```ts
-// lib/road-balance.ts
-interface RoadBalance {
-  email: string
-  stripeCustomerId: string
-  walletAddress?: string        // registered pre-launch for airdrop
-  balance: number               // total accrued $ROAD (off-chain)
-  tier: 'guest' | 'regular' | 'ranch' | 'partner' | 'steward' | 'praetor'
-  history: { date: string; amount: number; reason: string }[]
-}
+---
 
-// Monthly accrual rates
-const ACCRUAL = { regular: 100, ranch: 500, partner: 2000 }
-```
+## Tier Thresholds (do not change without founder approval)
+
+| Tier | $ROAD Required |
+|---|---|
+| Guest | 0 |
+| Regular | 100 |
+| Ranch Hand | 500 |
+| Partner | 2,000 |
+| Steward | 10,000 |
+| Praetor | 50,000 |
+
+These thresholds are calibrated for 100M fixed supply. Changing supply requires
+re-validating all thresholds before any contract or UI update.
+
+---
+
+## MemberGate Tier Logic (pending implementation)
+
+- `lib/solana.ts` → `ROAD_MINT_PUBKEY`, `getTierFromBalance`, `getConnection`
+- `RoadHouseDashboard.jsx` → replace hardcoded `"founding"` with live balance fetch
+- Trigger: `publicKey` available after Phantom connect
+- Burn logic: `lib/burn.ts` → `burnFromRoyalties()`, `burnFromEvents()` — build at
+  NFT launch, not before
 
 ---
 
@@ -443,6 +501,25 @@ Any Regular+ member can apply. Applications at `/guilds`.
 
 ---
 
+## IP, Governance, and Token Rules — Non-Negotiable
+
+- **Never suggest changes that transfer IP or equity to DAO participants, token holders, or any community structure.** All IP is owned by Praetorian Holdings Ltd. This is a hard line — do not soften it in code comments, UI copy, or docs.
+- **$ROAD is utility/governance only.** Never add speculative financial language, yield promises, investment framing, or securities-adjacent claims to $ROAD descriptions anywhere in the codebase, docs, or UI.
+- **Founder authority is permanent.** Dalton Ellscheid holds Class B voting control. Do not architect governance flows that could dilute or override this.
+- **DeSci and Internal Economy layers are additive.** Do not refactor existing v6 components to accommodate them unless Dalton explicitly asks. Extend, never replace.
+
+---
+
+## Web3 Constraints
+
+- **Solana only** — no EVM, no Ethereum, no Polygon, no L2s.
+- **SPL standard** for all fungible tokens ($ROAD).
+- **Metaplex** for all NFT minting, metadata, and Candy Machine flows.
+- **Phantom + Solflare** via `@solana/wallet-adapter-react` — no other wallet adapters.
+- **Devnet only** until Dalton explicitly authorizes mainnet deployment in writing.
+
+---
+
 ## Code Standards
 
 - **TypeScript strict** — no `any`, no `ts-ignore` without comment
@@ -450,7 +527,7 @@ Any Regular+ member can apply. Applications at `/guilds`.
 - **API routes** — always return structured JSON, always handle errors, always log
 - **Stripe** — always verify webhook signature, always return 200, always idempotent
 - **Solana** — devnet only until mainnet is explicitly authorized by Dalton
-- **No inline styles** — Tailwind classes only, brand tokens only
+- **No inline styles** — Tailwind classes only, brand tokens only (exception: `RoadHouse.jsx` layer uses CSS variables — see Dashboard Design System above)
 - **Mobile-first** — all new pages must be responsive before merging
 - **No `console.log` in production** — use structured logging (`console.error` for errors only)
 
@@ -498,4 +575,4 @@ Payment: Stripe or e-transfer. Contact: roadhousesyndicate@gmail.com
 - X: @dollywooddole
 - Kick: kick.com/dollywooddole
 - Discord: discord.gg/wwhhKcnQJ3
-- Entity: Praetorian Holdings Corp. — Saskatchewan CCPC
+- Entity: Praetorian Holdings Ltd. — Saskatchewan CCPC
