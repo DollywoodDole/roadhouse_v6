@@ -133,6 +133,26 @@ function ConnectPrompt() {
             <span key={tag} className="rh-connect-tag">{tag}</span>
           ))}
         </div>
+
+        {/* Back link — prevent dead-end for non-wallet visitors */}
+        <a
+          href="/"
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: '0.6rem',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: '#4a4238',
+            textDecoration: 'none',
+            marginTop: '1.5rem',
+            display: 'block',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#8a7d6a' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#4a4238' }}
+        >
+          ← Back to RoadHouse
+        </a>
       </div>
     </div>
   )
