@@ -635,9 +635,9 @@ M2 rework complete: 6 brochure tabs → 5 functional member tabs.
 
 ### Open Flags (do not fix in M2)
 
-- `lib/solana.ts` `totalSupply` — **already fixed to `100_000_000`** (commit `6cb817d`)
-- roadhouse.capital live site $ROAD section shows 1B — manual copy update needed
-- Entity name inconsistency: "Corp." on live site vs "Ltd." in strategy doc
+- `lib/solana.ts` `totalSupply` — **fixed to `100_000_000`** (commit `6cb817d`)
+- RoadToken.tsx supply fully corrected — 100M across stats grid, allocation array, and section header (commits `992a828` + `a3069e5`)
+- Entity name standardised to **Praetorian Holdings Corp.** across all files (commit `7bba405`)
 
 ### End of April
 
