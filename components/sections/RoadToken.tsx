@@ -9,11 +9,11 @@ import { siteConfig } from '@/lib/site-config'
 
 // ── Tokenomics allocation data ────────────────────────────────────────────────
 const ALLOCATIONS = [
-  { label: 'Community',  pct: 25, amount: '250M', color: '#C9922A', desc: 'Earned via participation, events, referrals, content' },
-  { label: 'Creators',   pct: 22, amount: '220M', color: '#F0C060', desc: 'Merit-based release tied to verified contributions' },
-  { label: 'Treasury',   pct: 25, amount: '250M', color: '#8B6318', desc: 'DAO-controlled, deployed via governance vote' },
-  { label: 'Founder',    pct: 18, amount: '180M', color: '#6B4E1A', desc: '4-year linear vest, 1-year cliff' },
-  { label: 'Partners',   pct: 10, amount: '100M', color: '#4A3512', desc: 'Strategic partners, advisors, grant bodies' },
+  { label: 'Community',  pct: 25, amount: '25M',  color: '#C9922A', desc: 'Earned via participation, events, referrals, content' },
+  { label: 'Creators',   pct: 22, amount: '22M',  color: '#F0C060', desc: 'Merit-based release tied to verified contributions' },
+  { label: 'Treasury',   pct: 25, amount: '25M',  color: '#8B6318', desc: 'DAO-controlled, deployed via governance vote' },
+  { label: 'Founder',    pct: 18, amount: '18M',  color: '#6B4E1A', desc: '4-year linear vest, 1-year cliff' },
+  { label: 'Partners',   pct: 10, amount: '10M',  color: '#4A3512', desc: 'Strategic partners, advisors, grant bodies' },
 ]
 
 // ── Tier ladder data ──────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ export default function RoadToken() {
 
         {/* Tokenomics */}
         <div className="p-6 bg-rh-card border border-rh-border rounded-lg">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-rh-faint mb-6">Allocation · 1B Fixed Supply</div>
+          <div className="text-[10px] tracking-[0.3em] uppercase text-rh-faint mb-6">Allocation · 100M Fixed Supply</div>
           <div className="flex items-center gap-8">
             <DonutChart />
             <div className="flex-1 space-y-2">
