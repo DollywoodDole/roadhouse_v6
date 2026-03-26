@@ -52,9 +52,20 @@ function Divider() {
 
 // ── Tab 1: MY ROADHOUSE ──────────────────────────────────────────────────────
 
-function MyRoadHouseTab() {
-  // TODO: wire to lib/solana.ts getTierFromBalance — hardcoded ranch-hand / 800 $ROAD
-  const tierName    = 'RANCH HAND'
+// Tier key → display label (covers lib/solana.ts keys + 'founding' placeholder)
+const TIER_DISPLAY = {
+  guest:     'GUEST',
+  regular:   'REGULAR',
+  ranchHand: 'RANCH HAND',
+  partner:   'PARTNER',
+  steward:   'STEWARD',
+  praetor:   'PRAETOR',
+  founding:  'FOUNDING',
+}
+
+function MyRoadHouseTab({ memberTier }) {
+  // TODO: wire to lib/solana.ts getTierFromBalance — balance + next-tier still hardcoded
+  const tierName    = TIER_DISPLAY[memberTier] ?? memberTier.toUpperCase()
   const balance     = 800
   const nextTier    = 'PARTNER'
   const nextBalance = 2000
@@ -142,10 +153,11 @@ function MyRoadHouseTab() {
 
 // ── Tab 2: ECONOMY ───────────────────────────────────────────────────────────
 
-function EconomyTab() {
+function EconomyTab({ walletAddress }) {
   // TODO: wire to lib/api/listings.ts — hardcoded sample listings
+  // First offering row shows connected wallet as a prompt — replace all with lib/api/listings.ts
   const offering = [
-    { tag: 'VIDEO EDITING', addr: '0xAB...3F', desc: '30-min Kick clip turnaround, 48hr' },
+    { tag: 'VIDEO EDITING', addr: walletAddress ?? '0xAB...3F', desc: '30-min Kick clip turnaround, 48hr' },
     { tag: 'DESIGN',        addr: '0xCD...7A', desc: 'Thumbnail + overlay package' },
     { tag: 'TRANSLATION',   addr: '0xEF...2B', desc: 'EN→FR, tech/gaming content' },
   ]
@@ -471,7 +483,8 @@ function GuildTab() {
 
 // ── Tab 5: TREASURY ──────────────────────────────────────────────────────────
 
-function TreasuryTab() {
+function TreasuryTab({ memberTier }) {
+  const isFullTreasury = memberTier === 'steward' || memberTier === 'praetor'
   // TODO: wire to lib/gnosis.ts getBalance()
   const metrics = [
     { label: '$ROAD Balance', value: '12,450 $ROAD', note: 'Pre-launch · Vercel KV' },
@@ -578,9 +591,11 @@ function TreasuryTab() {
         </div>
       </Card>
 
-      {/* Access note — TODO: gate by tier using memberTier prop */}
-      <p className="rh-muted" style={{ fontSize: '0.65rem', marginTop: '0.75rem', textAlign: 'center' }}>
-        Full treasury ledger visible to Steward+ tier
+      {/* Access note — TODO: expand full ledger view when lib/gnosis.ts exists */}
+      <p className="rh-muted" style={{ fontSize: '0.65rem', marginTop: '0.75rem', textAlign: 'center', color: isFullTreasury ? 'var(--accent3)' : undefined }}>
+        {isFullTreasury
+          ? 'Full treasury ledger — Steward access confirmed'
+          : 'Full treasury ledger visible to Steward+ tier'}
       </p>
     </div>
   )
@@ -588,15 +603,15 @@ function TreasuryTab() {
 
 // ── Root component ───────────────────────────────────────────────────────────
 
-export default function RoadHouse() {
+export default function RoadHouse({ memberTier = 'guest', walletAddress = null }) {
   const [active, setActive] = useState('MY ROADHOUSE')
 
   const tabContent = {
-    'MY ROADHOUSE': <MyRoadHouseTab />,
-    'ECONOMY':      <EconomyTab />,
+    'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} />,
+    'ECONOMY':      <EconomyTab walletAddress={walletAddress} />,
     'DESCI':        <DeSciTab />,
     'GUILD':        <GuildTab />,
-    'TREASURY':     <TreasuryTab />,
+    'TREASURY':     <TreasuryTab memberTier={memberTier} />,
   }
 
   return (
