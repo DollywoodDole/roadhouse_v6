@@ -576,3 +576,73 @@ Payment: Stripe or e-transfer. Contact: roadhousesyndicate@gmail.com
 - Kick: kick.com/dollywooddole
 - Discord: discord.gg/wwhhKcnQJ3
 - Entity: Praetorian Holdings Ltd. — Saskatchewan CCPC
+
+---
+
+## M2 Sprint — Dashboard Activation
+
+Sprint window: Late March → End of April 2026
+Status: In progress — pick up across sessions, consolidate end of April
+
+### Problem Statement
+
+Current dashboard (`components/dashboard/RoadHouse.jsx`) was read-only
+strategy content behind a member gate. 6 static tabs. Churn risk.
+M2 rework complete: 6 brochure tabs → 5 functional member tabs.
+
+### M2 Tab Architecture (post-rework)
+
+- **MY ROADHOUSE:** tier status, contribution feed, next action prompt, treasury pulse
+- **ECONOMY:** member marketplace — Offering / Seeking listings board
+- **DESCI:** active experiment card, data submission, upcoming protocols
+- **GUILD:** live week indicator, bounty board, execution timeline
+- **TREASURY:** DAO balance, active votes, reinvestment split
+
+### Remaining M2 Build Items (additive — do not touch reworked tabs)
+
+1. **MY ROADHOUSE — wire $ROAD balance**
+   File: `components/dashboard/RoadHouse.jsx` (MY ROADHOUSE tab)
+   Source: `lib/solana.ts` `getTierFromBalance` (exists, needs calling)
+
+2. **Economy — wire listings board**
+   File: `components/dashboard/economy/ListingsBoard.tsx` (create)
+   Source: `lib/api/listings.ts` (does not exist yet)
+
+3. **DeSci — wire experiment data**
+   File: `components/dashboard/desci/ExperimentCard.tsx` (create)
+   Source: `lib/api/experiments.ts` (does not exist yet)
+
+4. **Guild — live week indicator is live** (Date.now() calc)
+   Bounty claiming: `lib/api/bounties.ts` (does not exist yet)
+
+5. **Treasury — wire Gnosis Safe**
+   Source: `lib/gnosis.ts` (does not exist yet)
+
+### Build Rules for Remaining M2 Sessions
+
+- Each session: ONE feature. Build, confirm renders, commit.
+- All new data hardcoded with `// TODO` comments referencing data source
+- Design system: inherit `RoadHouse.jsx` CSS variables exactly, no new vars
+- No new dependencies without checking `package.json` first
+
+### What NOT to Build in M2
+
+- On-chain settlement for listings (M3)
+- Real $ROAD balance fetch (M3 — after `lib/solana.ts` tier logic complete)
+- Experiment data persistence (M3)
+- Gnosis Safe live treasury (M3)
+- Any changes to MemberGate or wallet connection logic
+
+### Open Flags (do not fix in M2)
+
+- `lib/solana.ts` `totalSupply` — **already fixed to `100_000_000`** (commit `6cb817d`)
+- roadhouse.capital live site $ROAD section shows 1B — manual copy update needed
+- Entity name inconsistency: "Corp." on live site vs "Ltd." in strategy doc
+
+### End of April
+
+Full M2 review. Update this section with what shipped. Begin M3 planning:
+- Real $ROAD balance → tier enforcement
+- Listings persistence
+- Experiment data layer
+- Gnosis Safe integration
