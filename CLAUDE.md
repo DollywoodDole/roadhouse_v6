@@ -392,6 +392,18 @@ switch (event.type) {
 - **$LUX is fully deprecated** — use $ROAD in all references, code, and docs
 - **DO NOT mint yet** — track balances in Vercel KV; wallet snapshot at mainnet launch
 
+## $ROAD Emission Model
+- Model: Burn offset — net emission = gross accrual minus monthly burns
+- Gross accrual: Regular 100/mo · Ranch Hand 500/mo · Partner 2,000/mo
+- Burns: 3% NFT royalties + 2% event revenue → quarterly $ROAD burn
+- Community bucket: 25,000,000 $ROAD (25% of 100M)
+- Floor rule: accruals pause (not clawed back) if bucket hits zero
+- 30-day public notice required before projected depletion
+- NO inflation, NO APY, NO scheduled burn percentage —
+  scarcity is activity-driven
+- Pre-mainnet required: community bucket monitor in `lib/road-monitor.ts`
+  Returns: bucket balance, months to depletion, triggers notification
+
 ---
 
 ## Tier Thresholds (do not change without founder approval)
