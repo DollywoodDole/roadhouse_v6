@@ -48,7 +48,7 @@ export const ROAD_TOKEN = {
   symbol:      '$ROAD',
   name:        'RoadHouse Governance Token',
   decimals:    6,
-  totalSupply: 1_000_000_000,
+  totalSupply: 100_000_000,
   mintAddress: ROAD_MINT_ADDRESS,
 } as const
 

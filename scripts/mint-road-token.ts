@@ -40,7 +40,7 @@ import path from 'path'
 
 const NETWORK = 'devnet'
 const DECIMALS = 6
-const TOTAL_SUPPLY = 1_000_000_000 // 1B $ROAD
+const TOTAL_SUPPLY = 100_000_000 // 100M $ROAD — fixed supply, never inflationary
 
 // Allocation percentages (must sum to 100)
 const ALLOCATIONS = {
