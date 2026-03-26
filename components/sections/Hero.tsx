@@ -95,6 +95,20 @@ export default function Hero() {
           </a>
         </div>
 
+        {/* Dashboard CTA */}
+        <div
+          className={`mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          style={{ transitionDelay: '500ms' }}
+        >
+          <a
+            href="/dashboard"
+            className="text-[13px] tracking-widest text-rh-muted hover:text-gold transition-colors"
+            style={{ fontFamily: 'var(--font-dm-mono)' }}
+          >
+            Already a member? Enter Dashboard →
+          </a>
+        </div>
+
         {/* Stats row */}
         <div
           className={`grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}

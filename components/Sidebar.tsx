@@ -173,6 +173,20 @@ export default function Sidebar() {
           </ul>
         </nav>
 
+        {/* Member Dashboard link */}
+        <div className="px-4 pb-3">
+          <a
+            href="/dashboard"
+            className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-[12px] tracking-wider uppercase border border-gold/30 text-gold hover:bg-gold/10 transition-colors"
+          >
+            <span className="flex items-center gap-3">
+              <span className="w-4 text-center opacity-70">◈</span>
+              <span>Member Dashboard</span>
+            </span>
+            <span className="opacity-50 text-[10px]">→</span>
+          </a>
+        </div>
+
         {/* Wallet — $ROAD balance + tier progress */}
         <WalletStatus />
 
