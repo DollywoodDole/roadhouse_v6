@@ -226,7 +226,7 @@ export default function RoadToken() {
           {
             icon: '◆',
             title: 'Governance Participation',
-            desc: 'Weighted voting on community proposals via Snapshot. Advisory scope only — corporate control remains with Praetorian Holdings.',
+            desc: 'Voting is advisory. Governance scope and founder authority are defined in the RoadHouse governance spec.',
           },
           {
             icon: '⬡',
