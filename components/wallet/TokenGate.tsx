@@ -17,9 +17,10 @@ import ConnectButton from './ConnectButton'
 interface TokenGateProps {
   requiredTier: TierKey
   children: ReactNode
-  // Optional custom lock UI
   lockedMessage?: string
   showBalance?: boolean
+  // If provided, upgrade CTA navigates to this URL instead of scrolling to #membership
+  href?: string
 }
 
 export default function TokenGate({
@@ -27,6 +28,7 @@ export default function TokenGate({
   children,
   lockedMessage,
   showBalance = true,
+  href,
 }: TokenGateProps) {
   const { connected } = useWallet()
   const { setVisible } = useWalletModal()
@@ -82,8 +84,8 @@ export default function TokenGate({
               Need {formatRoadBalance(required - balance)} more $ROAD to unlock
             </div>
             <a
-              href="#membership"
-              onClick={(e) => {
+              href={href ?? '#membership'}
+              onClick={href ? undefined : (e) => {
                 e.preventDefault()
                 document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' })
               }}
