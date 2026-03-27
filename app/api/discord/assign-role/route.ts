@@ -5,7 +5,7 @@
  * Protected by DISCORD_ADMIN_SECRET header.
  *
  * POST /api/discord/assign-role
- * Body: { discordUserId: string, tier: 'regular' | 'ranchHand' | 'partner' }
+ * Body: { discordUserId: string, tier: 'regular' | 'ranch-hand' | 'partner' }
  * Header: x-admin-secret: <DISCORD_ADMIN_SECRET>
  */
 
@@ -14,7 +14,7 @@ import { optionalEnv } from '@/lib/env'
 import { grantMembershipRole } from '@/lib/discord'
 import type { MembershipTier } from '@/lib/membership'
 
-const VALID_TIERS: MembershipTier[] = ['regular', 'ranchHand', 'partner']
+const VALID_TIERS: MembershipTier[] = ['regular', 'ranch-hand', 'partner']
 
 export async function POST(req: NextRequest) {
   // Auth check — basic shared secret

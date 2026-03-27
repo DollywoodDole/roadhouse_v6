@@ -2,6 +2,14 @@
 
 const nextConfig = {
 
+  // ── Server external packages ───────────────────────────────────────────────
+  // Prevents Next.js from bundling native C++ addons that must be loaded by
+  // Node.js directly. bigint-buffer is a native addon pulled in by
+  // @solana/web3.js — telling Next.js to treat it as external silences the
+  // "Module parse failed" warning and lets Node handle it natively.
+  serverExternalPackages: ['bigint-buffer'],
+
+
   // ── Turbopack config (Next.js 16 dev server default) ──────────────────────
   // Turbopack needs resolveAlias instead of webpack fallback.
   // Recent Solana wallet adapter versions handle Buffer/process internally,

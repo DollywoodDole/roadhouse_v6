@@ -48,16 +48,16 @@ export interface RoadBalance {
 }
 
 export const ACCRUAL: Record<string, number> = {
-  regular:   100,
-  ranchHand: 500,
-  partner:   2000,
+  regular:      100,
+  'ranch-hand': 500,
+  partner:      2000,
 }
 
-// getMembershipTier() returns 'ranchHand'; RoadBalance.tier uses 'ranch'
+// getMembershipTier() returns 'ranch-hand'; RoadBalance.tier uses 'ranch'
 const TIER_TO_ROAD_TIER: Record<string, RoadBalance['tier']> = {
-  regular:   'regular',
-  ranchHand: 'ranch',
-  partner:   'partner',
+  regular:      'regular',
+  'ranch-hand': 'ranch',
+  partner:      'partner',
 }
 
 // ── Redis client (lazy singleton) ─────────────────────────────────────────────

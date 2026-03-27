@@ -9,12 +9,12 @@
 
 import { requireEnv, optionalEnv } from '@/lib/env'
 
-type DiscordMembership = 'regular' | 'ranchHand' | 'partner'
+type DiscordMembership = 'regular' | 'ranch-hand' | 'partner'
 
 const ROLE_MAP: Record<DiscordMembership, string> = {
-  regular:  optionalEnv('DISCORD_ROLE_REGULAR'),
-  ranchHand:optionalEnv('DISCORD_ROLE_RANCH_HAND'),
-  partner:  optionalEnv('DISCORD_ROLE_PARTNER'),
+  regular:      optionalEnv('DISCORD_ROLE_REGULAR'),
+  'ranch-hand': optionalEnv('DISCORD_ROLE_RANCH_HAND'),
+  partner:      optionalEnv('DISCORD_ROLE_PARTNER'),
 }
 
 // Map Stripe price IDs to membership tiers
@@ -22,7 +22,7 @@ const ROLE_MAP: Record<DiscordMembership, string> = {
 function getTierFromPriceId(priceId: string): DiscordMembership | null {
   const { NEXT_PUBLIC_STRIPE_SUB_REGULAR, NEXT_PUBLIC_STRIPE_SUB_RANCH, NEXT_PUBLIC_STRIPE_SUB_PARTNER } = process.env
   if (NEXT_PUBLIC_STRIPE_SUB_REGULAR && priceId === NEXT_PUBLIC_STRIPE_SUB_REGULAR) return 'regular'
-  if (NEXT_PUBLIC_STRIPE_SUB_RANCH && priceId === NEXT_PUBLIC_STRIPE_SUB_RANCH) return 'ranchHand'
+  if (NEXT_PUBLIC_STRIPE_SUB_RANCH && priceId === NEXT_PUBLIC_STRIPE_SUB_RANCH) return 'ranch-hand'
   if (NEXT_PUBLIC_STRIPE_SUB_PARTNER && priceId === NEXT_PUBLIC_STRIPE_SUB_PARTNER) return 'partner'
   return null
 }
@@ -106,7 +106,7 @@ export async function revokeMembershipRole(
 }
 
 export async function revokeAllMembershipRoles(discordUserId: string): Promise<void> {
-  const tiers: DiscordMembership[] = ['regular', 'ranchHand', 'partner']
+  const tiers: DiscordMembership[] = ['regular', 'ranch-hand', 'partner']
   await Promise.allSettled(tiers.map(t => revokeMembershipRole(discordUserId, t)))
   console.log(`[Discord] Revoked all membership roles from user ${discordUserId}`)
 }

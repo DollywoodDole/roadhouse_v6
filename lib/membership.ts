@@ -8,7 +8,7 @@
  * in Next.js server components and route handlers.
  */
 
-export type MembershipTier = 'regular' | 'ranchHand' | 'partner'
+export type MembershipTier = 'regular' | 'ranch-hand' | 'partner'
 export type ProductType    = 'membership' | 'merch' | 'digital' | 'event' | 'adventure' | 'sponsorship'
 
 // ── Tier metadata ─────────────────────────────────────────────────────────────
@@ -18,9 +18,9 @@ export const TIER_META: Record<MembershipTier, {
   price:        string
   roadPerMonth: string
 }> = {
-  regular:  { displayName: 'Regular',    price: '$19.99/mo CAD',  roadPerMonth: '100 $ROAD'    },
-  ranchHand:{ displayName: 'Ranch Hand', price: '$99.99/mo CAD',  roadPerMonth: '500 $ROAD'    },
-  partner:  { displayName: 'Partner',    price: '$199.98/mo CAD', roadPerMonth: '2,000 $ROAD'  },
+  regular:       { displayName: 'Regular',    price: '$19.99/mo CAD',  roadPerMonth: '100 $ROAD'    },
+  'ranch-hand':  { displayName: 'Ranch Hand', price: '$99.99/mo CAD',  roadPerMonth: '500 $ROAD'    },
+  partner:       { displayName: 'Partner',    price: '$199.98/mo CAD', roadPerMonth: '2,000 $ROAD'  },
 }
 
 // ── Price ID lookup helpers (evaluated at runtime) ────────────────────────────
@@ -32,7 +32,7 @@ export function getMembershipTier(priceId: string): MembershipTier | null {
     NEXT_PUBLIC_STRIPE_SUB_PARTNER,
   } = process.env
   if (NEXT_PUBLIC_STRIPE_SUB_REGULAR && priceId === NEXT_PUBLIC_STRIPE_SUB_REGULAR) return 'regular'
-  if (NEXT_PUBLIC_STRIPE_SUB_RANCH   && priceId === NEXT_PUBLIC_STRIPE_SUB_RANCH)   return 'ranchHand'
+  if (NEXT_PUBLIC_STRIPE_SUB_RANCH   && priceId === NEXT_PUBLIC_STRIPE_SUB_RANCH)   return 'ranch-hand'
   if (NEXT_PUBLIC_STRIPE_SUB_PARTNER && priceId === NEXT_PUBLIC_STRIPE_SUB_PARTNER) return 'partner'
   return null
 }

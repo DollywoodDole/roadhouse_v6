@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         const monthsActive = Math.floor(
           (Date.now() - sub.start_date * 1000) / (1000 * 60 * 60 * 24 * 30)
         )
-        const rateMap: Record<string, number> = { regular: 100, ranchHand: 500, partner: 2000 }
+        const rateMap: Record<string, number> = { regular: 100, 'ranch-hand': 500, partner: 2000 }
         roadBalance = (monthsActive + 1) * (rateMap[tier] ?? 0)
       }
     } catch {
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         const monthsActive = Math.floor(
           (Date.now() - sub.start_date * 1000) / (1000 * 60 * 60 * 24 * 30)
         )
-        const rateMap: Record<string, number> = { regular: 100, ranchHand: 500, partner: 2000 }
+        const rateMap: Record<string, number> = { regular: 100, 'ranch-hand': 500, partner: 2000 }
         roadBalance = (monthsActive + 1) * (rateMap[tier] ?? 0)
       }
     }
