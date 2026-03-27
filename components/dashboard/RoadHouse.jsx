@@ -18,6 +18,7 @@ import {
   TIER_DISPLAY,
   getNextTier,
 } from '@/lib/profile'
+import { getListings, createListing } from '@/lib/api/listings'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -360,65 +361,88 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
 // ── Tab 2: ECONOMY ───────────────────────────────────────────────────────────
 
 function EconomyTab({ walletAddress }) {
-  // TODO: wire to lib/api/listings.ts — hardcoded sample listings
-  // First offering row shows connected wallet as a prompt — replace all with lib/api/listings.ts
-  const offering = [
-    { tag: 'VIDEO EDITING', addr: walletAddress ?? '0xAB...3F', desc: '30-min Kick clip turnaround, 48hr' },
-    { tag: 'DESIGN',        addr: '0xCD...7A', desc: 'Thumbnail + overlay package' },
-    { tag: 'TRANSLATION',   addr: '0xEF...2B', desc: 'EN→FR, tech/gaming content' },
-  ]
-  const seeking = [
-    { tag: 'DEV',     addr: '0x12...9C', desc: 'Need Solana wallet integration review' },
-    { tag: 'EVENTS',  addr: '0x34...1D', desc: 'Looking for SK-based event host' },
-    { tag: 'CONTENT', addr: '0x56...8E', desc: 'VOD clip assistant, 5hrs/week' },
-  ]
+  const [listings,        setListings]        = useState({ offering: [], seeking: [] })
+  const [listingsLoading, setListingsLoading] = useState(true)
+  const [postMsg,         setPostMsg]         = useState(null)
+
+  useEffect(() => {
+    setListingsLoading(true)
+    getListings()
+      .then(data => { setListings(data); setListingsLoading(false) })
+      .catch(() => setListingsLoading(false))
+  }, [])
 
   return (
     <div className="rh-tab-body">
       <SectionHead>Member Marketplace</SectionHead>
 
-      <div className="rh-grid-2">
-        {/* Offering column */}
-        <Card>
-          <Label color="teal">Offering</Label>
-          <div className="rh-stack-list">
-            {offering.map(l => (
-              <div key={l.addr} style={{ paddingBottom: '0.75rem', borderBottom: '1px solid #1a1712', marginBottom: '0.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.2rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--accent3)', border: '1px solid rgba(74,240,200,0.2)', borderRadius: 2, padding: '0.1rem 0.4rem' }}>
-                    {l.tag}
-                  </span>
-                  <span style={{ fontSize: '0.62rem', color: '#4a4238' }}>{l.addr}</span>
+      {listingsLoading ? (
+        <div style={{ color: '#8a7d6a', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', padding: '1rem 0' }}>
+          Loading marketplace...
+        </div>
+      ) : (
+        <div className="rh-grid-2">
+          {/* Offering column */}
+          <Card>
+            <Label color="teal">Offering</Label>
+            <div className="rh-stack-list">
+              {listings.offering.map((l, i) => (
+                <div key={l.id} style={{ paddingBottom: '0.75rem', borderBottom: '1px solid #1a1712', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.2rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--accent3)', border: '1px solid rgba(74,240,200,0.2)', borderRadius: 2, padding: '0.1rem 0.4rem' }}>
+                      {l.category}
+                    </span>
+                    <span style={{ fontSize: '0.62rem', color: '#4a4238' }}>
+                      {i === 0 ? (walletAddress ?? l.walletAlias) : l.walletAlias}
+                    </span>
+                  </div>
+                  <span className="rh-stack-role">{l.description}</span>
                 </div>
-                <span className="rh-stack-role">{l.desc}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
 
-        {/* Seeking column */}
-        <Card>
-          <Label color="gold">Seeking</Label>
-          <div className="rh-stack-list">
-            {seeking.map(l => (
-              <div key={l.addr} style={{ paddingBottom: '0.75rem', borderBottom: '1px solid #1a1712', marginBottom: '0.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.2rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--accent)', border: '1px solid rgba(232,200,74,0.2)', borderRadius: 2, padding: '0.1rem 0.4rem' }}>
-                    {l.tag}
-                  </span>
-                  <span style={{ fontSize: '0.62rem', color: '#4a4238' }}>{l.addr}</span>
+          {/* Seeking column */}
+          <Card>
+            <Label color="gold">Seeking</Label>
+            <div className="rh-stack-list">
+              {listings.seeking.map(l => (
+                <div key={l.id} style={{ paddingBottom: '0.75rem', borderBottom: '1px solid #1a1712', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.2rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--accent)', border: '1px solid rgba(232,200,74,0.2)', borderRadius: 2, padding: '0.1rem 0.4rem' }}>
+                      {l.category}
+                    </span>
+                    <span style={{ fontSize: '0.62rem', color: '#4a4238' }}>{l.walletAlias}</span>
+                  </div>
+                  <span className="rh-stack-role">{l.description}</span>
                 </div>
-                <span className="rh-stack-role">{l.desc}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Post a Listing — no <form>, div + onClick */}
-      {/* TODO: wire to lib/api/listings.ts createListing() */}
       <div
-        onClick={() => {}}
+        onClick={() => {
+          createListing({
+            type:         'offering',
+            category:     'GENERAL',
+            walletAlias:  walletAddress ?? 'Anonymous',
+            description:  'New listing — edit coming in M3',
+            tierRequired: 'ranch-hand',
+          }).then(newListing => {
+            setListings(prev => ({
+              ...prev,
+              offering: [newListing, ...prev.offering],
+            }))
+            setPostMsg('Listing submitted — pending review')
+            setTimeout(() => setPostMsg(null), 3000)
+          }).catch(() => {
+            setPostMsg('Failed to post — try again')
+            setTimeout(() => setPostMsg(null), 3000)
+          })
+        }}
         role="button"
         style={{
           border: '1px solid var(--accent)', borderRadius: 3, padding: '0.75rem',
@@ -429,6 +453,12 @@ function EconomyTab({ walletAddress }) {
       >
         Post a Listing
       </div>
+
+      {postMsg && (
+        <div style={{ color: 'var(--accent3)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '12px' }}>
+          {postMsg}
+        </div>
+      )}
 
       <p className="rh-muted" style={{ fontSize: '0.65rem', textAlign: 'center', marginTop: '0.75rem' }}>
         Ranch Hand+ to post · Regular to browse
