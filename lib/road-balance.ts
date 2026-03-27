@@ -5,9 +5,22 @@
  *
  * KV key schema:
  *   road:{stripeCustomerId}  →  RoadBalance JSON
+ *   wallet:{walletAddress}   →  stripeCustomerId (reverse index)
+ *   evt:{stripeEventId}      →  1  (idempotency guard — written by webhook handler)
  */
 
 import { Redis } from '@upstash/redis'
+
+// ── MemberTier — defined inline to avoid circular import with lib/profile.ts ──
+// profile.ts imports normaliseTier from this file; importing profile.ts here
+// would create a circular dependency. Both definitions are structurally identical.
+export type MemberTier =
+  | 'guest'
+  | 'regular'
+  | 'ranch-hand'
+  | 'partner'
+  | 'steward'
+  | 'praetor'
 
 export interface RoadBalance {
   email:            string
@@ -16,6 +29,22 @@ export interface RoadBalance {
   balance:          number
   tier:             'guest' | 'regular' | 'ranch' | 'partner' | 'steward' | 'praetor'
   history:          { date: string; amount: number; reason: string }[]
+  // ── Profile fields — set via updateProfileFields() ──────────────────────────
+  alias?:             string | null
+  bio?:               string | null
+  avatarUrl?:         string | null
+  guild?:             'media' | 'builder' | 'frontier' | 'venture' | null
+  joinedAt?:          string
+  contributions?:     {
+    id:         string
+    date:       string
+    label:      string
+    roadEarned: number
+    guildId:    string | null
+    verified:   boolean
+  }[]
+  experimentsJoined?: number
+  currentStreak?:     number
 }
 
 export const ACCRUAL: Record<string, number> = {
@@ -111,6 +140,8 @@ export async function accrueMonthlyRoad(
 
 /**
  * Registers a Solana wallet address for airdrop at mainnet launch.
+ * Also writes a reverse-index key wallet:{address} → stripeCustomerId
+ * so getCustomerIdByWallet() can look up a member without scanning all keys.
  */
 export async function registerWallet(
   stripeCustomerId: string,
@@ -121,5 +152,73 @@ export async function registerWallet(
 
   const updated: RoadBalance = { ...existing, walletAddress }
   await setRoadBalance(updated)
+  // Reverse index — enables wallet-address → customerId lookup
+  await getRedis().set(`wallet:${walletAddress}`, stripeCustomerId)
   return updated
+}
+
+/**
+ * Looks up a Stripe customer ID from a Solana wallet address.
+ * Returns null if the wallet has not been registered via registerWallet().
+ */
+export async function getCustomerIdByWallet(walletAddress: string): Promise<string | null> {
+  return getRedis().get<string>(`wallet:${walletAddress}`)
+}
+
+/**
+ * Merges profile field updates into an existing RoadBalance record.
+ * Throws if no record exists for stripeCustomerId.
+ */
+export async function updateProfileFields(
+  stripeCustomerId: string,
+  updates: Partial<Pick<RoadBalance, 'alias' | 'bio' | 'avatarUrl' | 'guild'>>,
+): Promise<void> {
+  const existing = await getRoadBalance(stripeCustomerId)
+  if (!existing) throw new Error('No RoadBalance record for ' + stripeCustomerId)
+  await setRoadBalance({ ...existing, ...updates })
+}
+
+/**
+ * Prepends a contribution to the member's history.
+ * Keeps a maximum of 50 entries (most recent first).
+ * Throws if no record exists for stripeCustomerId.
+ */
+export async function addContribution(
+  stripeCustomerId: string,
+  contribution: {
+    id:         string
+    date:       string
+    label:      string
+    roadEarned: number
+    guildId:    string | null
+    verified:   boolean
+  },
+): Promise<void> {
+  const existing = await getRoadBalance(stripeCustomerId)
+  if (!existing) throw new Error('No RoadBalance record for ' + stripeCustomerId)
+  const contributions = [contribution, ...(existing.contributions ?? [])].slice(0, 50)
+  await setRoadBalance({ ...existing, contributions })
+}
+
+/**
+ * Maps any tier string format to the profile.ts MemberTier (hyphen) format.
+ * Bridges three formats used across the codebase:
+ *   'ranch'       — KV / road-balance.ts  (TIER_TO_ROAD_TIER output)
+ *   'ranchHand'   — lib/solana.ts         (getTierFromBalance output)
+ *   'ranch-hand'  — lib/profile.ts        (MemberTier type)
+ * MemberTier is defined inline above — not imported from profile.ts
+ * to avoid a circular dependency.
+ */
+export function normaliseTier(raw: string | null | undefined): MemberTier {
+  const map: Record<string, MemberTier> = {
+    guest:        'guest',
+    regular:      'regular',
+    ranch:        'ranch-hand',
+    ranchHand:    'ranch-hand',
+    'ranch-hand': 'ranch-hand',
+    partner:      'partner',
+    steward:      'steward',
+    praetor:      'praetor',
+  }
+  return map[raw ?? 'guest'] ?? 'guest'
 }
