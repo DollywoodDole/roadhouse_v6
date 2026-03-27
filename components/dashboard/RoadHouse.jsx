@@ -20,6 +20,7 @@ import {
 } from '@/lib/profile'
 import { getListings, createListing } from '@/lib/api/listings'
 import { getActiveExperiment, submitDailyEntry, getAggregateStats } from '@/lib/api/experiments'
+import { getActiveBounties, claimBounty } from '@/lib/api/bounties'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -636,7 +637,7 @@ function DeSciTab({ walletAddress }) {
 
 // ── Tab 4: GUILD ─────────────────────────────────────────────────────────────
 
-function GuildTab() {
+function GuildTab({ walletAddress }) {
   // Live week indicator — clamped 1–8 relative to sprint start April 1 2026
   // Before April 1 2026: clamps to WEEK 1
   // After week 8 end: clamps to WEEK 8
@@ -655,12 +656,29 @@ function GuildTab() {
     8: 'M2 Review',
   }
 
-  // TODO: wire to lib/api/bounties.ts
-  const bounties = [
-    { task: "Clip 3 VOD highlights from this week's stream", road: '+200 $ROAD' },
-    { task: 'Translate 1 post to French or Spanish',         road: '+150 $ROAD' },
-    { task: 'Submit 1 TikTok script draft',                  road: '+100 $ROAD' },
-  ]
+  const [bounties,        setBounties]        = useState([])
+  const [bountiesLoading, setBountiesLoading] = useState(true)
+  const [claimMsg,        setClaimMsg]        = useState(null)
+  const [claimedIds,      setClaimedIds]      = useState([])
+
+  useEffect(() => {
+    getActiveBounties('media')
+      .then(b => { setBounties(b); setBountiesLoading(false) })
+      .catch(() => setBountiesLoading(false))
+  }, [])
+
+  const handleClaim = (bountyId) => {
+    claimBounty(walletAddress ?? 'anonymous', bountyId)
+      .then(() => {
+        setClaimedIds(prev => [...prev, bountyId])
+        setClaimMsg('Bounty claimed — pending steward review')
+        setTimeout(() => setClaimMsg(null), 3000)
+      })
+      .catch(e => {
+        setClaimMsg(e.message)
+        setTimeout(() => setClaimMsg(null), 3000)
+      })
+  }
 
   const milestones = [
     {
@@ -714,19 +732,46 @@ function GuildTab() {
         </div>
 
         <Label>Active Bounties</Label>
-        {/* TODO: wire to lib/api/bounties.ts */}
         <div className="rh-stack-list" style={{ marginBottom: '1rem' }}>
-          {bounties.map(b => (
-            <div key={b.task} className="rh-stack-item">
-              <span style={{ fontSize: '0.7rem', color: '#4a4238', flexShrink: 0 }}>[ ]</span>
-              <span className="rh-stack-role" style={{ flex: 1 }}>{b.task}</span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>{b.road}</span>
+          {bountiesLoading ? (
+            <div className="rh-muted" style={{ fontSize: '0.72rem', padding: '0.5rem 0' }}>
+              LOADING BOUNTIES...
             </div>
-          ))}
+          ) : (
+            bounties.map(b => {
+              const claimed = claimedIds.includes(b.id)
+              return (
+                <div key={b.id} className="rh-stack-item">
+                  <span
+                    role="checkbox"
+                    aria-checked={claimed}
+                    onClick={claimed ? undefined : () => handleClaim(b.id)}
+                    style={{
+                      fontSize: '0.7rem', color: claimed ? 'var(--accent3)' : '#4a4238',
+                      flexShrink: 0, cursor: claimed ? 'default' : 'pointer',
+                    }}
+                  >
+                    {claimed ? '[✓]' : '[ ]'}
+                  </span>
+                  <span className="rh-stack-role" style={{ flex: 1 }}>{b.label}</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                    +{b.roadReward} $ROAD
+                  </span>
+                </div>
+              )
+            })
+          )}
         </div>
+
+        {claimMsg && (
+          <div style={{ fontSize: '0.68rem', color: 'var(--accent3)', marginBottom: '0.75rem' }}>
+            {claimMsg}
+          </div>
+        )}
 
         <div
           onClick={() => {}}
+          // Claiming is per-bounty — click the checkbox on each row
           role="button"
           style={{
             border: '1px solid #2a2318', borderRadius: 3, padding: '0.6rem',
@@ -898,7 +943,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
     'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} walletAddress={walletAddress} />,
     'ECONOMY':      <EconomyTab walletAddress={walletAddress} />,
     'DESCI':        <DeSciTab walletAddress={walletAddress} />,
-    'GUILD':        <GuildTab />,
+    'GUILD':        <GuildTab walletAddress={walletAddress} />,
     'TREASURY':     <TreasuryTab memberTier={memberTier} />,
   }
 
