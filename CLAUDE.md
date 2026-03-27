@@ -351,16 +351,9 @@ Fix in this exact order. Do not skip ahead.
   - ✅ All Vercel env vars set (Discord, Stripe, Resend, KV)
   - ✅ `/verify` slash command registered (id: `1485399699828637787`)
   - ✅ All routes verified: `/` 200, `/api/webhooks/stripe` 405 GET/200 POST, `/api/discord/interactions` 405 GET, `/api/webhook` 410 POST, `/compound` 200, `/partners` 200
-  - ✅ Stripe routing confirmed: events arrive at live endpoint, 400s are signature rejection (correct — CLI secret ≠ dashboard secret). Prod test: Stripe Dashboard → Send test event directly.
-  - ⏳ Discord Interactions Endpoint URL: set `https://roadhouse.capital/api/discord/interactions` in Discord Developer Portal — manual step, not yet confirmed
+  - ✅ Stripe webhook e2e confirmed: `stripe trigger checkout.session.completed` → `pending_webhooks: 0` — delivery confirmed 200. Endpoint `we_1TBiDKDv5Ly4OO7EYeMIvFTZ` enabled. Note: `stripe listen --forward-to` always 400 (CLI secret ≠ dashboard secret — signature guard correct).
+  - ✅ Discord Interactions Endpoint: set via `PATCH /applications/@me` — Discord PING received, PONG returned, URL confirmed accepted — 2026-03-28
 - **#25** — GitHub Pages community dashboard: treasury + member count + $ROAD + guilds
-
-### Stripe Webhook Testing Note
-
-`stripe listen --forward-to https://roadhouse.capital/api/webhooks/stripe` will always 400 — the CLI uses its own signing secret, the live deployment uses the Stripe Dashboard secret. This is correct behavior (signature guard working).
-
-- **Local test:** `stripe listen --forward-to localhost:3000/api/webhooks/stripe` (uses `.env.local` secret)
-- **Prod test:** Stripe Dashboard → Developers → Webhooks → Send test event to `https://roadhouse.capital/api/webhooks/stripe`
 
 ### Carry into M3
 
