@@ -315,9 +315,9 @@ Fix in this exact order. Do not skip ahead.
 - **#12** — $ROAD tokenomics spec locked + legal opinion documented
 - ✅ **#13** — Off-chain $ROAD balance tracking in Vercel KV (web2 bridge)
 - ✅ **#14** — Wallet connect polished: Phantom + Solflare devnet, register wallet → KV
-- **#15** — Squads multisig: architecture spec + devnet deploy
-- **#16** — DAO governance spec: Snapshot + Aragon, `/docs/governance-spec.md`
-- **#17** — Founding NFT: Candy Machine v3 spec + art brief (500 supply, 3 SOL, soul-bound 12mo, undisclosed $ROAD airdrop at mainnet)
+- ✅ **#15** — Squads multisig: architecture spec (`docs/multisig-spec.md`) — devnet deploy pending signer keys
+- ✅ **#16** — DAO governance spec: Snapshot + Aragon (`docs/governance-spec.md`)
+- ✅ **#17** — Founding NFT: Candy Machine v3 spec + art brief (`docs/founding-nft-spec.md`) — art not yet commissioned
 
 ### 🟢 M3 — Adventure NFTs + DAO (June)
 - **#18** — Adventure #001: Lake Trip (BC/AB, summer 2026, `/adventures/lake-trip`, $199 deposit)
@@ -594,7 +594,7 @@ Payment: Stripe or e-transfer. Contact: roadhousesyndicate@gmail.com
 ## M2 Sprint — Dashboard Activation
 
 Sprint window: Late March → End of April 2026
-Status: In progress — pick up across sessions, consolidate end of April
+Status: **COMPLETE** — 2026-03-27
 
 ### Problem Statement
 
@@ -610,51 +610,67 @@ M2 rework complete: 6 brochure tabs → 5 functional member tabs.
 - **GUILD:** live week indicator, bounty board, execution timeline
 - **TREASURY:** DAO balance, active votes, reinvestment split
 
-### Remaining M2 Build Items (additive — do not touch reworked tabs)
+### M2 Docs — Completed
 
-1. **MY ROADHOUSE — wire $ROAD balance**
-   File: `components/dashboard/RoadHouse.jsx` (MY ROADHOUSE tab)
-   Source: `lib/solana.ts` `getTierFromBalance` (exists, needs calling)
+- `docs/governance-spec.md` — DAO framework, proposal lifecycle (4 phases),
+  multisig signer structure (3-of-5), scope limitations, Snapshot + Aragon
+- `docs/multisig-spec.md` — Squads v4 setup, devnet checklist, mainnet
+  migration steps, transaction types, codebase integration points
+- `docs/founding-nft-spec.md` — Candy Machine v3 config, art brief
+  (5 variants × 100), soul-bound pNFT spec, mint flow integration
 
-2. **Economy — wire listings board**
-   File: `components/dashboard/economy/ListingsBoard.tsx` (create)
-   Source: `lib/api/listings.ts` (does not exist yet)
+### M2 Status: COMPLETE
 
-3. **DeSci — wire experiment data**
-   File: `components/dashboard/desci/ExperimentCard.tsx` (create)
-   Source: `lib/api/experiments.ts` (does not exist yet)
+All code and docs delivered. End-of-April review done early — 2026-03-27.
+M3 begins May 2026.
 
-4. **Guild — live week indicator is live** (Date.now() calc)
-   Bounty claiming: `lib/api/bounties.ts` (does not exist yet)
-
-5. **Treasury — wire Gnosis Safe**
-   Source: `lib/gnosis.ts` (does not exist yet)
-
-### Build Rules for Remaining M2 Sessions
-
-- Each session: ONE feature. Build, confirm renders, commit.
-- All new data hardcoded with `// TODO` comments referencing data source
-- Design system: inherit `RoadHouse.jsx` CSS variables exactly, no new vars
-- No new dependencies without checking `package.json` first
-
-### What NOT to Build in M2
-
-- On-chain settlement for listings (M3)
-- Real $ROAD balance fetch (M3 — after `lib/solana.ts` tier logic complete)
-- Experiment data persistence (M3)
-- Gnosis Safe live treasury (M3)
-- Any changes to MemberGate or wallet connection logic
-
-### Open Flags (do not fix in M2)
+### Open Flags (carry into M3)
 
 - `lib/solana.ts` `totalSupply` — **fixed to `100_000_000`** (commit `6cb817d`)
 - RoadToken.tsx supply fully corrected — 100M across stats grid, allocation array, and section header (commits `992a828` + `a3069e5`)
 - Entity name standardised to **Praetorian Holdings Corp.** across all files (commit `7bba405`)
+- Wallet orphan risk in `registerWallet()` — old `wallet:{prev}` key not deleted on switch (TODO M3 comment in `lib/road-balance.ts`)
 
-### End of April
+---
 
-Full M2 review. Update this section with what shipped. Begin M3 planning:
-- Real $ROAD balance → tier enforcement
-- Listings persistence
-- Experiment data layer
-- Gnosis Safe integration
+## M3 Scope — June 2026
+
+### Code
+
+- `lib/solana.ts` → real on-chain $ROAD balance via `getTokenAccountsByOwner()`
+  in `getProfile()` — replace KV fallback with live SPL token fetch
+- `RoadHouse.jsx` → real tier derived from on-chain balance, not KV record
+- `lib/metaplex.ts` (create) → `mintFoundingNFT()`, `verifyFoundingNFTOwnership()`
+  + `getAssetsByOwner()` for credential fetch in `lib/profile.ts`
+- `lib/squads.ts` (create) → `proposeTreasuryTransfer()`, `approveTransaction()`,
+  `executeTransaction()` — replaces read-only `lib/gnosis.ts` with full multisig ops
+- `lib/road-monitor.ts` (create) → community bucket monitor: current balance,
+  months to depletion, 30-day governance notification trigger
+- `/profile/[wallet]` public page — member profile visible to other members
+- Wallet orphan cleanup in `registerWallet()` — delete old `wallet:{prev}` KV key
+  before writing new reverse index
+
+### Listings / Marketplace (M3 wire-up)
+- Auth check in `createListing()` — verify `walletAlias` matches connected wallet
+- Tier check in `createListing()` — verify caller meets `tierRequired`
+- Pagination + sort by `createdAt desc` in `getListings()`
+
+### DeSci (M3 wire-up)
+- Cross-member aggregate in `submitDailyEntry()` — replace single-member calc
+  with proper query across all `experiment:log:*` keys
+- Admin route to set new active experiment
+
+### Guild (M3 wire-up)
+- Steward verification flow in `claimBounty()` — mark `'verified'`, trigger
+  `addContribution()` + $ROAD credit
+- Admin route to post new bounties per guild
+
+### Treasury (M3 wire-up)
+- Parse Gnosis token balances properly in `getTreasurySnapshot()` — filter for
+  $ROAD SPL token + SOL native balance
+- Wire Snapshot.org GraphQL API in `getGovernanceVotes()`
+
+### NFT + DAO
+- Candy Machine devnet deploy + art commission (see `docs/founding-nft-spec.md`)
+- Squads devnet deploy (see `docs/multisig-spec.md`)
+- Snapshot space + Aragon DAO deploy (see `docs/governance-spec.md`)
