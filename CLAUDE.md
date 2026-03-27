@@ -170,10 +170,16 @@ Rules for this layer:
   test-e2e.ts                   ← npm run test-e2e — full webhook + KV smoke test
 
 /docs
-  stripe-products.md  ← All Stripe product + price ID documentation
-  tokenomics.md       ← Public $ROAD tokenomics paper
-  governance-spec.md  ← DAO governance architecture
-  env-guide.md        ← Env var documentation (no values)
+  stripe-products.md     ← All Stripe product + price ID documentation
+  tokenomics.md          ← Public $ROAD tokenomics paper
+  governance-spec.md     ← DAO governance architecture
+  env-guide.md           ← Env var documentation (no values)
+  membership-model.md    ← Four-function bundle (subscription/ROAD/governance/NFT), NFT qualify-not-buy reframe,
+                            securities positioning (Howey + CSA 46-308), grant separation principle
+  guild-economy.md       ← Four-layer guild loop (guild→bounty→contribution→ROAD), steward verification
+                            as M3 keystone, bounty lifecycle, grant narrative framing
+  compound-node-model.md ← Unified DeSci/compound thesis, Saskatchewan flagship timeline,
+                            node scaling model, grant narratives for Mitacs/SaskInnovates/SR&ED
 ```
 
 ---
@@ -435,11 +441,19 @@ re-validating all thresholds before any contract or UI update.
 ## Founding NFT
 
 - **Supply:** 500
-- **Price:** 3 SOL
+- **Price:** 3 SOL (acceleration mechanism — not primary narrative)
+- **Framing:** "Qualify, don't buy." The credential derives value from what it represents — verified early participation — not its purchase price. Never lead with price.
+- **Qualification triggers (any one suffices):**
+  1. Reach Ranch Hand tier organically (subscription + verified contribution)
+  2. Attend the first physical compound event in person
+  3. Complete a full 30-day DeSci protocol sprint
+  4. Be among the first 500 wallets in the founding member waitlist
+- **Optional mint fee:** For members who have not yet reached Ranch Hand organically — acceleration only. Present as "accelerate your qualification," never as "purchase to receive."
 - **Soul-bound:** 12 months post-mint (non-transferable)
-- **$ROAD airdrop:** Founding holders qualify for an undisclosed allocation at mainnet launch. Amount is not public. Will be announced at launch.
+- **$ROAD airdrop:** Founding holders qualify for an undisclosed allocation at mainnet launch. Amount is not public. Framing: "recognition at mainnet" — never "buy NFT and receive tokens."
 - **No CAD price shown on site** — SOL only
 - **Revenue split:** 70% treasury · 20% operations · 10% founder
+- **Securities note:** The undisclosed allocation is intentionally vague. Never connect the 3 SOL payment to a specific $ROAD amount. Purchase → token expectation = Howey exposure. See `docs/membership-model.md` §Function 4.
 
 ---
 
@@ -535,6 +549,7 @@ Any Regular+ member can apply. Applications at `/guilds`.
 ## Code Standards
 
 - **TypeScript strict** — no `any`, no `ts-ignore` without comment
+- **Membership tier format** — canonical string is `'ranch-hand'` in all Stripe/Discord/KV code. `lib/solana.ts` intentionally returns `'ranchHand'` (devnet only — passes through `normaliseTier()` at the profile boundary). Never introduce a fourth variant. `normaliseTier()` in `lib/road-balance.ts` maps all three → `'ranch-hand'`.
 - **Never commit secrets** — all env vars via Vercel, never in code
 - **API routes** — always return structured JSON, always handle errors, always log
 - **Stripe** — always verify webhook signature, always return 200, always idempotent
@@ -577,6 +592,22 @@ Payment: Stripe or e-transfer. Contact: roadhousesyndicate@gmail.com
 | CMF Experimental | $100k–$500k | Q4 2026 |
 
 **Log all agent development work with dates and hours — eligible SR&ED activity.**
+
+### Grant Separation Principle (do not conflate)
+
+Grants fund the **substrate**, not the membership product. The membership product runs on top of the substrate.
+
+| Grant | Funds | Never mention |
+|---|---|---|
+| SR&ED | DeSci experiments, platform R&D | $ROAD, membership |
+| IRAP | Platform development infrastructure | Tokens, DAO |
+| SaskInnovates | Regional community infrastructure | Membership tiers |
+| CMF | Media layer | Token economy |
+| Mitacs (U of S) | Applied research partnership | Any commercial product |
+
+Framing that gets funded: *"We are building a Saskatchewan-based applied research community with a digital coordination layer, supported by non-dilutive government funding."*
+Not: *"We are building a token-based community."* Same operation. Different framing. Different outcome.
+See `docs/membership-model.md` §Grant Separation Principle.
 
 ---
 
@@ -643,7 +674,7 @@ M3 begins May 2026.
 - `lib/metaplex.ts` (create) → `mintFoundingNFT()`, `verifyFoundingNFTOwnership()`
   + `getAssetsByOwner()` for credential fetch in `lib/profile.ts`
 - `lib/squads.ts` (create) → `proposeTreasuryTransfer()`, `approveTransaction()`,
-  `executeTransaction()` — replaces read-only `lib/gnosis.ts` with full multisig ops
+  `executeTransaction()` — wraps Squads v4 SDK; replaces placeholder stubs in `lib/treasury.ts`
 - `lib/road-monitor.ts` (create) → community bucket monitor: current balance,
   months to depletion, 30-day governance notification trigger
 - `/profile/[wallet]` public page — member profile visible to other members
@@ -666,11 +697,52 @@ M3 begins May 2026.
 - Admin route to post new bounties per guild
 
 ### Treasury (M3 wire-up)
-- Parse Gnosis token balances properly in `getTreasurySnapshot()` — filter for
-  $ROAD SPL token + SOL native balance
+- Wire Squads treasury balance in `lib/squads.ts` → `getTreasurySnapshot()` — filter for
+  $ROAD SPL token + SOL native balance (Solana-native; no Gnosis/EVM)
 - Wire Snapshot.org GraphQL API in `getGovernanceVotes()`
 
 ### NFT + DAO
 - Candy Machine devnet deploy + art commission (see `docs/founding-nft-spec.md`)
 - Squads devnet deploy (see `docs/multisig-spec.md`)
 - Snapshot space + Aragon DAO deploy (see `docs/governance-spec.md`)
+
+---
+
+## M3 Keystone — Steward Verification
+
+**Nothing in M3 ships until steward verification works.**
+
+The dependency chain, in strict order:
+1. **Steward verification** — authenticate steward wallet (≥10k $ROAD, assigned to guild), write approval + timestamp to contribution record, trigger $ROAD release from treasury PDA, emit tx hash back to record, mark bounty approved
+2. **$ROAD distribution** — unblocked by (1)
+3. **Contribution record** — has verified entries after (1)
+4. **Tier advancement from earned $ROAD** — unblocked after (2)
+5. **NFT Ranch Hand qualification pathway** — verifiable after (3)
+6. **Grant applications citing "community contribution infrastructure"** — auditable after (3)
+
+See `docs/guild-economy.md` §The Critical Missing Piece for the full specification.
+
+---
+
+## Session Log — 2026-03-27
+
+### Committed This Session
+
+| Commit | Change |
+|---|---|
+| `b7b374d` | docs: three internal reference files (membership-model, guild-economy, compound-node-model) |
+| `b8784ea` | fix: retire dead webhook (410), standardise tier to ranch-hand, bigint serverExternalPackages |
+| `d9f506a` | fix: site audit — securities language, broken FoundingMint CTA, TypeScript any→unknown, Squads ref |
+
+### Resolved Issues
+- `app/api/webhook/route.ts` — retired; returns 410 Gone pointing to canonical `/api/webhooks/stripe/route.ts`
+- Tier format standardised to `'ranch-hand'` across: `lib/membership.ts`, `lib/discord.ts`, `lib/road-balance.ts`, `app/api/discord/assign-role`, `app/api/discord/revoke-role`, `app/api/portal/session`
+- `next.config.js` — `serverExternalPackages: ['bigint-buffer']` suppresses Solana native binding warning
+- `app/api/subscription/route.ts` — removed Howey-adjacent custom_text linking payment to $ROAD credit
+- `components/sections/FoundingMint.tsx` — replaced broken `buy.stripe.com/checkout?price=` URL with `/api/subscription` call
+- `components/sections/Guilds.tsx` — "Gnosis Safe" → "Squads" (Solana); stat card label corrected
+
+### Next Session Priorities (in order)
+1. **`/compound` page** — build `app/compound/page.tsx` drawing from `docs/compound-node-model.md`; compound access tier table, interest registration form (POST `/api/contact` with type `'Compound — Waitlist Interest'`), mobile-first
+2. **`/partners` page** — partner-tier member landing: guild leadership CTA, treasury visibility explainer, 1-on-1 booking link
+3. **M3 kickoff** — `lib/squads.ts` architecture + devnet deploy prep (see `docs/multisig-spec.md`); begin steward verification spec
