@@ -79,6 +79,14 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
   const [profile, setProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
 
+  // Edit modal state
+  const [editOpen,     setEditOpen]     = useState(false)
+  const [editAlias,    setEditAlias]    = useState('')
+  const [editBio,      setEditBio]      = useState('')
+  const [editAvatarUrl, setEditAvatarUrl] = useState('')
+  const [saving,       setSaving]       = useState(false)
+  const [saveMsg,      setSaveMsg]      = useState(null)
+
   useEffect(() => {
     if (!walletAddress) { setProfileLoading(false); return }
     setProfileLoading(true)
@@ -86,6 +94,15 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
       .then(p => { setProfile(p); setProfileLoading(false) })
       .catch(() => setProfileLoading(false))
   }, [walletAddress])
+
+  // Pre-fill edit fields from current profile whenever modal opens
+  useEffect(() => {
+    if (editOpen && profile) {
+      setEditAlias(profile.alias ?? '')
+      setEditBio(profile.bio ?? '')
+      setEditAvatarUrl(profile.avatarUrl ?? '')
+    }
+  }, [editOpen, profile])
 
   // Derive display values — profile.tier takes precedence over wrapper prop
   const tier       = profile?.tier ?? memberTier ?? 'guest'
@@ -121,9 +138,8 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
           <div style={{ background: '#2a2318', borderRadius: 2, height: 6 }}>
             <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent)', borderRadius: 2, transition: 'width 0.4s ease' }} />
           </div>
-          {/* TODO: setEditOpen(true) — wired in session 2 */}
           <button
-            onClick={() => {}}
+            onClick={() => setEditOpen(true)}
             style={{
               marginTop: '0.75rem',
               background: 'transparent',
@@ -140,6 +156,150 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
             Edit Profile →
           </button>
         </Card>
+      )}
+
+      {/* Edit profile panel — renders below tier block when editOpen */}
+      {editOpen && (
+        <div style={{
+          background: '#111009',
+          border: '1px solid #2a2318',
+          padding: '1.5rem',
+          marginTop: '1rem',
+          opacity: 1,
+          transition: 'opacity 0.2s ease',
+        }}>
+          <Label color="gold">Edit Profile</Label>
+
+          {/* Field 1 — Alias */}
+          <div style={{ marginTop: '1rem' }}>
+            <Label>Display Name</Label>
+            <input
+              type="text"
+              value={editAlias}
+              onChange={e => setEditAlias(e.target.value.slice(0, 32))}
+              placeholder="How members see you"
+              style={{
+                width: '100%', background: '#1a1712', border: '1px solid #2a2318',
+                color: '#e2d9c8', fontFamily: "'Space Mono', monospace",
+                fontSize: '0.75rem', padding: '0.625rem 0.875rem',
+                outline: 'none', boxSizing: 'border-box', marginTop: '0.4rem',
+              }}
+            />
+            <div style={{ fontSize: '0.625rem', color: '#4a4238', marginTop: '0.25rem' }}>
+              32 characters max
+            </div>
+          </div>
+
+          {/* Field 2 — Bio */}
+          <div style={{ marginTop: '1rem' }}>
+            <Label>Bio</Label>
+            <textarea
+              value={editBio}
+              onChange={e => setEditBio(e.target.value.slice(0, 160))}
+              placeholder="160 characters max"
+              rows={3}
+              style={{
+                width: '100%', background: '#1a1712', border: '1px solid #2a2318',
+                color: '#e2d9c8', fontFamily: "'Space Mono', monospace",
+                fontSize: '0.75rem', padding: '0.625rem 0.875rem',
+                resize: 'vertical', outline: 'none', boxSizing: 'border-box',
+                marginTop: '0.4rem',
+              }}
+            />
+            <div style={{
+              fontSize: '0.625rem',
+              color: (160 - editBio.length) < 20 ? 'var(--accent2)' : '#4a4238',
+              marginTop: '0.25rem',
+            }}>
+              {160 - editBio.length} remaining
+            </div>
+          </div>
+
+          {/* Field 3 — Avatar URL */}
+          <div style={{ marginTop: '1rem' }}>
+            <Label>Avatar URL</Label>
+            <input
+              type="url"
+              value={editAvatarUrl}
+              onChange={e => setEditAvatarUrl(e.target.value)}
+              placeholder="https://..."
+              style={{
+                width: '100%', background: '#1a1712', border: '1px solid #2a2318',
+                color: '#e2d9c8', fontFamily: "'Space Mono', monospace",
+                fontSize: '0.75rem', padding: '0.625rem 0.875rem',
+                outline: 'none', boxSizing: 'border-box', marginTop: '0.4rem',
+              }}
+            />
+            <div style={{ fontSize: '0.625rem', color: '#4a4238', marginTop: '0.25rem' }}>
+              Direct image link · 400×400px recommended
+            </div>
+          </div>
+
+          {/* Save message */}
+          {saveMsg && (
+            <div style={{ fontSize: '0.68rem', color: 'var(--accent3)', marginTop: '0.75rem' }}>
+              {saveMsg}
+            </div>
+          )}
+
+          {/* Button row */}
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+            <button
+              disabled={saving}
+              onClick={() => {
+                setSaving(true)
+                updateProfile(walletAddress, {
+                  alias:     editAlias     || null,
+                  bio:       editBio       || null,
+                  avatarUrl: editAvatarUrl || null,
+                })
+                  .then(updated => {
+                    setProfile(updated)
+                    setSaveMsg('Profile updated')
+                    setSaving(false)
+                    setTimeout(() => { setSaveMsg(null); setEditOpen(false) }, 2000)
+                  })
+                  .catch(() => {
+                    setSaveMsg('Save failed — try again')
+                    setSaving(false)
+                  })
+              }}
+              style={{
+                background: saving ? 'rgba(232,200,74,0.5)' : 'var(--accent)',
+                color: '#0a0a08',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '0.625rem',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                padding: '0.625rem 1.5rem',
+                border: 'none',
+                cursor: saving ? 'default' : 'pointer',
+                opacity: saving ? 0.5 : 1,
+              }}
+            >
+              {saving ? 'SAVING...' : 'SAVE'}
+            </button>
+
+            <button
+              disabled={saving}
+              onClick={() => setEditOpen(false)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #2a2318',
+                color: '#8a7d6a',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '0.625rem',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                padding: '0.625rem 1.5rem',
+                cursor: saving ? 'default' : 'pointer',
+                opacity: saving ? 0.5 : 1,
+              }}
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
       )}
 
       <Divider />
