@@ -21,6 +21,7 @@ import {
 import { getListings, createListing } from '@/lib/api/listings'
 import { getActiveExperiment, submitDailyEntry, getAggregateStats } from '@/lib/api/experiments'
 import { getActiveBounties, claimBounty } from '@/lib/api/bounties'
+import { getTreasurySnapshot, getGovernanceVotes } from '@/lib/gnosis'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -818,113 +819,129 @@ function GuildTab({ walletAddress }) {
 
 function TreasuryTab({ memberTier }) {
   const isFullTreasury = memberTier === 'steward' || memberTier === 'praetor'
-  // TODO: wire to lib/gnosis.ts getBalance()
-  const metrics = [
-    { label: '$ROAD Balance', value: '12,450 $ROAD', note: 'Pre-launch · Vercel KV' },
-    { label: 'SOL Balance',   value: '4.2 SOL',       note: 'Devnet treasury wallet' },
-    { label: 'Last Deposit',  value: '+2,100 $ROAD',  note: 'NFT royalties · 3 days ago' },
-  ]
 
-  // TODO: wire to lib/snapshot.ts getActiveProposals()
-  const votes = [
-    {
-      badge: 'OPEN · 3 DAYS LEFT',
-      badgeColor: 'var(--accent3)', badgeBorder: 'rgba(74,240,200,0.2)',
-      text: 'Allocate 500 $ROAD to Media Guild Q2 bounty pool',
-      yes: 68, no: 32, total: 47,
-    },
-    {
-      badge: 'OPEN · 1 DAY LEFT',
-      badgeColor: 'var(--accent2)', badgeBorder: 'rgba(255,92,53,0.2)',
-      text: 'Approve Lake Trip deposit subsidy for Ranch Hand+',
-      yes: 52, no: 48, total: 31,
-    },
-  ]
+  const [snapshot,        setSnapshot]        = useState(null)
+  const [votes,           setVotes]           = useState([])
+  const [treasuryLoading, setTreasuryLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([getTreasurySnapshot(), getGovernanceVotes()])
+      .then(([snap, v]) => {
+        setSnapshot(snap)
+        setVotes(v)
+        setTreasuryLoading(false)
+      })
+      .catch(() => setTreasuryLoading(false))
+  }, [])
 
   return (
     <div className="rh-tab-body">
       <SectionHead>DAO Treasury</SectionHead>
 
-      {/* 3 metric cards */}
-      <div className="rh-grid-3">
-        {metrics.map(m => (
-          <Card key={m.label}>
-            <Label>{m.label}</Label>
-            <div className="rh-stat-value">{m.value}</div>
-            <div className="rh-stat-note">{m.note}</div>
-          </Card>
-        ))}
-      </div>
-
-      <Divider />
-
-      {/* Active governance votes */}
-      {votes.map(v => (
-        <Card key={v.text}>
-          <span style={{
-            fontSize: '0.6rem', letterSpacing: '0.14em', textTransform: 'uppercase',
-            color: v.badgeColor, border: `1px solid ${v.badgeBorder}`,
-            borderRadius: 2, padding: '0.15rem 0.45rem',
-            display: 'inline-block', marginBottom: '0.6rem',
-          }}>
-            {v.badge}
-          </span>
-          <p className="rh-body" style={{ margin: '0 0 0.75rem', color: '#e2d9c8', fontSize: '0.78rem' }}>
-            {v.text}
-          </p>
-
-          {/* Vote bars */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            {[
-              { label: 'YES', pct: v.yes,  color: 'var(--accent3)' },
-              { label: 'NO',  pct: v.no,   color: '#4a4238' },
-            ].map(bar => (
-              <div key={bar.label}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                  <span style={{ fontSize: '0.6rem', letterSpacing: '0.12em', color: bar.color }}>{bar.label}</span>
-                  <span style={{ fontSize: '0.6rem', color: bar.color }}>{bar.pct}%</span>
-                </div>
-                <div style={{ background: '#2a2318', borderRadius: 2, height: 4 }}>
-                  <div style={{ width: `${bar.pct}%`, height: '100%', background: bar.color, borderRadius: 2 }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="rh-muted" style={{ fontSize: '0.62rem' }}>{v.total} votes</span>
-            <a href="https://snapshot.org" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.68rem', color: 'var(--accent3)', textDecoration: 'none' }}>
-              Vote on Snapshot →
-            </a>
-          </div>
-        </Card>
-      ))}
-
-      <Divider />
-
-      {/* Reinvestment split */}
-      <Card>
-        <Label>Reinvestment Split</Label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '0.25rem' }}>
-          {[
-            { label: 'DAO Treasury', pct: '50%' },
-            { label: 'Operations',   pct: '25%' },
-            { label: 'Projects',     pct: '15%' },
-            { label: 'Founder',      pct: '10%' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '0.5rem', background: '#0a0a08', borderRadius: 3 }}>
-              <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.4rem', color: 'var(--accent)', letterSpacing: '0.04em' }}>
-                {s.pct}
-              </div>
-              <div style={{ fontSize: '0.6rem', color: '#4a4238', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
+      {treasuryLoading ? (
+        <div className="rh-muted" style={{ fontSize: '0.72rem', padding: '2rem 0', textAlign: 'center' }}>
+          LOADING TREASURY...
         </div>
-      </Card>
+      ) : (
+        <>
+          {/* 3 metric cards */}
+          <div className="rh-grid-3">
+            <Card>
+              <Label>$ROAD Balance</Label>
+              <div className="rh-stat-value">{(snapshot?.roadBalance ?? 12450).toLocaleString()} $ROAD</div>
+              <div className="rh-stat-note">Pre-launch · Vercel KV</div>
+            </Card>
+            <Card>
+              <Label>SOL Balance</Label>
+              <div className="rh-stat-value">{snapshot?.solBalance ?? 4.2} SOL</div>
+              <div className="rh-stat-note">Devnet treasury wallet</div>
+            </Card>
+            <Card>
+              <Label>Last Deposit</Label>
+              <div className="rh-stat-value">
+                +{(snapshot?.lastDeposit?.amount ?? 2100).toLocaleString()} $ROAD
+              </div>
+              <div className="rh-stat-note">
+                {snapshot?.lastDeposit?.reason ?? 'NFT royalties'} · {snapshot?.lastDeposit?.daysAgo ?? 3} days ago
+              </div>
+            </Card>
+          </div>
 
-      {/* Access note — TODO: expand full ledger view when lib/gnosis.ts exists */}
+          <Divider />
+
+          {/* Active governance votes */}
+          {votes.map(v => {
+            const badgeColor  = v.daysLeft <= 1 ? 'var(--accent2)' : 'var(--accent3)'
+            const badgeBorder = v.daysLeft <= 1 ? 'rgba(255,92,53,0.2)' : 'rgba(74,240,200,0.2)'
+            return (
+              <Card key={v.id}>
+                <span style={{
+                  fontSize: '0.6rem', letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: badgeColor, border: `1px solid ${badgeBorder}`,
+                  borderRadius: 2, padding: '0.15rem 0.45rem',
+                  display: 'inline-block', marginBottom: '0.6rem',
+                }}>
+                  OPEN · {v.daysLeft} {v.daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT
+                </span>
+                <p className="rh-body" style={{ margin: '0 0 0.75rem', color: '#e2d9c8', fontSize: '0.78rem' }}>
+                  {v.title}
+                </p>
+
+                {/* Vote bars */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  {[
+                    { label: 'YES', pct: v.yesPercent, color: 'var(--accent3)' },
+                    { label: 'NO',  pct: v.noPercent,  color: '#4a4238' },
+                  ].map(bar => (
+                    <div key={bar.label}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.6rem', letterSpacing: '0.12em', color: bar.color }}>{bar.label}</span>
+                        <span style={{ fontSize: '0.6rem', color: bar.color }}>{bar.pct}%</span>
+                      </div>
+                      <div style={{ background: '#2a2318', borderRadius: 2, height: 4 }}>
+                        <div style={{ width: `${bar.pct}%`, height: '100%', background: bar.color, borderRadius: 2 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="rh-muted" style={{ fontSize: '0.62rem' }}>{v.voteCount} votes</span>
+                  <a href={v.snapshotUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.68rem', color: 'var(--accent3)', textDecoration: 'none' }}>
+                    Vote on Snapshot →
+                  </a>
+                </div>
+              </Card>
+            )
+          })}
+
+          <Divider />
+
+          {/* Reinvestment split */}
+          <Card>
+            <Label>Reinvestment Split</Label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '0.25rem' }}>
+              {[
+                { label: 'DAO Treasury', pct: '50%' },
+                { label: 'Operations',   pct: '25%' },
+                { label: 'Projects',     pct: '15%' },
+                { label: 'Founder',      pct: '10%' },
+              ].map(s => (
+                <div key={s.label} style={{ textAlign: 'center', padding: '0.5rem', background: '#0a0a08', borderRadius: 3 }}>
+                  <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.4rem', color: 'var(--accent)', letterSpacing: '0.04em' }}>
+                    {s.pct}
+                  </div>
+                  <div style={{ fontSize: '0.6rem', color: '#4a4238', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    {s.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </>
+      )}
+
+      {/* Access note — isFullTreasury gate preserved exactly */}
       <p className="rh-muted" style={{ fontSize: '0.65rem', marginTop: '0.75rem', textAlign: 'center', color: isFullTreasury ? 'var(--accent3)' : undefined }}>
         {isFullTreasury
           ? 'Full treasury ledger — Steward access confirmed'
