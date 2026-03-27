@@ -36,18 +36,16 @@ export async function POST(req: NextRequest) {
       allow_promotion_codes: true,
       custom_text: {
         submit: {
-          message: 'Welcome to the RoadHouse. Your $ROAD tokens will be credited within 24 hours of payment confirmation.',
+          message: 'Welcome to the RoadHouse. Your membership tier activates immediately. $ROAD accumulation begins with your first billing cycle.',
         },
       },
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (err: any) {
-    console.error('Stripe subscription error:', err)
-    return NextResponse.json(
-      { error: err?.message || 'Failed to create subscription session' },
-      { status: 500 }
-    )
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to create subscription session'
+    console.error(JSON.stringify({ evt: 'subscription.error', error: message }))
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

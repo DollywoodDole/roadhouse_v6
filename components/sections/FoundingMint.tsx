@@ -95,9 +95,9 @@ export default function FoundingMint() {
       setTxSignature(signature)
       setMintState('success')
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[FoundingMint] error:', err)
-      const message = err?.message ?? 'Mint failed. Please try again.'
+      const message = err instanceof Error ? err.message : 'Mint failed. Please try again.'
       // User rejected — don't show error UI
       if (message.includes('User rejected') || message.includes('user rejected')) {
         setMintState('idle')
@@ -214,22 +214,26 @@ export default function FoundingMint() {
               <div className="text-[10px] text-rh-muted leading-relaxed max-w-[220px]">
                 Subscribe now to secure your place in line. Founding NFT mint will be announced to members first.
               </div>
-              {siteConfig.stripe.subscriptions.regular ? (
-                <a
-                  href={`https://buy.stripe.com/checkout?price=${siteConfig.stripe.subscriptions.regular}`}
-                  className="mt-1 px-5 py-2.5 stripe-btn text-rh-black text-[10px] tracking-widest uppercase font-medium rounded transition-all hover:opacity-90"
-                >
-                  Get Early Access — Join as Regular →
-                </a>
-              ) : (
-                <a
-                  href="#membership"
-                  onClick={e => { e.preventDefault(); document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' }) }}
-                  className="mt-1 px-5 py-2.5 stripe-btn text-rh-black text-[10px] tracking-widest uppercase font-medium rounded transition-all hover:opacity-90"
-                >
-                  Get Early Access →
-                </a>
-              )}
+              <button
+                onClick={async () => {
+                  const priceId = siteConfig.stripe.subscriptions.regular
+                  if (!priceId) {
+                    document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' })
+                    return
+                  }
+                  const res = await fetch('/api/subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priceId }),
+                  })
+                  const data = await res.json()
+                  if (data.url) window.location.href = data.url
+                  else document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' })
+                }}
+                className="mt-1 px-5 py-2.5 stripe-btn text-rh-black text-[10px] tracking-widest uppercase font-medium rounded transition-all hover:opacity-90"
+              >
+                {siteConfig.stripe.subscriptions.regular ? 'Get Early Access — Join as Regular →' : 'Get Early Access →'}
+              </button>
             </div>
           )}
 

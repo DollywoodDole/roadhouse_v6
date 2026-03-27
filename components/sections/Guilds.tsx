@@ -128,7 +128,7 @@ export default function Guilds() {
             Governance Architecture
           </h4>
           <p className="text-[11px] text-rh-muted leading-relaxed">
-            Gnosis Safe 3-of-5 multisig treasury. Snapshot + Aragon for on-chain voting.
+            Squads 3-of-5 multisig treasury (Solana). Snapshot + Aragon for voting.
             Any Regular+ member can submit a proposal. Voting windows: 5 days.
             Quorum: ≥10% of circulating $ROAD.
           </p>
@@ -140,7 +140,7 @@ export default function Guilds() {
           >
             3-of-5
           </div>
-          <div className="text-[10px] tracking-widest uppercase text-rh-faint">Gnosis Safe Signers</div>
+          <div className="text-[10px] tracking-widest uppercase text-rh-faint">Squads Multisig Signers</div>
         </div>
         <a
           href="#contact"
