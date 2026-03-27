@@ -10,7 +10,14 @@
  * Tabs: MY ROADHOUSE · ECONOMY · DESCI · GUILD · TREASURY
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import {
+  getProfile,
+  updateProfile,
+  TIER_THRESHOLDS,
+  TIER_DISPLAY,
+  getNextTier,
+} from '@/lib/profile'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -52,72 +59,111 @@ function Divider() {
 
 // ── Tab 1: MY ROADHOUSE ──────────────────────────────────────────────────────
 
-// Tier key → display label (covers lib/solana.ts keys + 'founding' placeholder)
-const TIER_DISPLAY = {
-  guest:     'GUEST',
-  regular:   'REGULAR',
-  ranchHand: 'RANCH HAND',
-  partner:   'PARTNER',
-  steward:   'STEWARD',
-  praetor:   'PRAETOR',
-  founding:  'FOUNDING',
+// Next-move prompt keyed by tier — TODO: replace with live guild bounty from lib/api/bounties.ts
+const NEXT_MOVE_BY_TIER = {
+  guest:        'Subscribe to join the community and start earning $ROAD.',
+  regular:      'Submit a guild contribution to unlock Ranch Hand tier.',
+  'ranch-hand': 'A Deal Syndicate proposal is open for review.',
+  partner:      'Review open governance proposals on Snapshot.',
+  steward:      'Sign the pending treasury multisig proposal.',
+  praetor:      'Board meeting scheduled — check your calendar.',
 }
 
-function MyRoadHouseTab({ memberTier }) {
-  // TODO: wire to lib/solana.ts getTierFromBalance — balance + next-tier still hardcoded
-  const tierName    = TIER_DISPLAY[memberTier] ?? memberTier.toUpperCase()
-  const balance     = 800
-  const nextTier    = 'PARTNER'
-  const nextBalance = 2000
-  const progress    = (balance / nextBalance) * 100  // 40%
+// Format ISO date string "2026-03-24" → "Mar 24"
+function fmtDate(iso) {
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 
-  // TODO: wire to lib/api/contributions.ts
-  const feed = [
-    { date: 'Mar 24', action: 'Guild content submission',      road: '+200' },
-    { date: 'Mar 22', action: 'Referral — new member joined',  road: '+100' },
-    { date: 'Mar 20', action: 'TikTok script submitted',       road: '+100' },
-    { date: 'Mar 18', action: 'Event attendance verified',     road: '+150' },
-    { date: 'Mar 15', action: 'Onboarding complete',           road: '+50'  },
-  ]
+function MyRoadHouseTab({ memberTier, walletAddress }) {
+  const [profile, setProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
 
-  // TODO: derive from tier + active guild bounties — hardcoded for ranch-hand
-  const nextMove = 'A Deal Syndicate proposal is open for review.'
+  useEffect(() => {
+    if (!walletAddress) { setProfileLoading(false); return }
+    setProfileLoading(true)
+    getProfile(walletAddress)
+      .then(p => { setProfile(p); setProfileLoading(false) })
+      .catch(() => setProfileLoading(false))
+  }, [walletAddress])
+
+  // Derive display values — profile.tier takes precedence over wrapper prop
+  const tier       = profile?.tier ?? memberTier ?? 'guest'
+  const tierName   = TIER_DISPLAY[tier] ?? tier.toUpperCase()
+  const balance    = profile?.roadBalance ?? 0
+  const nextTier   = getNextTier(tier)
+  const nextBalance = nextTier ? TIER_THRESHOLDS[nextTier] : TIER_THRESHOLDS[tier]
+  const progress   = nextTier ? Math.min(100, (balance / nextBalance) * 100) : 100
+  const nextMove   = NEXT_MOVE_BY_TIER[tier] ?? 'Check the Guild board for active bounties.'
 
   return (
     <div className="rh-tab-body">
       <SectionHead>My RoadHouse</SectionHead>
 
-      {/* Tier status block */}
-      <Card>
-        <Label color="gold">Tier Status</Label>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-          <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.06em' }}>
-            {tierName}
-          </span>
-          <span className="rh-muted" style={{ fontSize: '0.68rem' }}>
-            {balance.toLocaleString()} / {nextBalance.toLocaleString()} $ROAD → {nextTier}
-          </span>
+      {/* Tier status block — replaced by loading state while fetch resolves */}
+      {profileLoading ? (
+        <div style={{ color: '#8a7d6a', fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', padding: '1rem 0' }}>
+          Loading profile...
         </div>
-        <div style={{ background: '#2a2318', borderRadius: 2, height: 6 }}>
-          <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent)', borderRadius: 2, transition: 'width 0.4s ease' }} />
-        </div>
-      </Card>
+      ) : (
+        <Card>
+          <Label color="gold">Tier Status</Label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+            <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.06em' }}>
+              {tierName}
+            </span>
+            <span className="rh-muted" style={{ fontSize: '0.68rem' }}>
+              {nextTier
+                ? `${balance.toLocaleString()} / ${nextBalance.toLocaleString()} $ROAD → ${TIER_DISPLAY[nextTier] ?? nextTier.toUpperCase()}`
+                : 'MAX TIER'}
+            </span>
+          </div>
+          <div style={{ background: '#2a2318', borderRadius: 2, height: 6 }}>
+            <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent)', borderRadius: 2, transition: 'width 0.4s ease' }} />
+          </div>
+          {/* TODO: setEditOpen(true) — wired in session 2 */}
+          <button
+            onClick={() => {}}
+            style={{
+              marginTop: '0.75rem',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--accent)',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: '0.625rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            Edit Profile →
+          </button>
+        </Card>
+      )}
 
       <Divider />
 
       {/* Contribution feed */}
       <Card>
         <Label>Recent Contributions</Label>
-        {/* TODO: wire to lib/api/contributions.ts */}
+        {/* TODO: replace with lib/api/contributions.ts */}
         <div className="rh-stack-list">
-          {feed.map(f => (
-            <div key={f.date + f.action} className="rh-stack-item">
-              <span className="rh-stack-name" style={{ color: '#4a4238', minWidth: '3.5rem' }}>{f.date}</span>
-              <span className="rh-stack-role" style={{ flex: 1 }}>{f.action}</span>
-              <span style={{ fontSize: '0.68rem', color: 'var(--accent3)', whiteSpace: 'nowrap' }}>{f.road} $ROAD</span>
+          {(profile?.contributions ?? []).slice(0, 5).map(c => (
+            <div key={c.id} className="rh-stack-item">
+              <span className="rh-stack-name" style={{ color: '#4a4238', minWidth: '3.5rem' }}>{fmtDate(c.date)}</span>
+              <span className="rh-stack-role" style={{ flex: 1 }}>{c.label}</span>
+              <span style={{ fontSize: '0.6rem', color: c.verified ? 'var(--accent3)' : '#4a4238', marginRight: '0.3rem' }}>●</span>
+              <span style={{ fontSize: '0.68rem', color: 'var(--accent3)', whiteSpace: 'nowrap' }}>+{c.roadEarned} $ROAD</span>
             </div>
           ))}
         </div>
+        {/* DeSci stats line */}
+        {profile && (
+          <div style={{ marginTop: '0.75rem', fontSize: '0.68rem', color: '#8a7d6a' }}>
+            {profile.experimentsJoined} experiment{profile.experimentsJoined !== 1 ? 's' : ''} joined · {profile.currentStreak}-day reporting streak
+          </div>
+        )}
       </Card>
 
       <Divider />
@@ -607,7 +653,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
   const [active, setActive] = useState('MY ROADHOUSE')
 
   const tabContent = {
-    'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} />,
+    'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} walletAddress={walletAddress} />,
     'ECONOMY':      <EconomyTab walletAddress={walletAddress} />,
     'DESCI':        <DeSciTab />,
     'GUILD':        <GuildTab />,
