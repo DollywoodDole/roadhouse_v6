@@ -3,17 +3,33 @@
  * ────────────────────────────────────
  * Types, constants, and data access for member profiles.
  *
- * Current state: stub data only.
- * TODO (session 3): replace getProfile with:
- *   1. getTokenAccountsByOwner(connection, publicKey, ROAD_MINT_PUBKEY)
- *      from lib/solana.ts → roadBalance + tier
- *   2. supabase.from('profiles').select().eq('public_key', publicKey)
- *      → alias, bio, avatarUrl, guild, joinedAt, contributions
- * TODO (session 3): replace updateProfile with:
- *   supabase.from('profiles').upsert({
- *     public_key: publicKey, ...updates, updated_at: new Date()
- *   })
+ * Storage: Upstash Redis via lib/road-balance.ts — profile fields
+ * are stored as optional fields on the RoadBalance KV record.
+ *
+ * getProfile(publicKey):
+ *   1. wallet:{publicKey} → stripeCustomerId  (reverse index)
+ *   2. road:{customerId}  → RoadBalance record
+ *   3. Build MemberProfile with graceful fallback at every field.
+ *      Unregistered wallet (no KV record) → GUEST tier, 0 balance, empty feed.
+ *
+ * updateProfile(publicKey, updates):
+ *   1. wallet:{publicKey} → stripeCustomerId
+ *   2. updateProfileFields(customerId, updates) → merge + KV write
+ *   3. Re-fetch full profile
+ *
+ * TODO (M3): wire credentials via Metaplex getAssetsByOwner()
+ *   filter by RoadHouse NFT collection address → Credential[]
+ * TODO (M3): wire $ROAD balance from on-chain SPL token account
+ *   getTokenAccountsByOwner(connection, publicKey, ROAD_MINT_PUBKEY)
+ *   → roadBalance + tier derivation via getTierFromBalance()
  */
+
+import {
+  getRoadBalance,
+  getCustomerIdByWallet,
+  updateProfileFields,
+  normaliseTier,
+} from '@/lib/road-balance'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -93,52 +109,62 @@ export function getNextTier(tier: MemberTier): MemberTier | null {
   return idx < order.length - 1 ? order[idx + 1] : null
 }
 
-// ── Stub data ──────────────────────────────────────────────────────────────────
-
-const STUB_PROFILE: Omit<MemberProfile, 'publicKey'> = {
-  alias:   'DollywoodDole',
-  bio:     'Building RoadHouse in public. Saskatchewan.',
-  avatarUrl: null,
-  roadBalance: 800,
-  tier:    'ranch-hand',
-  credentials: [
-    {
-      id:          '1',
-      type:        'founding-nft',
-      label:       'Founding Member',
-      mintAddress: 'DEMO_MINT_1',
-      awardedAt:   '2026-03-01',
-    },
-  ],
-  guild:    'media',
-  joinedAt: '2026-03-01',
-  contributions: [
-    { id: '1', date: '2026-03-24', label: 'Guild content submission',     roadEarned: 200, guildId: 'media',    verified: true },
-    { id: '2', date: '2026-03-22', label: 'Referral — new member joined', roadEarned: 100, guildId: 'media',    verified: true },
-    { id: '3', date: '2026-03-20', label: 'TikTok script submitted',      roadEarned: 100, guildId: 'media',    verified: true },
-    { id: '4', date: '2026-03-18', label: 'Event attendance verified',    roadEarned: 150, guildId: 'frontier', verified: true },
-    { id: '5', date: '2026-03-15', label: 'Onboarding complete',          roadEarned: 50,  guildId: null,       verified: true },
-  ],
-  experimentsJoined: 1,
-  currentStreak:     4,
-}
-
 // ── Data access ───────────────────────────────────────────────────────────────
 
 export async function getProfile(publicKey: string): Promise<MemberProfile> {
-  return { publicKey, ...STUB_PROFILE }
+  // Step 1: wallet address → stripeCustomerId (reverse index)
+  const customerId = await getCustomerIdByWallet(publicKey)
+
+  // Step 2: full RoadBalance record (null if wallet never registered)
+  const record = customerId
+    ? await getRoadBalance(customerId)
+    : null
+
+  // Step 3: build profile — graceful fallback at every field.
+  // If record is null (wallet not registered via Stripe yet), all optional
+  // fields return defaults. Member sees GUEST tier, 0 balance, empty feed.
+  return {
+    publicKey,
+    alias:       record?.alias     ?? null,
+    bio:         record?.bio       ?? null,
+    avatarUrl:   record?.avatarUrl ?? null,
+    roadBalance: record?.balance   ?? 0,
+    tier:        normaliseTier(record?.tier),
+    credentials: [],
+    // TODO M3: fetch NFT credentials via Metaplex
+    //   getAssetsByOwner(publicKey) → filter by RoadHouse collection address
+    guild:       (record?.guild ?? null) as Guild,
+    joinedAt:    record?.joinedAt ?? new Date().toISOString(),
+    contributions: (record?.contributions ?? []).map(c => ({
+      id:         c.id,
+      date:       c.date,
+      label:      c.label,
+      roadEarned: c.roadEarned,
+      guildId:    c.guildId as Guild,
+      verified:   c.verified,
+    })),
+    experimentsJoined: record?.experimentsJoined ?? 0,
+    currentStreak:     record?.currentStreak     ?? 0,
+  }
 }
 
 export async function updateProfile(
   publicKey: string,
   updates: Partial<Pick<MemberProfile, 'alias' | 'bio' | 'avatarUrl'>>,
 ): Promise<MemberProfile> {
-  console.log('[profile] updateProfile stub — updates received:', { publicKey, updates })
-  return {
-    publicKey,
-    ...STUB_PROFILE,
-    alias:     updates.alias     !== undefined ? updates.alias     : STUB_PROFILE.alias,
-    bio:       updates.bio       !== undefined ? updates.bio       : STUB_PROFILE.bio,
-    avatarUrl: updates.avatarUrl !== undefined ? updates.avatarUrl : STUB_PROFILE.avatarUrl,
+  const customerId = await getCustomerIdByWallet(publicKey)
+  if (!customerId) {
+    throw new Error(
+      'Wallet not registered — complete membership signup to edit profile'
+    )
   }
+
+  await updateProfileFields(customerId, {
+    alias:     updates.alias     ?? null,
+    bio:       updates.bio       ?? null,
+    avatarUrl: updates.avatarUrl ?? null,
+  })
+
+  // Re-fetch full profile after update
+  return getProfile(publicKey)
 }
