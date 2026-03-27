@@ -120,6 +120,12 @@ Rules for this layer:
     /agents/run/route.ts        ← Agent orchestrator trigger
     /agents/status/route.ts     ← Agent job status + approval queue
   /portal/page.tsx              ← Member portal (/portal)
+  /compound/page.tsx            ← Compound full page (/compound) — content from docs/compound-node-model.md; interest registration → /api/contact type='Compound — Waitlist Interest'
+  /partners/page.tsx            ← Partner-tier landing (/partners) — TokenGated at ranchHand minimum with href="/#membership"; guild leadership + treasury + 1-on-1 booking → /api/contact type='Partner — 1-on-1 Request'
+
+NOTE: There is no Nav.tsx, Header.tsx, or layout-level nav component. The site's navigation is entirely
+Sidebar.tsx. Both /compound and /partners are linked from the sidebar. If a top nav bar is added in future,
+/compound should be included; /partners should remain sidebar-only (gated content).
   /adventures/
     page.tsx                    ← Adventure NFT hub
     /lake-trip/page.tsx         ← Adventure #001
@@ -155,6 +161,12 @@ Rules for this layer:
   treasury.ts         ← Squads multisig balance fetch
   nft-mint.ts         ← NFT mint helper (called by webhook)
   wallet.ts           ← Wallet connect helpers
+  road-token.ts       ← useRoadToken hook, formatRoadBalance, shortenAddress, useTokenGate
+
+/components/wallet
+  TokenGate.tsx       ← Content gate by tier/balance. Props: requiredTier (TierKey), lockedMessage?,
+                         showBalance?, href? (optional — if passed, upgrade CTA uses window.location.href=href
+                         instead of scrollIntoView('#membership'); use for standalone pages outside the home SPA)
 
 /emails              ← React Email templates
 /.github
@@ -743,6 +755,72 @@ See `docs/guild-economy.md` §The Critical Missing Piece for the full specificat
 - `components/sections/Guilds.tsx` — "Gnosis Safe" → "Squads" (Solana); stat card label corrected
 
 ### Next Session Priorities (in order)
-1. **`/compound` page** — build `app/compound/page.tsx` drawing from `docs/compound-node-model.md`; compound access tier table, interest registration form (POST `/api/contact` with type `'Compound — Waitlist Interest'`), mobile-first
-2. **`/partners` page** — partner-tier member landing: guild leadership CTA, treasury visibility explainer, 1-on-1 booking link
-3. **M3 kickoff** — `lib/squads.ts` architecture + devnet deploy prep (see `docs/multisig-spec.md`); begin steward verification spec
+1. **M3 kickoff** — `lib/squads.ts` architecture + devnet deploy prep (see `docs/multisig-spec.md`); begin steward verification spec
+
+---
+
+## Session Log — 2026-03-28
+
+### Completed This Session
+
+- **`/compound` page** — built `app/compound/page.tsx`: 8 sections (hero, generator, Saskatchewan, timeline, mobile bridge, node scaling, DeSci, access table, interest form). Interest form → POST `/api/contact` with `type: 'Compound — Waitlist Interest'`.
+- **`/partners` page** — built `app/partners/page.tsx`: TokenGated at `ranchHand` with `href="/#membership"`. 6 sections: hero, benefits, guild leadership, treasury visibility, 1-on-1 booking form, path to steward.
+- **`TokenGate.tsx`** — added optional `href?: string` prop. When provided, upgrade CTA uses standard `<a href>` navigation instead of `scrollIntoView()` (fixes cross-page upgrade flow).
+- **`Sidebar.tsx`** — glassmorphism treatment + nav updates:
+  - `/compound` added to NAV_ITEMS (page nav)
+  - `/partners` added to NAV_ITEMS
+  - `handleNavClick` handles `/`-prefixed hrefs via `window.location.href`; `#`-prefixed via `scrollIntoView`
+  - Scroll tracker filters to `#`-prefixed items only before mapping section IDs
+- **Health check fixes** — `err: any` → `err: unknown` in contact, stripe webhook, subscription, discord interactions routes; `console.error` → `console.log` for non-error events in wallet register and road accrual routes; `"revenue-share allocation"` → `"treasury voting weight"` in Membership.tsx (Howey removal); "Gnosis Safe" → "Squads" in Roadmap.tsx.
+- **`WalletStatus.tsx`** — glass treatment: dividers, address display, balance/tier container, all section labels use `text-white/40`.
+
+### Sidebar Glassmorphism — Class Reference
+
+Use these exact classes if extending or replicating the treatment. Do not deviate.
+
+```
+/* Sidebar container */
+backdrop-blur-md bg-black/40 border-r border-white/10
+shadow-[inset_-1px_0_0_0_rgba(255,215,0,0.12)]
+
+/* Section dividers (header, live badge, footer) */
+border-b border-white/8   /* or border-t border-white/8 */
+
+/* Nav — active item */
+bg-white/5 text-gold border-l-2 border-gold
+
+/* Nav — inactive item */
+text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent
+
+/* Nav — transition */
+transition-colors duration-150
+
+/* Social links */
+text-white/60 hover:text-gold transition-colors duration-150
+
+/* Footer text */
+text-white/40
+```
+
+### WalletStatus Glassmorphism — Class Reference
+
+```
+/* Address row */
+bg-white/5 border border-white/10 rounded text-white/70
+
+/* Balance + Tier container */
+bg-white/5 border border-white/10 rounded-md
+
+/* Section labels ($ROAD, Tier, Wallet) */
+text-white/40
+
+/* Progress value label */
+text-white/40
+
+/* Progress track */
+bg-white/10
+```
+
+### How Blur Renders
+
+`backdrop-blur-md` on a `position: fixed` sidebar blurs whatever is visually behind it in the viewport. The parent `<div className="flex min-h-screen bg-rh-black">` is a flow sibling, not a stacking context — no parent override required. Blur renders correctly on all supported browsers without additional wrapper changes.
