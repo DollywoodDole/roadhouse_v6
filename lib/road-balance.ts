@@ -153,6 +153,8 @@ export async function registerWallet(
   const updated: RoadBalance = { ...existing, walletAddress }
   await setRoadBalance(updated)
   // Reverse index — enables wallet-address → customerId lookup
+  // TODO M3: if member switches wallets, old wallet:{prev} key is orphaned in KV.
+  // Add a deleteWalletIndex(prevKey) call here before writing the new index.
   await getRedis().set(`wallet:${walletAddress}`, stripeCustomerId)
   return updated
 }
