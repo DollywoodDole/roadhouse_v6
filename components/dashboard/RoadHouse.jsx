@@ -19,6 +19,7 @@ import {
   getNextTier,
 } from '@/lib/profile'
 import { getListings, createListing } from '@/lib/api/listings'
+import { getActiveExperiment, submitDailyEntry, getAggregateStats } from '@/lib/api/experiments'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -469,10 +470,25 @@ function EconomyTab({ walletAddress }) {
 
 // ── Tab 3: DESCI ─────────────────────────────────────────────────────────────
 
-function DeSciTab() {
-  const [bedtime,  setBedtime]  = useState('')
-  const [waketime, setWaketime] = useState('')
-  const [energy,   setEnergy]   = useState('')
+function DeSciTab({ walletAddress }) {
+  const [experiment,   setExperiment]   = useState(null)
+  const [stats,        setStats]        = useState(null)
+  const [expLoading,   setExpLoading]   = useState(true)
+  const [bedtime,      setBedtime]      = useState('')
+  const [waketime,     setWaketime]     = useState('')
+  const [energyScore,  setEnergyScore]  = useState(5)
+  const [submitting,   setSubmitting]   = useState(false)
+  const [submitMsg,    setSubmitMsg]    = useState(null)
+
+  useEffect(() => {
+    Promise.all([getActiveExperiment(), getAggregateStats()])
+      .then(([exp, agg]) => {
+        setExperiment(exp)
+        setStats(agg)
+        setExpLoading(false)
+      })
+      .catch(() => setExpLoading(false))
+  }, [])
 
   const inputStyle = {
     background: '#111009', border: '1px solid #2a2318', color: '#e2d9c8',
@@ -481,79 +497,115 @@ function DeSciTab() {
     outline: 'none', boxSizing: 'border-box',
   }
 
+  const handleSubmit = () => {
+    setSubmitting(true)
+    submitDailyEntry(walletAddress ?? 'anonymous', {
+      date:        new Date().toISOString().split('T')[0],
+      bedtime,
+      waketime,
+      energyScore: Number(energyScore),
+    }).then(() => {
+      setSubmitMsg('Entry recorded')
+      setStats(prev => prev ? { ...prev, totalEntries: prev.totalEntries + 1 } : prev)
+      setTimeout(() => setSubmitMsg(null), 3000)
+    }).catch(e => {
+      setSubmitMsg(e.message === 'Already submitted today'
+        ? 'Already submitted today'
+        : 'Submit failed — try again')
+      setTimeout(() => setSubmitMsg(null), 3000)
+    }).finally(() => setSubmitting(false))
+  }
+
   return (
     <div className="rh-tab-body">
       <SectionHead>Active Protocols</SectionHead>
 
       {/* Active experiment card */}
       <Card accent="red">
-        <span style={{
-          fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase',
-          color: 'var(--accent2)', border: '1px solid rgba(255,92,53,0.3)',
-          borderRadius: 2, padding: '0.2rem 0.5rem',
-          marginBottom: '0.75rem', display: 'inline-block',
-        }}>
-          Week 2 of 4
-        </span>
+        {expLoading ? (
+          <div className="rh-muted" style={{ fontSize: '0.72rem', padding: '2rem 0', textAlign: 'center' }}>
+            LOADING EXPERIMENT...
+          </div>
+        ) : (
+          <>
+            <span style={{
+              fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase',
+              color: 'var(--accent2)', border: '1px solid rgba(255,92,53,0.3)',
+              borderRadius: 2, padding: '0.2rem 0.5rem',
+              marginBottom: '0.75rem', display: 'inline-block',
+            }}>
+              Week {experiment?.weekCurrent ?? 2} of {experiment?.weekTotal ?? 4}
+            </span>
 
-        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '2.25rem', letterSpacing: '0.06em', color: '#e2d9c8', margin: '0.25rem 0' }}>
-          Sleep Optimisation Sprint
-        </div>
-        <p className="rh-body" style={{ marginBottom: '0.5rem' }}>
-          10pm–6am protocol. Track bedtime, wake time, energy.
-        </p>
-        <p className="rh-muted" style={{ fontSize: '0.65rem', marginBottom: '1rem' }}>
-          23 members reporting this week
-        </p>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '2.25rem', letterSpacing: '0.06em', color: '#e2d9c8', margin: '0.25rem 0' }}>
+              {experiment?.title ?? 'Sleep Optimisation Sprint'}
+            </div>
+            <p className="rh-body" style={{ marginBottom: '0.5rem' }}>
+              {experiment?.description ?? '10pm–6am protocol. Track bedtime, wake time, energy.'}
+            </p>
+            <p className="rh-muted" style={{ fontSize: '0.65rem', marginBottom: '1rem' }}>
+              {stats?.totalEntries ?? 23} members reporting this week
+            </p>
 
-        {/* Aggregate bars */}
-        <div style={{ marginBottom: '1rem' }}>
-          {[
-            { label: 'AVG ENERGY SCORE', value: 7.2, max: 10 },
-            { label: 'AVG SLEEP HOURS',  value: 7.8, max: 9  },
-          ].map(b => (
-            <div key={b.label} style={{ marginBottom: '0.6rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                <span className="rh-label" style={{ marginBottom: 0, display: 'inline', fontSize: '0.6rem' }}>{b.label}</span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--accent3)' }}>{b.value} / {b.max}</span>
+            {/* Aggregate bars */}
+            <div style={{ marginBottom: '1rem' }}>
+              {[
+                { label: 'AVG ENERGY SCORE', value: stats?.avgEnergyScore ?? 7.2, max: 10 },
+                { label: 'AVG SLEEP HOURS',  value: stats?.avgSleepHours  ?? 7.8, max: 9  },
+              ].map(b => (
+                <div key={b.label} style={{ marginBottom: '0.6rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span className="rh-label" style={{ marginBottom: 0, display: 'inline', fontSize: '0.6rem' }}>{b.label}</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--accent3)' }}>{b.value} / {b.max}</span>
+                  </div>
+                  <div style={{ background: '#2a2318', borderRadius: 2, height: 5 }}>
+                    <div style={{ width: `${(b.value / b.max) * 100}%`, height: '100%', background: 'var(--accent3)', borderRadius: 2 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Data submission — div + onClick, no <form> tag */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <div>
+                <Label>Bedtime</Label>
+                <input type="time" value={bedtime} onChange={e => setBedtime(e.target.value)} style={inputStyle} />
               </div>
-              <div style={{ background: '#2a2318', borderRadius: 2, height: 5 }}>
-                <div style={{ width: `${(b.value / b.max) * 100}%`, height: '100%', background: 'var(--accent3)', borderRadius: 2 }} />
+              <div>
+                <Label>Wake Time</Label>
+                <input type="time" value={waketime} onChange={e => setWaketime(e.target.value)} style={inputStyle} />
+              </div>
+              <div>
+                <Label>Energy 1–10</Label>
+                <input type="number" min="1" max="10" value={energyScore} onChange={e => setEnergyScore(e.target.value)} placeholder="7" style={inputStyle} />
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Data submission — div + onClick, no <form> tag */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <div>
-            <Label>Bedtime</Label>
-            <input type="time" value={bedtime} onChange={e => setBedtime(e.target.value)} style={inputStyle} />
-          </div>
-          <div>
-            <Label>Wake Time</Label>
-            <input type="time" value={waketime} onChange={e => setWaketime(e.target.value)} style={inputStyle} />
-          </div>
-          <div>
-            <Label>Energy 1–10</Label>
-            <input type="number" min="1" max="10" value={energy} onChange={e => setEnergy(e.target.value)} placeholder="7" style={inputStyle} />
-          </div>
-        </div>
+            <div
+              onClick={submitting ? undefined : handleSubmit}
+              role="button"
+              style={{
+                background: 'var(--accent)', color: '#0a0a08',
+                fontFamily: 'Space Mono, monospace', fontSize: '0.7rem',
+                fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                padding: '0.75rem', textAlign: 'center', borderRadius: 3,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                opacity: submitting ? 0.6 : 1, transition: 'opacity 0.2s',
+              }}
+            >
+              {submitting ? 'Submitting...' : "Submit Today's Entry"}
+            </div>
 
-        {/* Submit — TODO: wire to lib/api/experiments.ts submitEntry() */}
-        <div
-          onClick={() => {}}
-          role="button"
-          style={{
-            background: 'var(--accent)', color: '#0a0a08',
-            fontFamily: 'Space Mono, monospace', fontSize: '0.7rem',
-            fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-            padding: '0.75rem', textAlign: 'center', borderRadius: 3,
-            cursor: 'pointer', transition: 'opacity 0.2s',
-          }}
-        >
-          Submit Today's Entry
-        </div>
+            {submitMsg && (
+              <div style={{
+                marginTop: '0.5rem', fontSize: '0.68rem', textAlign: 'center',
+                color: submitMsg === 'Entry recorded' ? 'var(--accent3)' : 'var(--accent2)',
+              }}>
+                {submitMsg}
+              </div>
+            )}
+          </>
+        )}
       </Card>
 
       <Divider />
@@ -845,7 +897,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
   const tabContent = {
     'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} walletAddress={walletAddress} />,
     'ECONOMY':      <EconomyTab walletAddress={walletAddress} />,
-    'DESCI':        <DeSciTab />,
+    'DESCI':        <DeSciTab walletAddress={walletAddress} />,
     'GUILD':        <GuildTab />,
     'TREASURY':     <TreasuryTab memberTier={memberTier} />,
   }
