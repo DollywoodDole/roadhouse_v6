@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request signature' }, { status: 401 })
   }
 
-  let body: any
+  let body: { type?: number; data?: { name?: string }; member?: { user?: { id?: string } }; user?: { id?: string } }
   try {
     body = JSON.parse(rawBody)
   } catch {

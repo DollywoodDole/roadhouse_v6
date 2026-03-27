@@ -65,8 +65,9 @@ export async function GET(req: NextRequest) {
     })
 
     return NextResponse.redirect(portalSession.url)
-  } catch (err: any) {
-    console.error('Stripe portal error:', err)
-    return NextResponse.json({ error: err?.message }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to create portal session'
+    console.error(JSON.stringify({ evt: 'portal.error', error: message }))
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

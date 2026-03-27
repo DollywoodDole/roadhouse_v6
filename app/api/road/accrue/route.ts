@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  console.error(JSON.stringify({ evt: 'road.accrue.complete', ...results }))
+  console.log(JSON.stringify({ evt: 'road.accrue.complete', ...results }))
 
   return NextResponse.json({
     ok:   true,

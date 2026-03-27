@@ -159,8 +159,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true })
 
-  } catch (err: any) {
-    console.error('[contact] Unexpected error:', err)
+  } catch (err: unknown) {
+    console.error(JSON.stringify({ evt: 'contact.error', error: String(err) }))
     return NextResponse.json({ error: 'Unexpected error. Please try again.' }, { status: 500 })
   }
 }

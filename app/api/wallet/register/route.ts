@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const updated = await registerWallet(customerId, walletAddress)
-    console.error(JSON.stringify({
+    console.log(JSON.stringify({
       evt:           'wallet.registered',
       customerId,
       walletAddress: `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`,
