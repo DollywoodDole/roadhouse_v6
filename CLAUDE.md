@@ -320,9 +320,9 @@ Fix in this exact order. Do not skip ahead.
 - ✅ **#4** — Create all Stripe products + populate all price ID env vars (run `scripts/create-stripe-prices.ts`)
 - ✅ **#5** — Stripe webhook handler: all lifecycle events (sub created/updated/deleted, payment failed, checkout completed)
 - ✅ **#6** — Discord bot: assign/revoke roles via Stripe webhooks, `/verify` command
-  - ⚠️ Still required in Vercel: `DISCORD_PUBLIC_KEY`, `DISCORD_APP_ID`, `DISCORD_BOT_TOKEN`, `DISCORD_VERIFY_SECRET`, `DISCORD_ADMIN_SECRET`
-  - ⚠️ Run once after setting those vars: `npm run register-commands` (registers `/verify` slash command)
-  - ⚠️ Set Interactions Endpoint URL in Discord Developer Portal: `https://roadhouse.capital/api/discord/interactions`
+  - ✅ Vercel env vars set: `DISCORD_PUBLIC_KEY`, `DISCORD_APP_ID`, `DISCORD_BOT_TOKEN`, `DISCORD_VERIFY_SECRET`, `DISCORD_ADMIN_SECRET` — 2026-03-28
+  - ✅ `/verify` slash command registered (id: `1485399699828637787`) — 2026-03-28
+  - ⏳ Set Interactions Endpoint URL in Discord Developer Portal: `https://roadhouse.capital/api/discord/interactions` — **blocked on domain cutover**
 - ✅ **#7** — Transactional emails via Resend: welcome, upgrade, cancellation, merch, event, adventure, sponsor, contact
 - ✅ **#8** — Member portal at `/portal`: tier display, $ROAD balance, Stripe Customer Portal link
 - ✅ **#9** — Merch checkout: capture size in Stripe metadata, fulfillment email to Dalton
@@ -346,8 +346,22 @@ Fix in this exact order. Do not skip ahead.
 - **#23** — Claude orchestrator agent: dispatches all agents, approval queue, daily Discord digest
 
 ### ⚙️ Infra (ongoing)
-- **#24** — Vercel env audit: every secret populated + documented
+- ✅ **#24** — Vercel env audit: all secrets populated — Discord env vars set 2026-03-28, `/verify` registered
+  - ⏳ End-to-end verification (Stripe webhooks, Discord interactions) blocked on domain cutover — roadhouse.capital still points to v5
 - **#25** — GitHub Pages community dashboard: treasury + member count + $ROAD + guilds
+
+### ⚠️ Domain Cutover — Gate for All External Verification
+
+`roadhouse.capital` currently points to v5. **Nothing external is verifiable until cutover.**
+
+Unblock order (strict):
+1. **Domain cutover** → point roadhouse.capital DNS to v6 Vercel deployment
+2. **Verify Vercel env vars** are live on first request (already set in dashboard)
+3. **Set Discord Interactions Endpoint URL** → `https://roadhouse.capital/api/discord/interactions` in Discord Developer Portal (can only be verified once domain is live)
+4. **Test Stripe webhooks** → `stripe listen --forward-to https://roadhouse.capital/api/webhooks/stripe`
+
+Carry into M3 (no external dependency):
+- Wallet orphan cleanup — `registerWallet()` in `lib/road-balance.ts`: old `wallet:{prev}` KV key not deleted on wallet switch. Low urgency until wallet switching is a common pattern.
 
 ---
 
