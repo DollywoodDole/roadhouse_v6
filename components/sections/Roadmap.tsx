@@ -16,7 +16,7 @@ const PHASES = [
       'Publish community dashboard v1',
       'First sponsorship outreach',
       'Form four guilds — deploy $ROAD on testnet',
-      'Launch Gnosis Safe treasury wallet',
+      'Launch Squads treasury wallet (Solana)',
       'Onboard first 10 creators',
       'File IRAP pre-screening',
     ],

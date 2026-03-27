@@ -110,7 +110,7 @@ export default function Membership() {
           Digital <span className="text-gold">Membership</span>
         </h2>
         <p className="text-rh-muted text-sm mt-3 max-w-xl tracking-wide">
-          Access is earned through participation. Each tier unlocks governance rights, revenue-share allocation, and $ROAD tokens.
+          Access is earned through participation. Each tier unlocks governance rights, treasury voting weight, and $ROAD accrual.
           Cancel anytime. Upgrade when you've earned it.
         </p>
         <div className="gold-line mt-4 max-w-xs" />
