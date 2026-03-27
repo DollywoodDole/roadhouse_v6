@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { href: '#membership',   icon: '★',  label: 'Membership' },
   { href: '#events',       icon: '◆',  label: 'Events' },
   { href: '#adventures',   icon: '◈',  label: 'Adventures' },
-  { href: '#compound',     icon: '⬡',  label: 'The Compound' },
+  { href: '/compound',     icon: '⬡',  label: 'The Compound' },
   { href: '#sponsorships', icon: '⬡',  label: 'Sponsorships' },
   { href: '#guilds',       icon: '◇',  label: 'Guild Architecture' },
   { href: '#token',        icon: '$',  label: '$ROAD Token' },
@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { href: '#coconut',      icon: '🥥', label: 'Coconut Cowboy' },
   { href: '#opportunities',icon: '✦',  label: 'Opportunities' },
   { href: '#contact',      icon: '✉',  label: 'Contact' },
+  { href: '/partners',    icon: '★',  label: 'Partners' },
 ]
 
 const SOCIAL_LINKS = [
@@ -40,7 +41,9 @@ export default function Sidebar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = NAV_ITEMS.map(i => i.href.replace('#', ''))
+      const sections = NAV_ITEMS
+        .filter(i => i.href.startsWith('#'))
+        .map(i => i.href.replace('#', ''))
       const current = sections.find(id => {
         const el = document.getElementById(id)
         if (!el) return false
@@ -55,8 +58,12 @@ export default function Sidebar() {
 
   const handleNavClick = (href: string) => {
     setOpen(false)
-    const id = href.replace('#', '')
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    if (href.startsWith('/')) {
+      window.location.href = href
+    } else {
+      const id = href.replace('#', '')
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   return (
@@ -79,7 +86,8 @@ export default function Sidebar() {
       <aside
         className={`
           fixed top-0 left-0 h-full z-50 flex flex-col
-          bg-rh-surface border-r border-rh-border
+          backdrop-blur-md bg-black/40 border-r border-white/10
+          shadow-[inset_-1px_0_0_0_rgba(255,215,0,0.12)]
           transition-transform duration-300 ease-in-out
           w-[280px]
           ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -87,7 +95,7 @@ export default function Sidebar() {
         style={{ fontFamily: 'var(--font-dm-mono)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-rh-border">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
           <div>
             <div
               className="text-xl font-light tracking-[0.3em] uppercase text-gold-light"
@@ -108,7 +116,7 @@ export default function Sidebar() {
         </div>
 
         {/* Live badge */}
-        <div className="px-6 py-3 border-b border-rh-border">
+        <div className="px-6 py-3 border-b border-white/8">
           <a
             href="https://kick.com/dollywooddole"
             target="_blank"
@@ -136,10 +144,10 @@ export default function Sidebar() {
                     onClick={() => handleNavClick(item.href)}
                     className={`
                       w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left
-                      text-[12px] tracking-wider transition-all duration-200
+                      text-[12px] tracking-wider transition-colors duration-150
                       ${isActive
-                        ? 'bg-gold/10 text-gold border border-gold/20'
-                        : 'text-rh-muted hover:text-rh-text hover:bg-rh-card border border-transparent'
+                        ? 'bg-white/5 text-gold border-l-2 border-gold'
+                        : 'text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent'
                       }
                     `}
                   >
@@ -162,7 +170,7 @@ export default function Sidebar() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] tracking-wider text-rh-muted hover:text-gold transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] tracking-wider text-white/60 hover:text-gold transition-colors duration-150"
                 >
                   <span className="w-4 text-center text-sm opacity-70">{link.icon}</span>
                   <span>{link.label}</span>
@@ -191,8 +199,8 @@ export default function Sidebar() {
         <WalletStatus />
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-rh-border">
-          <div className="text-[10px] text-rh-faint tracking-wider">
+        <div className="px-6 py-4 border-t border-white/8">
+          <div className="text-[10px] text-white/40 tracking-wider">
             <div>© 2026 Praetorian Holdings Corp.</div>
             <a href={`mailto:${siteConfig.contactEmail}`} className="hover:text-gold transition-colors">
               {siteConfig.contactEmail}

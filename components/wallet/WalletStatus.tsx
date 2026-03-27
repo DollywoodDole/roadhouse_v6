@@ -8,7 +8,7 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Loader2 } from 'lucide-react'
 import { useRoadToken, formatRoadBalance, shortenAddress } from '@/lib/road-token'
-import { TIER_THRESHOLDS, TierKey } from '@/lib/solana'
+import { TIER_THRESHOLDS, TIER_LABELS, TierKey } from '@/lib/solana'
 import ConnectButton from './ConnectButton'
 
 // Tier colour accents
@@ -36,8 +36,8 @@ export default function WalletStatus() {
 
   if (!connected) {
     return (
-      <div className="px-4 py-3 border-t border-rh-border">
-        <div className="text-[9px] tracking-[0.3em] uppercase text-rh-faint mb-2">Wallet</div>
+      <div className="px-4 py-3 border-t border-white/8">
+        <div className="text-[9px] tracking-[0.3em] uppercase text-white/40 mb-2">Wallet</div>
         <ConnectButton compact />
       </div>
     )
@@ -52,31 +52,34 @@ export default function WalletStatus() {
     : 100
 
   return (
-    <div className="px-4 py-3 border-t border-rh-border">
+    <div className="px-4 py-3 border-t border-white/8">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[9px] tracking-[0.3em] uppercase text-rh-faint">Wallet</div>
+        <div className="text-[9px] tracking-[0.3em] uppercase text-white/40">Wallet</div>
         <ConnectButton compact className="!px-2 !py-1 !text-[9px]" />
       </div>
 
       {/* Address */}
-      <div className="text-[10px] text-rh-muted font-mono mb-2">
+      <div className="text-[10px] font-mono mb-3 px-2 py-1 bg-white/5 border border-white/10 rounded text-white/70 truncate">
         {publicKey ? shortenAddress(publicKey.toBase58(), 5) : ''}
       </div>
 
-      {/* Balance */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-[9px] tracking-[0.2em] uppercase text-rh-faint">$ROAD</div>
-        <div className="text-[11px] text-gold font-medium">
-          {loading ? <Loader2 size={10} className="animate-spin" /> : formatRoadBalance(balance)}
+      {/* Balance + Tier */}
+      <div className="bg-white/5 border border-white/10 rounded-md px-2 py-2 mb-2 space-y-1.5">
+        {/* Balance */}
+        <div className="flex items-center justify-between">
+          <div className="text-[9px] tracking-[0.2em] uppercase text-white/40">$ROAD</div>
+          <div className="text-[11px] text-gold font-medium">
+            {loading ? <Loader2 size={10} className="animate-spin" /> : formatRoadBalance(balance)}
+          </div>
         </div>
-      </div>
 
-      {/* Tier */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-[9px] tracking-[0.2em] uppercase text-rh-faint">Tier</div>
-        <div className={`text-[11px] font-medium ${TIER_COLORS[tier]}`}>
-          {TIER_ICONS[tier]} {tierLabel}
+        {/* Tier */}
+        <div className="flex items-center justify-between">
+          <div className="text-[9px] tracking-[0.2em] uppercase text-white/40">Tier</div>
+          <div className={`text-[11px] font-medium ${TIER_COLORS[tier]}`}>
+            {TIER_ICONS[tier]} {tierLabel}
+          </div>
         </div>
       </div>
 
@@ -84,12 +87,12 @@ export default function WalletStatus() {
       {nextTier && (
         <div>
           <div className="flex items-center justify-between mb-1">
-            <div className="text-[8px] text-rh-faint">→ {tierLabel.replace(tierLabel, '')} next tier</div>
-            <div className="text-[8px] text-rh-faint">
+            <div className="text-[8px] text-white/40">→ {TIER_LABELS[nextTier]} next tier</div>
+            <div className="text-[8px] text-white/40">
               {formatRoadBalance(balance)}/{formatRoadBalance(nextThreshold!)}
             </div>
           </div>
-          <div className="h-px bg-rh-border rounded-full overflow-hidden">
+          <div className="h-px bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-gold-dark to-gold rounded-full transition-all duration-700"
               style={{ width: `${progress}%` }}
