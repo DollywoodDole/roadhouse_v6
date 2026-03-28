@@ -804,33 +804,57 @@ See `docs/guild-economy.md` §The Critical Missing Piece for the full specificat
 - **Health check fixes** — `err: any` → `err: unknown` in contact, stripe webhook, subscription, discord interactions routes; `console.error` → `console.log` for non-error events in wallet register and road accrual routes; `"revenue-share allocation"` → `"treasury voting weight"` in Membership.tsx (Howey removal); "Gnosis Safe" → "Squads" in Roadmap.tsx.
 - **`WalletStatus.tsx`** — glass treatment: dividers, address display, balance/tier container, all section labels use `text-white/40`.
 
-### Sidebar Glassmorphism — Class Reference
+### Sidebar Glassmorphism — Implementation Reference
 
-Use these exact classes if extending or replicating the treatment. Do not deviate.
+Glass material is applied via `style` prop directly on `<aside>`. Tailwind classes handle positioning, dimensions, z-index, motion, and nav token colours only.
 
+**Ancestor fix (applied 2026-03-28):**
+`overflow-x: hidden` moved from `body` to `html` in `globals.css`. Chrome/Safari prevent `backdrop-filter` from compositing correctly on `position: fixed` children when `overflow` is non-`visible` on `<body>`. Moving it to `<html>` preserves horizontal scroll prevention without breaking the compositing layer.
+
+**`<aside>` Tailwind classes (non-background):**
 ```
-/* Sidebar container */
-backdrop-blur-md bg-black/40 border-r border-white/10
-shadow-[inset_-1px_0_0_0_rgba(255,215,0,0.12)]
+fixed top-0 left-0 h-full z-50 flex flex-col overflow-hidden
+transition-transform duration-300 ease-in-out w-[280px]
+```
+`overflow-hidden` is required to clip the three absolute decorative layers.
 
-/* Section dividers (header, live badge, footer) */
+**`<aside>` style prop — glass material:**
+```js
+{
+  background: 'rgba(14, 12, 8, 0.50)',
+  WebkitBackdropFilter: 'blur(48px) saturate(200%) brightness(108%)',
+  backdropFilter: 'blur(48px) saturate(200%) brightness(108%)',
+  boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.08), inset 0 1px 0 0 rgba(255,255,255,0.13), 1px 0 0 0 rgba(255,255,255,0.045)',
+}
+```
+`-webkit-backdrop-filter` included for Safari. `brightness(108%) saturate(200%)` lifts the blurred content so the effect reads against dark backgrounds.
+
+**Three decorative layers — absolute, pointer-events: none, first children inside `<aside>`:**
+
+1. **Noise grain** — `position: absolute; inset: 0` — fractalNoise SVG, `opacity: 0.045`, `mix-blend-mode: overlay`
+2. **Specular top rim** — `position: absolute; top: 0; height: 1px` — `linear-gradient(90deg, transparent, rgba(255,255,255,0.28) 35%, rgba(255,255,255,0.20) 65%, transparent)`
+3. **Right edge hairline** — `position: absolute; right: 0; width: 1px` — `linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04) 40%, transparent)`
+
+**Section dividers (header, live badge, footer):**
+```
 border-b border-white/8   /* or border-t border-white/8 */
-
-/* Nav — active item */
-bg-white/5 text-gold border-l-2 border-gold
-
-/* Nav — inactive item */
-text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent
-
-/* Nav — transition */
-transition-colors duration-150
-
-/* Social links */
-text-white/60 hover:text-gold transition-colors duration-150
-
-/* Footer text */
-text-white/40
 ```
+
+**Nav — active item:**
+```
+bg-white/5 text-gold border-l-2 border-gold
+```
+
+**Nav — inactive item:**
+```
+text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent
+```
+
+**Nav — transition:** `transition-colors duration-150`
+
+**Social links:** `text-white/60 hover:text-gold transition-colors duration-150`
+
+**Footer text:** `text-white/40`
 
 ### WalletStatus Glassmorphism — Class Reference
 
@@ -853,4 +877,4 @@ bg-white/10
 
 ### How Blur Renders
 
-`backdrop-blur-md` on a `position: fixed` sidebar blurs whatever is visually behind it in the viewport. The parent `<div className="flex min-h-screen bg-rh-black">` is a flow sibling, not a stacking context — no parent override required. Blur renders correctly on all supported browsers without additional wrapper changes.
+The `<aside>` is `position: fixed`. `backdrop-filter` composites from whatever is visually rendered below the sidebar in the stacking order. `overflow-x: hidden` must be on `<html>`, not `<body>` — setting it on `<body>` prevents the browser from promoting the fixed element to its own compositing layer in Chrome/Safari, silently disabling the blur.
