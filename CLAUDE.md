@@ -579,6 +579,26 @@ Any Regular+ member can apply. Applications at `/guilds`.
 - **No inline styles** — Tailwind classes only, brand tokens only (exception: `RoadHouse.jsx` layer uses CSS variables — see Dashboard Design System above)
 - **Mobile-first** — all new pages must be responsive before merging
 - **No `console.log` in production** — use structured logging (`console.error` for errors only)
+- **`crypto.randomUUID()` — never call at module evaluation level in client-bundled files.**
+  `next.config.js` polyfills `crypto` → `crypto-browserify` for client bundles. `crypto-browserify`
+  does NOT export `randomUUID`. Calling it at module level (e.g. in a top-level constant) throws
+  `TypeError: randomUUID is not a function` during chunk evaluation — before React mounts —
+  silently killing the entire dashboard or page chunk (blank screen, no error boundary).
+
+  **Rules:**
+  - Call `randomUUID()` inside functions only, never at the top level of a module
+  - If a file genuinely needs `randomUUID` at module level, restrict it to server-only via
+    `import 'server-only'` or confine it to an API route
+  - For any lib file that can be imported client-side, use `globalThis.crypto.randomUUID()`
+    (available in all modern browsers and Node.js 19+) — do not `import { randomUUID } from 'crypto'`
+
+  **Files fixed this session (2026-03-28) — all audited:**
+  - `lib/gnosis.ts` — root cause: `SEED_VOTES` called `randomUUID()` at module level;
+    fixed by replacing with hardcoded seed IDs (`'seed-vote-1'`, `'seed-vote-2'`)
+  - `lib/api/listings.ts` — defensive fix: `import { randomUUID } from 'crypto'`
+    replaced with `const randomUUID = () => globalThis.crypto.randomUUID()`
+  - `lib/api/experiments.ts` — same defensive fix
+  - `lib/api/bounties.ts` — same defensive fix
 
 ---
 
