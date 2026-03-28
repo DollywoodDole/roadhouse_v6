@@ -13,7 +13,6 @@
  */
 
 import { Redis } from '@upstash/redis'
-import { randomUUID } from 'crypto'
 
 export type TreasurySnapshot = {
   roadBalance:  number
@@ -44,7 +43,7 @@ const DEFAULT_SNAPSHOT: TreasurySnapshot = {
 
 const SEED_VOTES: GovernanceVote[] = [
   {
-    id:          randomUUID(),
+    id:          'seed-vote-1',
     title:       'Allocate 500 $ROAD to Media Guild Q2 bounty pool',
     yesPercent:  68,
     noPercent:   32,
@@ -54,7 +53,7 @@ const SEED_VOTES: GovernanceVote[] = [
     snapshotUrl: 'https://snapshot.org',
   },
   {
-    id:          randomUUID(),
+    id:          'seed-vote-2',
     title:       'Approve Lake Trip deposit subsidy for Ranch Hand+',
     yesPercent:  52,
     noPercent:   48,

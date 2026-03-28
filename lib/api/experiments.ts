@@ -11,7 +11,7 @@
  */
 
 import { Redis } from '@upstash/redis'
-import { randomUUID } from 'crypto'
+const randomUUID = () => globalThis.crypto.randomUUID()
 
 export type ExperimentEntry = {
   id:           string
