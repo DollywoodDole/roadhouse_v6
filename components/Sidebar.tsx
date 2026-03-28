@@ -21,8 +21,6 @@ const NAV_ITEMS = [
   { href: '#token',        icon: '$',  label: '$ROAD Token' },
   { href: '#mint',         icon: '⬡',  label: 'Founding Mint' },
   { href: '#roadmap',      icon: '→',  label: 'Roadmap' },
-  { href: '#coconut',      icon: '🥥', label: 'Coconut Cowboy' },
-  { href: '#opportunities',icon: '✦',  label: 'Opportunities' },
   { href: '#contact',      icon: '✉',  label: 'Contact' },
   { href: '/partners',    icon: '★',  label: 'Partners' },
 ]
@@ -95,7 +93,7 @@ export default function Sidebar() {
           background: 'rgba(14, 12, 8, 0.50)',
           WebkitBackdropFilter: 'blur(48px) saturate(200%) brightness(108%)',
           backdropFilter: 'blur(48px) saturate(200%) brightness(108%)',
-          boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.08), inset 0 1px 0 0 rgba(255,255,255,0.13), 1px 0 0 0 rgba(255,255,255,0.045)',
+          boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.08), inset 0 1px 0 0 rgba(255,255,255,0.13)',
         }}
       >
         {/* Noise grain — frosted texture */}
@@ -107,32 +105,6 @@ export default function Sidebar() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E")`,
             opacity: 0.045,
             mixBlendMode: 'overlay',
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Specular top rim */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.28) 35%, rgba(255,255,255,0.20) 65%, transparent)',
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Right edge hairline */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: '1px',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04) 40%, transparent)',
             pointerEvents: 'none',
           }}
         />

@@ -801,6 +801,7 @@ See `docs/guild-economy.md` §The Critical Missing Piece for the full specificat
   - `/partners` added to NAV_ITEMS
   - `handleNavClick` handles `/`-prefixed hrefs via `window.location.href`; `#`-prefixed via `scrollIntoView`
   - Scroll tracker filters to `#`-prefixed items only before mapping section IDs
+  - `#coconut` (Coconut Cowboy) and `#opportunities` (Opportunities) removed from NAV_ITEMS — both were anchor-scroll links to sections on the home page; the sections still exist in the page, they are just no longer in the sidebar nav. Not linked anywhere else.
 - **Health check fixes** — `err: any` → `err: unknown` in contact, stripe webhook, subscription, discord interactions routes; `console.error` → `console.log` for non-error events in wallet register and road accrual routes; `"revenue-share allocation"` → `"treasury voting weight"` in Membership.tsx (Howey removal); "Gnosis Safe" → "Squads" in Roadmap.tsx.
 - **`WalletStatus.tsx`** — glass treatment: dividers, address display, balance/tier container, all section labels use `text-white/40`.
 
@@ -829,11 +830,13 @@ transition-transform duration-300 ease-in-out w-[280px]
 ```
 `-webkit-backdrop-filter` included for Safari. `brightness(108%) saturate(200%)` lifts the blurred content so the effect reads against dark backgrounds.
 
-**Three decorative layers — absolute, pointer-events: none, first children inside `<aside>`:**
+**Decorative layer — absolute, pointer-events: none, first child inside `<aside>`:**
 
-1. **Noise grain** — `position: absolute; inset: 0` — fractalNoise SVG, `opacity: 0.045`, `mix-blend-mode: overlay`
-2. **Specular top rim** — `position: absolute; top: 0; height: 1px` — `linear-gradient(90deg, transparent, rgba(255,255,255,0.28) 35%, rgba(255,255,255,0.20) 65%, transparent)`
-3. **Right edge hairline** — `position: absolute; right: 0; width: 1px` — `linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04) 40%, transparent)`
+1. **Noise grain** — `position: absolute; inset: 0` — fractalNoise SVG, `opacity: 0.045`, `mix-blend-mode: overlay` — retained
+
+~~Specular top rim~~ — removed 2026-03-28: too visible as a bright white line against dark bg.
+~~Right edge hairline~~ — removed 2026-03-28: same reason. Also removed `1px 0 0 0 rgba(255,255,255,0.045)` from `box-shadow` (was the right-edge shadow equivalent).
+Only the two inset seam shadows remain: `inset 0 0 0 0.5px rgba(255,255,255,0.08), inset 0 1px 0 0 rgba(255,255,255,0.13)`
 
 **Section dividers (header, live badge, footer):**
 ```
