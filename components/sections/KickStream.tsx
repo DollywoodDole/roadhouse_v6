@@ -45,10 +45,10 @@ export default function KickStream() {
             </div>
             <div className="kick-container bg-rh-black">
               <iframe
-                src="https://player.kick.com/dollywooddole?autoplay=false"
+                src="https://player.kick.com/dollywooddole"
                 title="DollywoodDole Live on Kick"
                 allowFullScreen
-                allow="fullscreen"
+                allow="autoplay; fullscreen"
                 loading="lazy"
               />
             </div>
