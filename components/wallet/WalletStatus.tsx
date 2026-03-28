@@ -36,7 +36,7 @@ export default function WalletStatus() {
 
   if (!connected) {
     return (
-      <div className="px-4 py-3 border-t border-white/8">
+      <div className="px-4 py-3 border-t border-gold/15">
         <div className="text-[9px] tracking-[0.3em] uppercase text-white/40 mb-2">Wallet</div>
         <ConnectButton compact />
       </div>
@@ -52,7 +52,7 @@ export default function WalletStatus() {
     : 100
 
   return (
-    <div className="px-4 py-3 border-t border-white/8">
+    <div className="px-4 py-3 border-t border-gold/15">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="text-[9px] tracking-[0.3em] uppercase text-white/40">Wallet</div>
@@ -60,12 +60,12 @@ export default function WalletStatus() {
       </div>
 
       {/* Address */}
-      <div className="text-[10px] font-mono mb-3 px-2 py-1 bg-white/5 border border-white/10 rounded text-white/70 truncate">
+      <div className="text-[10px] font-mono mb-3 px-2 py-1 bg-white/5 border border-gold/10 rounded text-white/70 truncate">
         {publicKey ? shortenAddress(publicKey.toBase58(), 5) : ''}
       </div>
 
       {/* Balance + Tier */}
-      <div className="bg-white/5 border border-white/10 rounded-md px-2 py-2 mb-2 space-y-1.5">
+      <div className="bg-white/5 border border-gold/10 rounded-md px-2 py-2 mb-2 space-y-1.5">
         {/* Balance */}
         <div className="flex items-center justify-between">
           <div className="text-[9px] tracking-[0.2em] uppercase text-white/40">$ROAD</div>

@@ -93,7 +93,7 @@ export default function Sidebar() {
           background: 'rgba(14, 12, 8, 0.50)',
           WebkitBackdropFilter: 'blur(48px) saturate(200%) brightness(108%)',
           backdropFilter: 'blur(48px) saturate(200%) brightness(108%)',
-          boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.08), inset 0 1px 0 0 rgba(255,255,255,0.13)',
+          boxShadow: 'none',
         }}
       >
         {/* Noise grain — frosted texture */}
@@ -109,7 +109,7 @@ export default function Sidebar() {
           }}
         />
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gold/15">
           <div>
             <div
               className="text-xl font-light tracking-[0.3em] uppercase text-gold-light"
@@ -130,7 +130,7 @@ export default function Sidebar() {
         </div>
 
         {/* Live badge */}
-        <div className="px-6 py-3 border-b border-white/8">
+        <div className="px-6 py-3 border-b border-gold/15">
           <a
             href="https://kick.com/dollywooddole"
             target="_blank"
@@ -213,7 +213,7 @@ export default function Sidebar() {
         <WalletStatus />
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-white/8">
+        <div className="px-6 py-4 border-t border-gold/15">
           <div className="text-[10px] text-white/40 tracking-wider">
             <div>© 2026 Praetorian Holdings Corp.</div>
             <a href={`mailto:${siteConfig.contactEmail}`} className="hover:text-gold transition-colors">

@@ -192,10 +192,10 @@ export default function CommunityFeed() {
               {/* Clip embed */}
               <div className="kick-container rounded overflow-hidden border border-rh-border bg-rh-black">
                 <iframe
-                  src="https://kick.com/dollywooddole/clips/clip_01KKDHTH3RXQBGX32BF91WQGF8"
+                  src="https://kick.com/dollywooddole/clips/clip_01KKDHTH3RXQBGX32BF91WQGF8?autoplay=false"
                   title="Latest Kick Clip"
                   allowFullScreen
-                  allow="autoplay; fullscreen"
+                  allow="fullscreen"
                 />
               </div>
 
