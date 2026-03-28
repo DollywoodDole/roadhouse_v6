@@ -68,7 +68,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2.5 rounded-lg bg-rh-card border border-rh-border text-gold hover:border-gold transition-colors"
+        className="fixed top-4 left-4 z-50 p-2.5 rounded-lg bg-rh-card border border-rh-border text-gold hover:border-gold transition-colors"
         aria-label="Open navigation"
       >
         <Menu size={20} />
@@ -86,7 +86,7 @@ export default function Sidebar() {
           fixed top-0 left-0 h-full z-50 flex flex-col overflow-hidden
           transition-transform duration-300 ease-in-out
           w-[280px]
-          ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${open ? 'translate-x-0' : '-translate-x-full'}
         `}
         style={{
           fontFamily: 'var(--font-dm-mono)',
