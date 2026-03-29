@@ -83,16 +83,9 @@ body {
   opacity: 0.4;
 }
 
-/* Section padding with sidebar offset */
+/* Sidebar is position:fixed — no margin offset needed */
 .main-content {
-  margin-left: var(--sidebar-width);
   min-height: 100vh;
-}
-
-@media (max-width: 1024px) {
-  .main-content {
-    margin-left: 0;
-  }
 }
 
 /* Live indicator */
