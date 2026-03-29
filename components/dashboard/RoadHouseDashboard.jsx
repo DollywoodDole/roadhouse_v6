@@ -41,60 +41,110 @@ function ConnectPrompt() {
           font-family: 'Space Mono', monospace;
           padding: 2rem;
         }
-
         .rh-connect-card {
           background: #111009;
           border: 1px solid #2a2318;
           border-radius: 6px;
           padding: 3rem 2.5rem;
-          max-width: 420px;
+          max-width: 440px;
           width: 100%;
-          text-align: center;
         }
         .rh-connect-wordmark {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 1.5rem;
-          letter-spacing: 0.2em;
+          font-size: 1.1rem;
+          letter-spacing: 0.22em;
           color: #e8c84a;
-          margin-bottom: 2rem;
           display: block;
+          margin-bottom: 0.4rem;
+          text-decoration: none;
+        }
+        .rh-connect-wordmark:hover { opacity: 0.8; }
+        .rh-connect-tagline {
+          font-size: 0.58rem;
+          letter-spacing: 0.25em;
+          color: #4a4238;
+          margin-bottom: 2.25rem;
+          font-family: 'Space Mono', monospace;
         }
         .rh-connect-heading {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 3rem;
-          letter-spacing: 0.08em;
+          font-size: 2.75rem;
+          letter-spacing: 0.06em;
           color: #e2d9c8;
-          margin: 0 0 0.75rem 0;
+          margin: 0 0 0.6rem 0;
+          line-height: 1;
         }
         .rh-connect-sub {
-          font-size: 0.72rem;
-          line-height: 1.8;
+          font-size: 0.68rem;
+          line-height: 1.9;
           color: #8a7d6a;
           margin-bottom: 2rem;
         }
-        .rh-connect-btn {
-          display: inline-block;
+        /* Primary CTA — join */
+        .rh-connect-btn-join {
+          display: block;
           width: 100%;
-          padding: 0.875rem 1.5rem;
+          padding: 1rem 1.5rem;
           background: #e8c84a;
           color: #0a0a08;
           font-family: 'Space Mono', monospace;
           font-size: 0.72rem;
           font-weight: 700;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           border: none;
           border-radius: 3px;
           cursor: pointer;
+          text-align: center;
+          text-decoration: none;
           transition: opacity 0.2s;
-          margin-bottom: 1.75rem;
+          box-sizing: border-box;
         }
-        .rh-connect-btn:hover { opacity: 0.88; }
+        .rh-connect-btn-join:hover { opacity: 0.88; }
+        /* Divider */
+        .rh-connect-sep {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 1.75rem 0;
+        }
+        .rh-connect-sep-line {
+          flex: 1;
+          height: 1px;
+          background: #2a2318;
+        }
+        .rh-connect-sep-label {
+          font-size: 0.58rem;
+          letter-spacing: 0.2em;
+          color: #4a4238;
+          white-space: nowrap;
+        }
+        /* Secondary CTA — connect wallet */
+        .rh-connect-btn-wallet {
+          display: block;
+          width: 100%;
+          padding: 0.875rem 1.5rem;
+          background: transparent;
+          color: #8a7d6a;
+          font-family: 'Space Mono', monospace;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          border: 1px solid #2a2318;
+          border-radius: 3px;
+          cursor: pointer;
+          transition: color 0.2s, border-color 0.2s;
+          box-sizing: border-box;
+          margin-bottom: 1.5rem;
+        }
+        .rh-connect-btn-wallet:hover { color: #e2d9c8; border-color: #4a4238; }
         .rh-connect-tags {
           display: flex;
           justify-content: center;
           gap: 0.75rem;
           flex-wrap: wrap;
+          margin-bottom: 1.75rem;
         }
         .rh-connect-tag {
           font-size: 0.58rem;
@@ -108,44 +158,55 @@ function ConnectPrompt() {
       `}</style>
 
       <div className="rh-connect-card">
-        {/* Wordmark */}
-        <span className="rh-connect-wordmark">ROADHOUSE CAPITAL</span>
+        {/* Wordmark — links home */}
+        <a href="/" className="rh-connect-wordmark">ROADHOUSE CAPITAL</a>
+        <div className="rh-connect-tagline">WHERE STANDARDS MATTER</div>
 
-        {/* Gate heading */}
-        <h1 className="rh-connect-heading">Members Only</h1>
-
-        {/* Subtext */}
+        <h1 className="rh-connect-heading">The Member Dashboard</h1>
         <p className="rh-connect-sub">
-          Connect your Phantom wallet to access the dashboard.
+          Track $ROAD, claim guild bounties, access experiments, and move through tiers.
+          Membership starts at $19.99/mo.
         </p>
 
-        {/* Connect button — opens native Phantom wallet modal */}
+        {/* Primary CTA — 1 click to membership page, 1 click to Stripe checkout */}
+        <a href="/#membership" className="rh-connect-btn-join">
+          Join RoadHouse →
+        </a>
+
+        {/* Divider */}
+        <div className="rh-connect-sep">
+          <div className="rh-connect-sep-line" />
+          <span className="rh-connect-sep-label">ALREADY A MEMBER?</span>
+          <div className="rh-connect-sep-line" />
+        </div>
+
+        {/* Secondary CTA — existing members connect wallet */}
         <button
-          className="rh-connect-btn"
+          className="rh-connect-btn-wallet"
           onClick={() => setVisible(true)}
         >
           Connect Wallet
         </button>
 
-        {/* Tag row */}
+        {/* Wallet tags */}
         <div className="rh-connect-tags">
-          {['Founding Member', '$ROAD Required', 'Solana'].map(tag => (
+          {['Phantom', 'Solflare', 'Solana'].map(tag => (
             <span key={tag} className="rh-connect-tag">{tag}</span>
           ))}
         </div>
 
-        {/* Back link — prevent dead-end for non-wallet visitors */}
+        {/* Back link */}
         <a
           href="/"
           style={{
             fontFamily: "'Space Mono', monospace",
             fontSize: '0.6rem',
-            letterSpacing: '0.25em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: '#4a4238',
             textDecoration: 'none',
-            marginTop: '1.5rem',
             display: 'block',
+            textAlign: 'center',
             transition: 'color 0.2s',
           }}
           onMouseEnter={e => { e.currentTarget.style.color = '#8a7d6a' }}
@@ -191,15 +252,22 @@ function DashboardHeader({ walletAddress, memberTier, onDisconnect }) {
       flexWrap: 'wrap',
       gap: '0.75rem',
     }}>
-      {/* Left: wordmark */}
-      <span style={{
-        fontFamily: 'Bebas Neue, sans-serif',
-        fontSize: '1.25rem',
-        letterSpacing: '0.15em',
-        color: '#e8c84a',
-      }}>
+      {/* Left: wordmark → home */}
+      <a
+        href="/"
+        style={{
+          fontFamily: 'Bebas Neue, sans-serif',
+          fontSize: '1.25rem',
+          letterSpacing: '0.15em',
+          color: '#e8c84a',
+          textDecoration: 'none',
+          transition: 'opacity 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+      >
         ROADHOUSE CAPITAL
-      </span>
+      </a>
 
       {/* Right: wallet pill + tier badge + disconnect */}
       <div style={{
