@@ -61,6 +61,370 @@ function Divider() {
   return <div className="rh-divider" />
 }
 
+// ── MemberProfileCard + helpers ──────────────────────────────────────────────
+// Token map: gold→var(--accent)  bg→var(--bg)  panel→#111110
+//            border→#1e1e1c      warm→#ede8dc  muted→#5a5550
+//            green→#4b7c50       red→var(--accent2)
+
+function ProfileXPBar({ value, max, color, height = 4, showLabel = false }) {
+  const pct = Math.min(100, (value / max) * 100)
+  return (
+    <div>
+      {showLabel && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <span style={{ fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace" }}>
+            {value.toLocaleString()} XP
+          </span>
+          <span style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
+            {max.toLocaleString()} XP
+          </span>
+        </div>
+      )}
+      <div style={{ height, background: '#1e1e1c', borderRadius: 0, overflow: 'hidden', position: 'relative' }}>
+        <div style={{
+          height: '100%', width: `${pct}%`,
+          background: color || 'var(--accent)',
+          transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
+          position: 'relative',
+        }}>
+          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 2, background: 'rgba(255,255,255,0.4)' }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfileStatBar({ label, value, color }) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ fontSize: 9, letterSpacing: '0.18em', color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>{label}</span>
+        <span style={{ fontSize: 9, color: color || '#ede8dc', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>{value}</span>
+      </div>
+      <ProfileXPBar value={value} max={100} color={color} height={2} />
+    </div>
+  )
+}
+
+function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBalance }) {
+  // XP and Signal Score — TODO: wire from KV (not yet in road:{customerId} schema)
+  const xp      = 1840
+  const xpNext  = 2000
+  const signal  = 847
+  const initials = (profile?.alias ?? tierName ?? 'RH').slice(0, 2).toUpperCase()
+  const handle   = profile?.alias
+    ? `@${profile.alias.toLowerCase().replace(/\s+/g, '')}`
+    : null
+
+  return (
+    <div style={{
+      background: '#111110',
+      border: '1px solid #1e1e1c',
+      borderRadius: 3,
+      padding: 20,
+      position: 'relative',
+      overflow: 'hidden',
+      boxShadow: '0 0 40px rgba(232,200,74,0.08)',
+    }}>
+      {/* Gold glow overlay */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at top left, rgba(232,200,74,0.08) 0%, transparent 60%)',
+      }} />
+
+      {/* Corner accent */}
+      <div style={{
+        position: 'absolute', top: 0, right: 0, width: 0, height: 0,
+        borderLeft: '40px solid transparent',
+        borderTop: '40px solid var(--accent)',
+        opacity: 0.15,
+      }} />
+
+      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {/* Avatar */}
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <div style={{
+            width: 72, height: 72,
+            background: 'linear-gradient(135deg, #7A6030, var(--accent))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24, color: 'var(--bg)', fontWeight: 900,
+            fontFamily: "'Bebas Neue', sans-serif",
+            borderRadius: 2,
+            boxShadow: '0 0 20px rgba(232,200,74,0.12)',
+          }}>
+            {initials}
+          </div>
+          <div style={{
+            position: 'absolute', bottom: -4, right: -4,
+            background: '#111110', border: '1px solid var(--accent)',
+            padding: '1px 5px', fontSize: 8, letterSpacing: '0.1em',
+            color: 'var(--accent)', fontFamily: "'Space Mono', monospace",
+          }}>
+            LVL 1
+          </div>
+        </div>
+
+        {/* Name & tier */}
+        <div style={{ flex: 1, minWidth: 160 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2, flexWrap: 'wrap' }}>
+            <div style={{
+              fontSize: 20, letterSpacing: '0.08em', color: '#ede8dc',
+              fontFamily: "'Bebas Neue', sans-serif", lineHeight: 1,
+            }}>
+              {profile?.alias ?? tierName}
+            </div>
+            <span style={{
+              fontSize: 9, letterSpacing: '0.18em',
+              fontFamily: "'Space Mono', monospace", fontWeight: 700,
+              padding: '3px 8px',
+              border: '1px solid var(--accent)',
+              color: 'var(--accent)', borderRadius: 2,
+              background: 'rgba(232,200,74,0.08)',
+            }}>
+              {tierName}
+            </span>
+          </div>
+          {handle && (
+            <div style={{ fontSize: 10, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.12em', marginBottom: 12 }}>
+              {handle}
+            </div>
+          )}
+
+          {/* XP bar — TODO: wire xp/xpNext from KV */}
+          <div style={{ marginBottom: 8 }}>
+            <ProfileXPBar value={xp} max={xpNext} showLabel />
+          </div>
+          <div style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.12em' }}>
+            {(xpNext - xp).toLocaleString()} XP TO NEXT LEVEL
+          </div>
+        </div>
+
+        {/* Signal Score — TODO: wire signal from KV */}
+        <div style={{
+          flexShrink: 0, textAlign: 'center',
+          padding: '12px 16px',
+          border: '1px solid #2a2a28',
+          borderRadius: 2,
+        }}>
+          <div style={{
+            fontSize: 32, fontFamily: "'Bebas Neue', sans-serif",
+            color: 'var(--accent)', lineHeight: 1, letterSpacing: '-0.02em',
+          }}>
+            {signal}
+          </div>
+          <div style={{ fontSize: 8, letterSpacing: '0.2em', color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 4 }}>
+            SIGNAL
+          </div>
+          <div style={{ fontSize: 8, color: '#4b7c50', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
+            ▲ +12 TODAY
+          </div>
+        </div>
+
+        {/* $ROAD Balance — live from KV */}
+        <div style={{
+          flexShrink: 0, textAlign: 'center',
+          padding: '12px 16px',
+          border: '1px solid #2a2a28',
+          borderRadius: 2,
+        }}>
+          <div style={{
+            fontSize: 24, fontFamily: "'Space Mono', monospace", fontWeight: 700,
+            color: '#ede8dc', lineHeight: 1,
+          }}>
+            {balance.toLocaleString()}
+          </div>
+          <div style={{ fontSize: 8, letterSpacing: '0.2em', color: 'var(--accent)', fontFamily: "'Space Mono', monospace", marginTop: 4 }}>
+            $ROAD
+          </div>
+          <div style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
+            ACCRUING
+          </div>
+        </div>
+      </div>
+
+      {/* Stat bars — TODO: wire body/wealth/network/style from KV */}
+      <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid #1e1e1c' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0 24px' }}>
+          <ProfileStatBar label="BODY"    value={68} color="#4b7c50" />
+          <ProfileStatBar label="WEALTH"  value={74} color="var(--accent)" />
+          <ProfileStatBar label="NETWORK" value={55} color="#3a5a7c" />
+          <ProfileStatBar label="STYLE"   value={61} color="#8b6ab8" />
+        </div>
+      </div>
+
+      {/* Upgrade CTA — shown when there is a next tier */}
+      {nextTier && (
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #1e1e1c', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <a
+            href="/#membership"
+            style={{
+              display: 'inline-block',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: 9, letterSpacing: '0.18em', fontWeight: 700,
+              color: 'var(--accent)', textDecoration: 'none',
+              border: '1px solid rgba(232,200,74,0.3)',
+              padding: '8px 14px', borderRadius: 2,
+              background: 'rgba(232,200,74,0.05)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(232,200,74,0.12)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(232,200,74,0.05)' }}
+          >
+            UPGRADE TO {TIER_DISPLAY[nextTier] ?? nextTier.toUpperCase()} →
+          </a>
+          <span style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
+            {(nextBalance - balance).toLocaleString()} $ROAD needed
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// TODO: M3 — wire to missions:{customerId} KV key
+const DAILY_MISSIONS = [
+  { id: 1, label: 'Log a workout',                 category: 'BODY',    xp: 50,  done: false },
+  { id: 2, label: 'Complete 1 track lesson',        category: 'MIND',    xp: 40,  done: false },
+  { id: 3, label: 'Make one income-producing move', category: 'WEALTH',  xp: 75,  done: false },
+  { id: 4, label: 'Engage with a member post',      category: 'NETWORK', xp: 25,  done: false },
+  { id: 5, label: 'Post a win or update',           category: 'SIGNAL',  xp: 30,  done: false },
+]
+
+const MISSION_CATEGORY_COLOR = {
+  BODY:    '#4b7c50',
+  MIND:    '#3a5a7c',
+  WEALTH:  'var(--accent)',
+  NETWORK: '#8b6ab8',
+  SIGNAL:  'var(--accent2)',
+}
+
+function DailyMissions() {
+  const [missions, setMissions] = useState(DAILY_MISSIONS)
+  const completed = missions.filter(m => m.done).length
+  const xpEarned  = missions.filter(m => m.done).reduce((acc, m) => acc + m.xp, 0)
+
+  function toggle(id) {
+    setMissions(ms => ms.map(m => m.id === id ? { ...m, done: !m.done } : m))
+  }
+
+  return (
+    <div style={{
+      background: '#111110',
+      border: '1px solid #1e1e1c',
+      borderRadius: 3,
+      padding: 20,
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '0.06em', color: '#ede8dc', lineHeight: 1 }}>
+            DAILY OPERATIONS
+          </div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', marginTop: 3 }}>
+            {completed}/{missions.length} COMPLETE
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: 'var(--accent)', fontWeight: 700 }}>
+            +{xpEarned} XP
+          </div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, color: '#5a5550', letterSpacing: '0.1em', marginTop: 2 }}>
+            EARNED TODAY
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ marginBottom: 16 }}>
+        <ProfileXPBar value={completed} max={missions.length} color="var(--accent)" height={2} />
+      </div>
+
+      {/* Mission list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {missions.map(m => {
+          const catColor = MISSION_CATEGORY_COLOR[m.category] || '#5a5550'
+          return (
+            <div
+              key={m.id}
+              onClick={() => toggle(m.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 12px',
+                border: `1px solid ${m.done ? 'rgba(232,200,74,0.25)' : '#1e1e1c'}`,
+                background: m.done ? 'rgba(232,200,74,0.04)' : 'transparent',
+                borderRadius: 2, cursor: 'pointer',
+                position: 'relative', overflow: 'hidden',
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+            >
+              {/* Left accent bar */}
+              <div style={{
+                position: 'absolute', left: 0, top: 0, bottom: 0, width: 2,
+                background: m.done ? 'var(--accent)' : '#2a2a28',
+                transition: 'background 0.2s',
+              }} />
+
+              {/* Checkbox */}
+              <div style={{
+                width: 18, height: 18, flexShrink: 0,
+                border: `1px solid ${m.done ? 'var(--accent)' : '#2a2a28'}`,
+                background: m.done ? 'var(--accent)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10, color: 'var(--bg)', fontWeight: 900, borderRadius: 1,
+                transition: 'all 0.2s',
+              }}>
+                {m.done ? '✓' : ''}
+              </div>
+
+              {/* Label + category */}
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 11, color: m.done ? '#5a5550' : '#ede8dc',
+                  letterSpacing: '0.02em',
+                  textDecoration: m.done ? 'line-through' : 'none',
+                  transition: 'color 0.2s',
+                }}>
+                  {m.label}
+                </div>
+                <div style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontSize: 8, color: catColor,
+                  letterSpacing: '0.2em', fontWeight: 700,
+                  marginTop: 2,
+                }}>
+                  {m.category}
+                </div>
+              </div>
+
+              {/* XP reward */}
+              <div style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 10, fontWeight: 700,
+                color: m.done ? 'var(--accent)' : '#5a5550',
+                transition: 'color 0.2s',
+              }}>
+                +{m.xp} XP
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Footer — TODO: M3 — reset timer from KV TTL, streak from road:{customerId}.streak */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid #1e1e1c' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, color: '#5a5550', letterSpacing: '0.15em' }}>
+          RESETS IN 14:22:07
+        </div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, color: '#4b7c50', letterSpacing: '0.15em', fontWeight: 700 }}>
+          ▲ 4-DAY STREAK ACTIVE
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Tab 1: MY ROADHOUSE ──────────────────────────────────────────────────────
 
 // Next-move prompt keyed by tier — TODO: replace with live guild bounty from lib/api/bounties.ts
@@ -119,6 +483,23 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
 
   return (
     <div className="rh-tab-body">
+      {/* Member profile card — visual layer above tier block; reuses existing profile fetch */}
+      {!profileLoading && (
+        <>
+          <MemberProfileCard
+            profile={profile}
+            balance={balance}
+            tier={tier}
+            tierName={tierName}
+            nextTier={nextTier}
+            nextBalance={nextBalance}
+          />
+          <Divider />
+          <DailyMissions />
+          <Divider />
+        </>
+      )}
+
       <SectionHead>My RoadHouse</SectionHead>
 
       {/* Tier status block — replaced by loading state while fetch resolves */}
