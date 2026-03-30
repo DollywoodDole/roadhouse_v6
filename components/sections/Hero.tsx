@@ -11,22 +11,18 @@ export default function Hero() {
       id="home"
       style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '6rem 4rem', overflow: 'hidden' }}
     >
-      {/* Video background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        poster="/Hero-backround.jpg"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-      >
-        <source src="/Clip_TikTok_0.mp4" type="video/mp4" />
-      </video>
+      {/* Hero image background */}
+      <img
+        src="/rh-hero.jpg"
+        alt=""
+        aria-hidden="true"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', zIndex: 0 }}
+      />
 
-      {/* Dark overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,8,6,0.65)', zIndex: 1 }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,8,6,0.7) 100%)', zIndex: 1 }} />
+      {/* Overlays — darken edges for text legibility, preserve logo */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,8,6,0.35)', zIndex: 1 }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 35%, rgba(10,8,6,0.75) 100%)', zIndex: 1 }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,8,6,0.4) 0%, transparent 30%, transparent 60%, rgba(10,8,6,0.6) 100%)', zIndex: 1 }} />
 
       {/* All content sits above video */}
       <div style={{ position: 'relative', zIndex: 2 }}>
@@ -39,18 +35,6 @@ export default function Hero() {
           <div className="text-[11px] tracking-[0.4em] uppercase text-gold mb-8 font-mono">
             Est. Saskatchewan, Canada · Praetorian Holdings Corp.
           </div>
-        </div>
-
-        {/* Logo */}
-        <div
-          className={`mb-10 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          style={{ transitionDelay: '200ms' }}
-        >
-          <img
-            src="/rh-logo.png"
-            alt="RoadHouse"
-            className="w-auto max-w-[340px] md:max-w-[500px] lg:max-w-[600px] drop-shadow-[0_0_60px_rgba(201,146,42,0.5)]"
-          />
         </div>
 
         {/* Tagline */}
