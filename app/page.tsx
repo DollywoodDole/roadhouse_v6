@@ -100,6 +100,7 @@ export default function Home() {
                   { label: 'Events', href: '#events' },
                   { label: 'Guild Architecture', href: '#guilds' },
                   { label: '$ROAD Token', href: '#token' },
+                  { label: 'The Compound', href: '/compound' },
                 ].map(l => (
                   <li key={l.label}>
                     <a href={l.href} className="text-[11px] text-rh-muted hover:text-gold transition-colors">

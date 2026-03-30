@@ -76,7 +76,7 @@ export default function Sidebar() {
 
       {open && (
         <div
-          className="fixed inset-0 z-40 nav-overlay lg:hidden"
+          className="fixed inset-0 z-40 nav-overlay"
           onClick={() => setOpen(false)}
         />
       )}
@@ -124,7 +124,7 @@ export default function Sidebar() {
               <NetworkIndicator />
             </div>
           </div>
-          <button onClick={() => setOpen(false)} className="lg:hidden text-rh-muted hover:text-gold transition-colors p-1">
+          <button onClick={() => setOpen(false)} className="text-rh-muted hover:text-gold transition-colors p-1">
             <X size={18} />
           </button>
         </div>

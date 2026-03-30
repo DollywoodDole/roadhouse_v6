@@ -252,22 +252,40 @@ function DashboardHeader({ walletAddress, memberTier, onDisconnect }) {
       flexWrap: 'wrap',
       gap: '0.75rem',
     }}>
-      {/* Left: wordmark → home */}
-      <a
-        href="/"
-        style={{
-          fontFamily: 'Bebas Neue, sans-serif',
-          fontSize: '1.25rem',
-          letterSpacing: '0.15em',
-          color: '#e8c84a',
-          textDecoration: 'none',
-          transition: 'opacity 0.2s',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
-        onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-      >
-        ROADHOUSE CAPITAL
-      </a>
+      {/* Left: wordmark → home + back link */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
+        <a
+          href="/"
+          style={{
+            fontFamily: 'Bebas Neue, sans-serif',
+            fontSize: '1.25rem',
+            letterSpacing: '0.15em',
+            color: '#e8c84a',
+            textDecoration: 'none',
+            transition: 'opacity 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+        >
+          ROADHOUSE CAPITAL
+        </a>
+        <a
+          href="/"
+          style={{
+            fontFamily: 'Space Mono, monospace',
+            fontSize: '0.6rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: '#4a4238',
+            textDecoration: 'none',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#8a7d6a' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#4a4238' }}
+        >
+          ← Home
+        </a>
+      </div>
 
       {/* Right: wallet pill + tier badge + disconnect */}
       <div style={{
