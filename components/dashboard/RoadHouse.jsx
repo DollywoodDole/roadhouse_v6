@@ -126,6 +126,9 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
       overflow: 'hidden',
       boxShadow: '0 0 40px rgba(232,200,74,0.08)',
     }}>
+      {/* Top gradient border */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--accent), transparent)' }} />
+
       {/* Gold glow overlay */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -297,6 +300,17 @@ const MISSION_CATEGORY_COLOR = {
   SIGNAL:  'var(--accent2)',
 }
 
+// TODO: M3 — reqMet should derive from real tier comparison, not hardcoded
+const UNLOCK_COLORS = { COMPOUND: '#4b7c50', EVENT: 'var(--accent)', TRAVEL: '#3a5a7c', ACCESS: '#8b6ab8' }
+
+const UNLOCKS = [
+  { id: 1, label: 'Waskesiu Compound — Spring Access', type: 'COMPOUND', date: 'MAY 2025',    req: 'RANCH HAND', reqMet: true,  locked: false, href: '/compound'                 },
+  { id: 2, label: 'Private Dinner — Saskatoon Node',   type: 'EVENT',    date: 'APR 2025',    req: 'RANCH HAND', reqMet: true,  locked: false, href: '/#events'                  },
+  { id: 3, label: 'Mediterranean Trip — 8 Seats',      type: 'TRAVEL',   date: 'JUL 2025',    req: 'PARTNER',    reqMet: false, locked: true,  href: '/adventures/mediterranean' },
+  { id: 4, label: 'Whistler Ski Weekend',               type: 'TRAVEL',   date: 'FEB 2026',    req: 'PARTNER',    reqMet: false, locked: true,  href: '/adventures/ski-trip'      },
+  { id: 5, label: 'Lake Trip — Summer 2026',            type: 'TRAVEL',   date: 'SUMMER 2026', req: 'REGULAR',    reqMet: true,  locked: false, href: '/adventures/lake-trip'     },
+]
+
 // TODO: M3 — wire track progress and XP from tracks:{customerId} KV key
 const TRACKS = [
   { id: 'fitness', label: 'BODY',   sub: 'Performance & Conditioning', level: 7, xp: 2340, color: '#4b7c50',        icon: '⬡', progress: 72, members: 184, locked: false },
@@ -324,6 +338,9 @@ function DailyMissions() {
       position: 'relative',
       overflow: 'hidden',
     }}>
+      {/* Top gradient border */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--accent), transparent)' }} />
+
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
         <div>
@@ -366,6 +383,8 @@ function DailyMissions() {
                 position: 'relative', overflow: 'hidden',
                 transition: 'border-color 0.2s, background 0.2s',
               }}
+              onMouseEnter={e => { if (!m.done) e.currentTarget.style.borderColor = '#2a2a28' }}
+              onMouseLeave={e => { if (!m.done) e.currentTarget.style.borderColor = '#1e1e1c' }}
             >
               {/* Left accent bar */}
               <div style={{
@@ -434,6 +453,89 @@ function DailyMissions() {
   )
 }
 
+function Unlocks() {
+  return (
+    <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
+      {/* Header */}
+      <div style={{ fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+        Access &amp; Unlocks
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {UNLOCKS.map(u => {
+          const color = UNLOCK_COLORS[u.type] || '#5a5550'
+          return (
+            <div
+              key={u.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 16px',
+                border: `1px solid ${u.locked ? '#1e1e1c' : color + '50'}`,
+                background: u.locked ? 'transparent' : `${color}0A`,
+                borderRadius: 2, position: 'relative', overflow: 'hidden',
+              }}
+            >
+              {/* Left type bar */}
+              <div style={{ width: 3, alignSelf: 'stretch', flexShrink: 0, background: u.locked ? '#1e1e1c' : color, borderRadius: 1 }} />
+
+              {/* Lock overlay */}
+              {u.locked && (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,8,8,0.45)', backdropFilter: 'blur(1px)', pointerEvents: 'none' }} />
+              )}
+
+              {/* Content */}
+              <div style={{ flex: 1, filter: u.locked ? 'blur(0.5px)' : 'none' }}>
+                <div style={{ fontSize: 11, fontFamily: "'Space Mono', monospace", color: u.locked ? '#5a5550' : '#ede8dc', fontWeight: 700, letterSpacing: '0.04em', marginBottom: 4 }}>
+                  {u.label}
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 8, letterSpacing: '0.15em', color: color, border: `1px solid ${color}`, borderRadius: 2, padding: '1px 5px', fontFamily: "'Space Mono', monospace" }}>
+                    {u.type}
+                  </span>
+                  <span style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>{u.date}</span>
+                </div>
+              </div>
+
+              {/* CTA or lock */}
+              <div style={{ flexShrink: 0, position: 'relative', zIndex: 1 }}>
+                {u.locked ? (
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 8, color: 'var(--accent2)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.15em' }}>🔒 REQUIRES</div>
+                    <div style={{ fontSize: 9, color: 'var(--accent2)', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>{u.req}</div>
+                  </div>
+                ) : (
+                  <a
+                    href={u.href}
+                    style={{ display: 'inline-block', padding: '6px 14px', fontSize: 9, letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace", fontWeight: 700, border: `1px solid ${color}`, color: color, background: 'transparent', borderRadius: 1, textDecoration: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${color}18` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    REGISTER →
+                  </a>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Upgrade callout */}
+      <div style={{ marginTop: 14, padding: '12px 14px', border: '1px solid rgba(232,200,74,0.2)', background: 'rgba(232,200,74,0.04)', borderRadius: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 9, color: 'var(--accent)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.15em', fontWeight: 700 }}>UNLOCK PARTNER TIER</div>
+          <div style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>Mediterranean Trip + Whistler unlocked at Partner</div>
+        </div>
+        <a
+          href="/#membership"
+          style={{ padding: '6px 14px', fontSize: 9, letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace", fontWeight: 700, border: '1px solid var(--accent)', color: 'var(--accent)', background: 'transparent', borderRadius: 1, textDecoration: 'none', cursor: 'pointer' }}
+        >
+          HOW →
+        </a>
+      </div>
+    </div>
+  )
+}
+
 // ── Tab 1: MY ROADHOUSE ──────────────────────────────────────────────────────
 
 // Next-move prompt keyed by tier — TODO: replace with live guild bounty from lib/api/bounties.ts
@@ -452,7 +554,7 @@ function Tracks() {
   return (
     <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
       {/* Header */}
-      <div style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#5a5550', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
         Tracks &amp; Pathways
       </div>
 
@@ -498,7 +600,7 @@ function Tracks() {
             >
               {/* Left accent */}
               {isActive && (
-                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: t.color }} />
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: t.color, boxShadow: `2px 0 8px ${t.color}60` }} />
               )}
 
               {/* Icon */}
@@ -611,6 +713,8 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
           <DailyMissions />
           <Divider />
           <Tracks />
+          <Divider />
+          <Unlocks />
           <Divider />
         </>
       )}
@@ -1517,6 +1621,9 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
         .rh-tab-body {
           padding: 2rem;
           max-width: 900px;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
         }
 
         /* Typography */
