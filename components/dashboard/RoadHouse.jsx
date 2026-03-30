@@ -297,6 +297,15 @@ const MISSION_CATEGORY_COLOR = {
   SIGNAL:  'var(--accent2)',
 }
 
+// TODO: M3 — wire track progress and XP from tracks:{customerId} KV key
+const TRACKS = [
+  { id: 'fitness', label: 'BODY',   sub: 'Performance & Conditioning', level: 7, xp: 2340, color: '#4b7c50',        icon: '⬡', progress: 72, members: 184, locked: false },
+  { id: 'finance', label: 'WEALTH', sub: 'Capital & Deal Flow',        level: 5, xp: 1620, color: 'var(--accent)', icon: '◉', progress: 55, members: 241, locked: false },
+  { id: 'build',   label: 'BUILD',  sub: 'Ventures & Systems',         level: 4, xp: 980,  color: '#3a5a7c',        icon: '◈', progress: 38, members: 97,  locked: false },
+  { id: 'style',   label: 'STYLE',  sub: 'Identity & Aesthetics',      level: 2, xp: 310,  color: '#8b6ab8',        icon: '◇', progress: 22, members: 128, locked: false },
+  { id: 'cars',    label: 'DRIVE',  sub: 'Machines & Culture',         level: 1, xp: 0,    color: '#8b3a30',        icon: '△', progress: 0,  members: 73,  locked: true  },
+]
+
 function DailyMissions() {
   const [missions, setMissions] = useState(DAILY_MISSIONS)
   const completed = missions.filter(m => m.done).length
@@ -437,6 +446,110 @@ const NEXT_MOVE_BY_TIER = {
   praetor:      'Board meeting scheduled — check your calendar.',
 }
 
+function Tracks() {
+  const [active, setActive] = useState('fitness')
+
+  return (
+    <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
+      {/* Header */}
+      <div style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#5a5550', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+        Tracks &amp; Pathways
+      </div>
+
+      {/* Tab selector */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap' }}>
+        {TRACKS.map(t => (
+          <button
+            key={t.id}
+            onClick={() => !t.locked && setActive(t.id)}
+            style={{
+              padding: '6px 14px',
+              border: `1px solid ${active === t.id ? t.color : '#1e1e1c'}`,
+              background: active === t.id ? `${t.color}18` : 'transparent',
+              color: t.locked ? '#5a5550' : (active === t.id ? t.color : '#5a5550'),
+              fontSize: 9, letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace", fontWeight: 700,
+              cursor: t.locked ? 'not-allowed' : 'pointer',
+              borderRadius: 1, transition: 'all 0.15s',
+              opacity: t.locked ? 0.5 : 1,
+            }}
+          >
+            {t.locked ? '⬡ ' : ''}{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Track cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {TRACKS.map(t => {
+          const isActive = active === t.id
+          return (
+            <div
+              key={t.id}
+              onClick={() => !t.locked && setActive(t.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 16px',
+                border: `1px solid ${isActive ? t.color + '60' : '#1e1e1c'}`,
+                background: isActive ? `${t.color}0C` : 'transparent',
+                borderRadius: 2, cursor: t.locked ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s', position: 'relative', overflow: 'hidden',
+                opacity: t.locked ? 0.45 : 1,
+              }}
+            >
+              {/* Left accent */}
+              {isActive && (
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: t.color }} />
+              )}
+
+              {/* Icon */}
+              <div style={{
+                width: 36, height: 36, flexShrink: 0, borderRadius: 2,
+                background: isActive ? `${t.color}20` : '#111110',
+                border: `1px solid ${isActive ? t.color + '40' : '#1e1e1c'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 16, color: t.color,
+              }}>
+                {t.icon}
+              </div>
+
+              {/* Info */}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, fontFamily: "'Space Mono', monospace", color: isActive ? t.color : '#ede8dc', fontWeight: 700, letterSpacing: '0.1em' }}>
+                    {t.label}
+                  </span>
+                  <span style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
+                    LVL {t.level}
+                  </span>
+                  {t.locked && (
+                    <span style={{ fontSize: 8, letterSpacing: '0.15em', color: 'var(--accent2)', border: '1px solid var(--accent2)', borderRadius: 2, padding: '1px 5px', fontFamily: "'Space Mono', monospace" }}>
+                      LOCKED · PARTNER+
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 10, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginBottom: 8 }}>
+                  {t.sub}
+                </div>
+                <ProfileXPBar value={t.progress} max={100} color={t.color} height={2} />
+              </div>
+
+              {/* XP + members */}
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: '#5a5550', fontWeight: 700 }}>
+                  {t.xp.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.1em' }}>
+                  XP · {t.members} ACTIVE
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // Format ISO date string "2026-03-24" → "Mar 24"
 function fmtDate(iso) {
   const d = new Date(iso)
@@ -496,6 +609,8 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
           />
           <Divider />
           <DailyMissions />
+          <Divider />
+          <Tracks />
           <Divider />
         </>
       )}
