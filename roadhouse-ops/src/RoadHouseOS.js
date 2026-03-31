@@ -6,19 +6,20 @@
 
 // ── Members sheet column indices (0-based) ────────────────────
 // Matches the actual column layout from Config.js COL constants.
-// Col Q (STRIPE_CUS) is a new column added for V2 accrual.
-// To add it: open Members sheet, insert header "Stripe Customer ID" in Q1.
+// Cols Q + R are new — add headers before running backfill.
+//   Q: "Stripe Customer ID"   R: "Subscription Tier"
 const COLS = {
   INTERNAL_ID:      0,  // A — RH-XXXX (COL.M_ID)
   HANDLE:           1,  // B
   NAME:             2,  // C
   EMAIL:            3,  // D
-  TIER:             7,  // H — M_TIER formula (score-based: Observer/Contributor/Producer/Operator)
+  OPS_TIER:         7,  // H — M_TIER formula (Observer/Contributor/Producer/Operator — NOT used for $ROAD rate)
   TOTAL_SCORE:      8,  // I — M_TOTAL_SCORE
   WALLET:           13, // N — Solana pubkey (COL.M_WALLET)
   WALLET_VERIFIED:  14, // O — checkbox (COL.M_WALLET_VERIFIED)
   NOTES:            15, // P — COL.M_NOTES
-  STRIPE_CUS:       16, // Q — NEW: Stripe Customer ID (cus_xxx) — add this column header
+  STRIPE_CUS:       16, // Q — Stripe Customer ID (cus_xxx)
+  SUB_TIER:         17, // R — Subscription tier (regular/ranch-hand/partner) — written by backfill
 };
 
 // ── TRIGGER 1: Sync Members → Form dropdown ──────────────────
@@ -263,14 +264,14 @@ function enforceSubmissionCap() {
   }
 }
 
-// ── TRIGGER 5: Monthly $ROAD Accrual → KV (V2) ───────────────
+// ── TRIGGER 5: Monthly $ROAD Accrual → KV (V3) ───────────────
 // Trigger: Time-driven → 1st of month → 7:00 AM
 // V1: Exports CSV email for manual distribution (fallback)
 // V2: POSTs to /api/road/accrue → updates KV directly
+// V3: Reads col R (COLS.SUB_TIER) for subscription tier — orthogonal from ops tier (col H)
 //
-// Requires col Q (COLS.STRIPE_CUS) populated via backfillStripeCustomerIds().
-// Members sheet COLS.TIER (col H) holds ops-tier (Observer/Contributor/Producer/Operator).
-// The subscription tier used for $ROAD rates is resolved by the platform from KV.
+// Requires backfillStripeCustomerIds() to have run once — populates col Q + col R.
+// Ops tier (col H) drives leaderboard scoring. Subscription tier (col R) drives $ROAD rate.
 // NOTE: the platform /api/road/accrue cron also runs monthly from GitHub Actions.
 // Only one should run — disable the GitHub Actions cron once this is verified working.
 function exportWeeklyRoadAccrual() {
@@ -279,7 +280,7 @@ function exportWeeklyRoadAccrual() {
 
   // Idempotency guard — skip if already ran this month
   if (config.lastAccrualExport === today) {
-    Logger.log('exportWeeklyRoadAccrual already ran for ' + today + ', skipping');
+    Logger.log('exportWeeklyRoadAccrual: already ran for ' + today + ', skipping');
     return;
   }
 
@@ -287,53 +288,57 @@ function exportWeeklyRoadAccrual() {
   const sheet = ss.getSheetByName(SHEET.MEMBERS);
   const rows  = sheet.getDataRange().getValues().slice(1);
 
-  // Subscription tier → monthly $ROAD rate
-  // NOTE: COLS.TIER (H) contains score-based ops tier, not subscription tier.
-  // Until a subscription tier column exists, provide a manual override map here
-  // or rely on the platform to derive tier from KV. For now: use a fixed rate
-  // based on whether the member has a cus_ ID (100 $ROAD as conservative default).
-  // Once Members sheet has a subscription tier column, update COLS.TIER to point to it.
+  // Subscription tier → monthly $ROAD accrual rate
   const rateMap = { regular: 100, 'ranch-hand': 500, partner: 2000 };
 
   const accruals  = [];
-  const noStripeId = [];
+  const noStripe  = [];
+  const noSubTier = [];
 
   for (const row of rows) {
     const internalId = String(row[COLS.INTERNAL_ID] || '').trim();
-    const email      = String(row[COLS.EMAIL]       || '').trim();
-    const tierRaw    = String(row[COLS.TIER]         || '').trim().toLowerCase().replace(/\s+/g, '-');
     const customerId = String(row[COLS.STRIPE_CUS]  || '').trim();
+    const subTier    = String(row[COLS.SUB_TIER]    || '').trim().toLowerCase();
 
     if (!customerId.startsWith('cus_')) {
-      if (internalId) noStripeId.push({ internalId, email });
+      if (internalId) noStripe.push(internalId);
       continue;
     }
 
-    const amount = rateMap[tierRaw] ?? 0;
+    const amount = rateMap[subTier];
+
     if (!amount) {
-      // Score-based tier (Observer/Contributor/etc.) won't match rateMap.
-      // This is expected until a subscription tier column is populated.
-      // The platform accrual cron handles the base monthly rate in the interim.
+      // Empty = lapsed/cancelled (correct, skip silently).
+      // Named ops tier = backfill didn't run yet or ran before rows 17-19 were added.
+      if (subTier && !['regular', 'ranch-hand', 'partner'].includes(subTier)) {
+        noSubTier.push({ internalId, subTier });
+      }
       continue;
     }
 
-    accruals.push({ customerId, amount, tier: tierRaw });
+    accruals.push({ customerId, amount, tier: subTier });
   }
 
-  if (noStripeId.length > 0) {
+  // Surface actionable warnings
+  if (noStripe.length > 0) {
     Logger.log(
-      `WARNING: ${noStripeId.length} member(s) missing Stripe Customer ID — ` +
-      `run backfillStripeCustomerIds() to populate:\n` +
-      noStripeId.map((m) => `  ${m.internalId} (${m.email})`).join('\n')
+      `WARNING: ${noStripe.length} row(s) missing Stripe Customer ID — ` +
+      `run backfillStripeCustomerIds():\n  ` + noStripe.join(', ')
+    );
+  }
+  if (noSubTier.length > 0) {
+    Logger.log(
+      `WARNING: ${noSubTier.length} row(s) have unrecognised subscription tier — ` +
+      `col R may contain ops tiers instead of sub tiers.\n` +
+      `Run backfillStripeCustomerIds() to overwrite:\n  ` +
+      noSubTier.map((m) => `${m.internalId} (tier="${m.subTier}")`).join('\n  ')
     );
   }
 
   if (accruals.length === 0) {
     Logger.log(
-      'No accruals to process. ' +
-      (noStripeId.length > 0
-        ? 'Ensure col Q has Stripe Customer IDs and col H has subscription tiers.'
-        : 'All members processed or no matching tiers.')
+      'exportWeeklyRoadAccrual: no accruals to process.\n' +
+      'If Members sheet col Q and R are empty, run backfillStripeCustomerIds() first.'
     );
     setConfig({ lastAccrualExport: today });
     return;
@@ -341,12 +346,12 @@ function exportWeeklyRoadAccrual() {
 
   const week = getISOWeek(new Date());
 
-  // V2: POST to platform API
+  // V3: POST to platform API
   const baseUrl    = config.PLATFORM_BASE_URL;
   const cronSecret = config.CRON_SECRET;
 
   if (!baseUrl || !cronSecret) {
-    Logger.log('PLATFORM_BASE_URL or CRON_SECRET not set in Config — falling back to CSV');
+    Logger.log('PLATFORM_BASE_URL or CRON_SECRET missing — falling back to CSV');
     exportAccrualAsCSV_(accruals, week);
     setConfig({ lastAccrualExport: today });
     return;
@@ -365,19 +370,19 @@ function exportWeeklyRoadAccrual() {
     const body = JSON.parse(response.getContentText());
 
     Logger.log(
-      '[V2 accrual] code=' + code +
-      ' processed=' + body.processed +
+      '[V3 accrual] code=' + code +
+      ' processed=' + (body.processed ?? '?') +
       ' capped=' + (body.capped ?? 0) +
       ' errors=' + (body.errors?.length ?? 0)
     );
 
     if (code !== 200) {
-      Logger.log('V2 webhook non-200 — falling back to CSV. Response: ' + JSON.stringify(body));
+      Logger.log('Non-200 response — falling back to CSV. Body: ' + JSON.stringify(body));
       exportAccrualAsCSV_(accruals, week);
     }
 
   } catch (e) {
-    Logger.log('V2 webhook threw — falling back to CSV: ' + e.toString());
+    Logger.log('V3 webhook threw — falling back to CSV: ' + e.toString());
     exportAccrualAsCSV_(accruals, week);
   }
 
@@ -385,17 +390,38 @@ function exportWeeklyRoadAccrual() {
 }
 
 /**
- * ONE-TIME backfill: searches Stripe by email and writes cus_xxx to col Q.
- * Run from Apps Script editor after adding the "Stripe Customer ID" header to col Q.
- * Requires STRIPE_SECRET_KEY in Config sheet row 16 — clear it after backfill.
- * Safe to re-run: skips rows that already have a cus_ value.
+ * Maps a Stripe price ID to a canonical subscription tier string.
+ * Reads STRIPE_PRICE_REGULAR / _RANCH_HAND / _PARTNER from Config sheet
+ * rows 17-19 so tier resolution doesn't require a code redeploy if price IDs rotate.
+ * Returns null if the price ID isn't in the config map.
+ */
+function getSubTierFromPriceId_(priceId, config) {
+  if (!priceId) return null;
+  const map = {
+    [config.STRIPE_PRICE_REGULAR]:    'regular',
+    [config.STRIPE_PRICE_RANCH_HAND]: 'ranch-hand',
+    [config.STRIPE_PRICE_PARTNER]:    'partner',
+  };
+  return map[priceId] ?? null;
+}
+
+/**
+ * ONE-TIME backfill: searches Stripe by email and writes both:
+ *   col Q (COLS.STRIPE_CUS) — cus_xxx customer ID
+ *   col R (COLS.SUB_TIER)   — canonical subscription tier (regular/ranch-hand/partner)
+ * Both values are resolved in a single Stripe API call by expanding subscriptions.
+ *
+ * Run from Apps Script editor after adding col Q + col R headers to Members sheet.
+ * Requires Config sheet rows 16-19 populated (STRIPE_SECRET_KEY + 3 price IDs).
+ * Clear row 16 (STRIPE_SECRET_KEY) after backfill is complete.
+ * Safe to re-run: skips rows where col Q already has a cus_ value.
  */
 function backfillStripeCustomerIds() {
-  const config     = getConfig();
-  const stripeKey  = config.STRIPE_SECRET_KEY;
+  const config    = getConfig();
+  const stripeKey = config.STRIPE_SECRET_KEY;
 
   if (!stripeKey) {
-    Logger.log('ERROR: STRIPE_SECRET_KEY not set in Config sheet row 16');
+    Logger.log('ERROR: STRIPE_SECRET_KEY not in Config sheet. Add it to row 16, run, then clear it.');
     return;
   }
 
@@ -403,28 +429,28 @@ function backfillStripeCustomerIds() {
   const sheet = ss.getSheetByName(SHEET.MEMBERS);
   const data  = sheet.getDataRange().getValues();
 
-  let updated  = 0;
-  let skipped  = 0;
-  let notFound = 0;
+  let updated = 0, skipped = 0, notFound = 0, noActiveSub = 0;
 
   for (let i = 1; i < data.length; i++) {
     const row         = data[i];
     const email       = String(row[COLS.EMAIL]      || '').trim();
     const existingCus = String(row[COLS.STRIPE_CUS] || '').trim();
 
+    // Already backfilled — skip
     if (existingCus.startsWith('cus_')) {
       skipped++;
       continue;
     }
 
     if (!email || !email.includes('@')) {
-      Logger.log(`Row ${i + 1}: no valid email, skipping`);
+      Logger.log(`Row ${i + 1}: no valid email — skipping`);
       continue;
     }
 
     try {
-      const response = UrlFetchApp.fetch(
-        `https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(email)}'&limit=1`,
+      // Single call: find customer by email + expand subscriptions in one round-trip
+      const searchRes = UrlFetchApp.fetch(
+        `https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(email)}'&limit=1&expand[]=data.subscriptions`,
         {
           method:             'get',
           headers:            { Authorization: 'Bearer ' + stripeKey },
@@ -432,29 +458,57 @@ function backfillStripeCustomerIds() {
         }
       );
 
-      const body = JSON.parse(response.getContentText());
+      const searchBody = JSON.parse(searchRes.getContentText());
 
-      if (response.getResponseCode() !== 200) {
-        Logger.log(`Row ${i + 1} (${email}): Stripe API error — ${body.error?.message}`);
+      if (searchRes.getResponseCode() !== 200) {
+        Logger.log(`Row ${i + 1} (${email}): Stripe API error — ${searchBody.error?.message}`);
         continue;
       }
 
-      if (!body.data || body.data.length === 0) {
-        Logger.log(`Row ${i + 1} (${email}): no Stripe customer found`);
+      if (!searchBody.data || searchBody.data.length === 0) {
+        Logger.log(`Row ${i + 1} (${email}): no Stripe customer`);
         notFound++;
         continue;
       }
 
-      const customerId = body.data[0].id;
-      // Write cus_xxx to col Q (COLS.STRIPE_CUS is 0-indexed; Sheets uses 1-indexed cols)
+      const customer   = searchBody.data[0];
+      const customerId = customer.id; // cus_xxx
+
+      // Derive subscription tier from first active/trialing subscription
+      const activeSubs = (customer.subscriptions?.data || [])
+        .filter((s) => s.status === 'active' || s.status === 'trialing');
+
+      let subTier = null;
+
+      if (activeSubs.length > 0) {
+        const priceId = activeSubs[0]?.items?.data?.[0]?.price?.id;
+        subTier = getSubTierFromPriceId_(priceId, config);
+
+        if (!subTier) {
+          Logger.log(
+            `Row ${i + 1} (${email}): active sub found but price ${priceId} ` +
+            `not in STRIPE_PRICE_* config rows 17-19. Defaulting to 'regular'.`
+          );
+          subTier = 'regular'; // under-credits rather than over-credits
+        }
+      } else {
+        Logger.log(`Row ${i + 1} (${email}): ${customerId} has no active subscription`);
+        noActiveSub++;
+        subTier = ''; // empty = excluded from accrual; cus_xxx still written for future resubscribe
+      }
+
+      // Write col Q (cus_xxx) and col R (sub tier)
       sheet.getRange(i + 1, COLS.STRIPE_CUS + 1).setValue(customerId);
+      sheet.getRange(i + 1, COLS.SUB_TIER   + 1).setValue(subTier);
+
       data[i][COLS.STRIPE_CUS] = customerId;
+      data[i][COLS.SUB_TIER]   = subTier;
+
       updated++;
+      Logger.log(`Row ${i + 1} (${email}): ${customerId} | tier=${subTier || 'none (lapsed)'}`);
 
-      Logger.log(`Row ${i + 1} (${email}): written ${customerId}`);
-
-      // Rate-limit cushion — Stripe allows ~100 req/s; 500ms sleep every 20 rows
-      if (updated % 20 === 0) Utilities.sleep(500);
+      // Rate-limit buffer — Stripe search ~100 req/s
+      if (updated % 20 === 0) Utilities.sleep(400);
 
     } catch (e) {
       Logger.log(`Row ${i + 1} (${email}): exception — ${e.toString()}`);
@@ -462,7 +516,9 @@ function backfillStripeCustomerIds() {
   }
 
   Logger.log(
-    `backfillStripeCustomerIds complete: updated=${updated} skipped=${skipped} notFound=${notFound}`
+    `\nbackfillStripeCustomerIds complete:\n` +
+    `  updated=${updated}  skipped=${skipped}  ` +
+    `notFound=${notFound}  noActiveSub=${noActiveSub}`
   );
 }
 
