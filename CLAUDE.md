@@ -30,6 +30,7 @@
 | Discord | REST API bot — role gating by Stripe tier |
 | Storage | Vercel KV (Upstash Redis) — off-chain $ROAD balances |
 | Deploy | Vercel (iad1) · Domain: `https://roadhouse.capital` (canonical) |
+| Ops layer | `roadhouse-ops/` — Google Sheets OS · clasp · googleapis · Apps Script |
 
 ---
 
@@ -96,6 +97,30 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 
 /docs/  stripe-products.md · tokenomics.md · governance-spec.md · multisig-spec.md
         founding-nft-spec.md · membership-model.md · guild-economy.md · compound-node-model.md
+
+/roadhouse-ops/                  ← standalone ops layer — NOT part of Next.js app
+  src/
+    appsscript.json              ← V8 runtime, OAuth scopes, execution API
+    Config.js                   ← SHEET/COL constants, getConfig() cache, tier helpers
+    RoadHouseOS.js              ← 5 triggers: form sync · leaderboard · inactive alert · cap · $ROAD export
+    WalletRegistry.js           ← wallet registration + duplicate detection (V2)
+  scripts/
+    bootstrap.js                ← 7-step idempotent orchestrator
+    create-sheet.js             ← 6-tab spreadsheet + formula engine
+    create-form.js              ← Google Form (7 fields)
+    gauth.js                    ← OAuth2 desktop flow → token.json
+    finalize.js                 ← member row, wallet columns, Config values
+    distribute-road-tokens.js   ← Solana SPL distribution (V2 — requires ROAD_TOKEN_MINT)
+    test-discord-webhook.js     ← smoke test leaderboard + alerts webhooks
+  scoring.json                  ← output type multipliers, tier thresholds, bonus rules
+  bootstrap.config.example.json ← copy → bootstrap.config.json, fill secrets
+  docs/AUDIT.md                 ← post-build audit + gap analysis
+
+  Key IDs (Praetorian account):
+    Spreadsheet: 1AyMQbzOPHiceZEqjtZTlr8xnVgYCh2v-3E5SaA9cCHY
+    Form:        1Gh3sBchYq7LHVYtKz1RCJxEuO7-d3hwguOLCR1QMMHE
+    Script:      1DQauYe9yB-Z539gEITvBXV8sFVfOqxAZ2q1hz_CiizQTZqbjZtwpZY1T
+    Drive folder: 1bMJUoKQ0GUL9XpgEpCi8DPAImND_dWik
 ```
 
 **Nav rule:** No Nav.tsx / Header.tsx. Navigation = Sidebar.tsx only.
@@ -117,6 +142,17 @@ STRIPE_SECRET_KEY=sk_live_... npx ts-node --project tsconfig.scripts.json script
 
 # Local webhook testing (CLI secret ≠ dashboard secret — 400 from stripe listen is expected)
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+### roadhouse-ops (cd roadhouse-ops first)
+
+```bash
+npm run auth          # OAuth2 desktop flow → token.json (re-run if scopes change)
+npm run bootstrap     # Full 7-step idempotent setup (sheet → form → drive → script props)
+npm run push          # clasp push → deploy Apps Script
+npm run logs          # clasp logs --watch (live trigger logs)
+npm test:webhook      # Smoke test Discord webhooks
+npm run distribute    # Distribute $ROAD via Solana SPL (V2 — requires ROAD_TOKEN_MINT)
 ```
 
 ---
@@ -364,6 +400,10 @@ Dashboard reworked: 6 static tabs → 5 functional tabs with live KV wiring.
 New pages: `/compound` · `/partners`. Sidebar glassmorphism. WalletStatus glass treatment.
 Docs delivered: `governance-spec.md` · `multisig-spec.md` · `founding-nft-spec.md`.
 Infra confirmed: domain live · all env vars set · Stripe webhook e2e · Discord interactions endpoint.
+
+## ROADHOUSE OS — 2026-03-31
+
+Ops layer bootstrapped: `roadhouse-ops/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
 
 ---
 

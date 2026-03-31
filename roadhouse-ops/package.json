@@ -1,0 +1,45 @@
+{
+  "name": "roadhouse-ops",
+  "version": "1.0.0",
+  "description": "RoadHouse Capital — Google Sheets OS operational layer",
+  "main": "scripts/index.js",
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open",
+    "deploy": "clasp push && clasp deployments",
+    "logs": "clasp logs --watch",
+    "test:webhook": "node scripts/test-discord-webhook.js",
+    "test:sheets": "node scripts/test-sheets-connection.js",
+    "test:wallet": "node scripts/test-wallet-registry.js",
+    "distribute": "node scripts/distribute-road-tokens.js",
+    "export:weekly": "node scripts/export-weekly-scores.js",
+    "bootstrap": "node scripts/bootstrap.js",
+    "auth": "node scripts/gauth.js",
+    "create:sheet": "node scripts/create-sheet.js",
+    "move:drive": "node scripts/move-to-drive.js"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "eslint": "^8.57.0"
+  },
+  "keywords": [
+    "roadhouse",
+    "google-sheets",
+    "solana",
+    "web3",
+    "clasp"
+  ],
+  "author": "Praetorian Holdings Corp.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "googleapis": "^140.0.0",
+    "open": "^8.4.2",
+    "dotenv": "^16.3.1",
+    "@solana/web3.js": "^1.91.0",
+    "@solana/spl-token": "^0.4.3"
+  }
+}

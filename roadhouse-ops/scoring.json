@@ -1,0 +1,34 @@
+{
+  "_comment": "Edit multipliers here — keep in sync with SWITCH() in Outputs_PROCESSED!J and ROAD conversion rate",
+  "outputTypes": [
+    { "id": "deal_closed",         "label": "Deal Closed",         "multiplier": 2.5, "proofRequired": true  },
+    { "id": "content_published",   "label": "Content Published",   "multiplier": 2.0, "proofRequired": true  },
+    { "id": "code_shipped",        "label": "Code Shipped",        "multiplier": 2.0, "proofRequired": true  },
+    { "id": "research_published",  "label": "Research Published",  "multiplier": 1.8, "proofRequired": true  },
+    { "id": "strategic_output",    "label": "Strategic Output",    "multiplier": 1.7, "proofRequired": false },
+    { "id": "community_build",     "label": "Community Build",     "multiplier": 1.5, "proofRequired": false },
+    { "id": "training_log",        "label": "Training Log",        "multiplier": 1.2, "proofRequired": false },
+    { "id": "daily_checkin",       "label": "Daily Check-In",      "multiplier": 1.0, "proofRequired": false }
+  ],
+  "tierThresholds": {
+    "Observer":     0,
+    "Contributor":  500,
+    "Producer":     2000,
+    "Operator":     5000
+  },
+  "activityStatus": {
+    "Active":    { "outputsIn30Days": 20 },
+    "Engaged":   { "outputsIn30Days": 10 },
+    "Dormant":   { "outputsIn30Days": 1  },
+    "Inactive":  { "outputsIn30Days": 0  }
+  },
+  "bonuses": {
+    "weekend": 1.1,
+    "streak5DayBonus": 1.1,
+    "maxDailySubmissions": 3
+  },
+  "roadConversion": {
+    "pointsPerRoad": 10,
+    "_note": "10 score points = 1 $ROAD. Adjust to control weekly token velocity."
+  }
+}

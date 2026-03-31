@@ -1,0 +1,9 @@
+credentials.json
+token.json
+.env
+.env.local
+.clasp.json
+bootstrap.config.json
+node_modules/
+logs/
+*.log

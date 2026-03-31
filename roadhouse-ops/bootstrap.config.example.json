@@ -1,0 +1,27 @@
+{
+  "_instructions": "Copy to bootstrap.config.json, fill REQUIRED fields, then run: node scripts/bootstrap.js",
+  "google": {
+    "spreadsheetId": "",
+    "driveFolderName": "RoadHouse Capital",
+    "sheetTitle": "RoadHouse OS — Operations",
+    "formId": "",
+    "driveFolderId": ""
+  },
+  "discord": {
+    "webhookLeaderboard": "https://discord.com/api/webhooks/CHANNEL_ID/TOKEN",
+    "webhookAlerts": "https://discord.com/api/webhooks/CHANNEL_ID/TOKEN",
+    "botToken": "",
+    "guildId": ""
+  },
+  "admin": {
+    "email": "admin@yourdomain.com",
+    "timezone": "America/Regina"
+  },
+  "solana": {
+    "rpcUrl": "https://api.mainnet-beta.solana.com",
+    "devnetUrl": "https://api.devnet.solana.com",
+    "roadTokenMint": "",
+    "treasuryWallet": "",
+    "adminKeypairPath": "~/.config/solana/id.json"
+  }
+}
