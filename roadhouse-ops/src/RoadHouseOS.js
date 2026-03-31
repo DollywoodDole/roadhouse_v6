@@ -4,6 +4,23 @@
 // Triggers set in Apps Script editor → Triggers menu
 // ============================================================
 
+// ── Members sheet column indices (0-based) ────────────────────
+// Matches the actual column layout from Config.js COL constants.
+// Col Q (STRIPE_CUS) is a new column added for V2 accrual.
+// To add it: open Members sheet, insert header "Stripe Customer ID" in Q1.
+const COLS = {
+  INTERNAL_ID:      0,  // A — RH-XXXX (COL.M_ID)
+  HANDLE:           1,  // B
+  NAME:             2,  // C
+  EMAIL:            3,  // D
+  TIER:             7,  // H — M_TIER formula (score-based: Observer/Contributor/Producer/Operator)
+  TOTAL_SCORE:      8,  // I — M_TOTAL_SCORE
+  WALLET:           13, // N — Solana pubkey (COL.M_WALLET)
+  WALLET_VERIFIED:  14, // O — checkbox (COL.M_WALLET_VERIFIED)
+  NOTES:            15, // P — COL.M_NOTES
+  STRIPE_CUS:       16, // Q — NEW: Stripe Customer ID (cus_xxx) — add this column header
+};
+
 // ── TRIGGER 1: Sync Members → Form dropdown ──────────────────
 // Trigger: Time-driven → Daily → 3:00 AM
 function syncMembersToForm() {
@@ -246,67 +263,222 @@ function enforceSubmissionCap() {
   }
 }
 
-// ── TRIGGER 5: Weekly Score → $ROAD Accrual (V2) ─────────────
-// Trigger: Time-driven → Every Monday → 6:00 AM
-// V1: Exports CSV for manual distribution
-// V2: Calls webhook → backend → Solana SPL transfer
+// ── TRIGGER 5: Monthly $ROAD Accrual → KV (V2) ───────────────
+// Trigger: Time-driven → 1st of month → 7:00 AM
+// V1: Exports CSV email for manual distribution (fallback)
+// V2: POSTs to /api/road/accrue → updates KV directly
+//
+// Requires col Q (COLS.STRIPE_CUS) populated via backfillStripeCustomerIds().
+// Members sheet COLS.TIER (col H) holds ops-tier (Observer/Contributor/Producer/Operator).
+// The subscription tier used for $ROAD rates is resolved by the platform from KV.
+// NOTE: the platform /api/road/accrue cron also runs monthly from GitHub Actions.
+// Only one should run — disable the GitHub Actions cron once this is verified working.
 function exportWeeklyRoadAccrual() {
-  const ss        = SpreadsheetApp.getActiveSpreadsheet();
-  const scoreboard = ss.getSheetByName(SHEET.SCOREBOARD);
-  const members   = ss.getSheetByName(SHEET.MEMBERS);
-  const week      = getCurrentWeek() - 1;
-  const rate      = getRoadConversionRate() || 10; // 10 $ROAD per score point (default)
+  const config = getConfig();
+  const today  = new Date().toISOString().slice(0, 7); // "2026-03"
 
-  const mData = members.getDataRange().getValues().slice(1);
-  const walletMap = {};
-  mData.forEach(r => {
-    if (r[COL.M_ID - 1] && r[COL.M_WALLET - 1]) {
-      walletMap[r[COL.M_ID - 1]] = r[COL.M_WALLET - 1];
-    }
-  });
-
-  const sData = scoreboard.getDataRange().getValues().slice(1);
-  const accruals = sData
-    .filter(r => r[6] === week && r[4] > 0)
-    .map(r => {
-      const mid    = r[1];
-      const score  = parseFloat(r[4]) || 0;
-      const road   = Math.floor(score * rate);
-      const wallet = walletMap[mid] || 'NO_WALLET';
-      return { mid, wallet, score, road };
-    })
-    .filter(a => a.road > 0);
-
-  if (accruals.length === 0) {
-    Logger.log('No accruals to process this week');
+  // Idempotency guard — skip if already ran this month
+  if (config.lastAccrualExport === today) {
+    Logger.log('exportWeeklyRoadAccrual already ran for ' + today + ', skipping');
     return;
   }
 
-  // V1: Log to admin as CSV body
-  let csv = 'member_id,wallet_address,week_score,road_accrual\n';
-  accruals.forEach(a => {
-    csv += `${a.mid},${a.wallet},${a.score},${a.road}\n`;
-  });
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET.MEMBERS);
+  const rows  = sheet.getDataRange().getValues().slice(1);
 
-  const totalRoad = accruals.reduce((sum, a) => sum + a.road, 0);
+  // Subscription tier → monthly $ROAD rate
+  // NOTE: COLS.TIER (H) contains score-based ops tier, not subscription tier.
+  // Until a subscription tier column exists, provide a manual override map here
+  // or rely on the platform to derive tier from KV. For now: use a fixed rate
+  // based on whether the member has a cus_ ID (100 $ROAD as conservative default).
+  // Once Members sheet has a subscription tier column, update COLS.TIER to point to it.
+  const rateMap = { regular: 100, 'ranch-hand': 500, partner: 2000 };
+
+  const accruals  = [];
+  const noStripeId = [];
+
+  for (const row of rows) {
+    const internalId = String(row[COLS.INTERNAL_ID] || '').trim();
+    const email      = String(row[COLS.EMAIL]       || '').trim();
+    const tierRaw    = String(row[COLS.TIER]         || '').trim().toLowerCase().replace(/\s+/g, '-');
+    const customerId = String(row[COLS.STRIPE_CUS]  || '').trim();
+
+    if (!customerId.startsWith('cus_')) {
+      if (internalId) noStripeId.push({ internalId, email });
+      continue;
+    }
+
+    const amount = rateMap[tierRaw] ?? 0;
+    if (!amount) {
+      // Score-based tier (Observer/Contributor/etc.) won't match rateMap.
+      // This is expected until a subscription tier column is populated.
+      // The platform accrual cron handles the base monthly rate in the interim.
+      continue;
+    }
+
+    accruals.push({ customerId, amount, tier: tierRaw });
+  }
+
+  if (noStripeId.length > 0) {
+    Logger.log(
+      `WARNING: ${noStripeId.length} member(s) missing Stripe Customer ID — ` +
+      `run backfillStripeCustomerIds() to populate:\n` +
+      noStripeId.map((m) => `  ${m.internalId} (${m.email})`).join('\n')
+    );
+  }
+
+  if (accruals.length === 0) {
+    Logger.log(
+      'No accruals to process. ' +
+      (noStripeId.length > 0
+        ? 'Ensure col Q has Stripe Customer IDs and col H has subscription tiers.'
+        : 'All members processed or no matching tiers.')
+    );
+    setConfig({ lastAccrualExport: today });
+    return;
+  }
+
+  const week = getISOWeek(new Date());
+
+  // V2: POST to platform API
+  const baseUrl    = config.PLATFORM_BASE_URL;
+  const cronSecret = config.CRON_SECRET;
+
+  if (!baseUrl || !cronSecret) {
+    Logger.log('PLATFORM_BASE_URL or CRON_SECRET not set in Config — falling back to CSV');
+    exportAccrualAsCSV_(accruals, week);
+    setConfig({ lastAccrualExport: today });
+    return;
+  }
+
+  try {
+    const response = UrlFetchApp.fetch(baseUrl + '/api/road/accrue', {
+      method:             'post',
+      contentType:        'application/json',
+      headers:            { Authorization: 'Bearer ' + cronSecret },
+      payload:            JSON.stringify({ week, accruals }),
+      muteHttpExceptions: true,
+    });
+
+    const code = response.getResponseCode();
+    const body = JSON.parse(response.getContentText());
+
+    Logger.log(
+      '[V2 accrual] code=' + code +
+      ' processed=' + body.processed +
+      ' capped=' + (body.capped ?? 0) +
+      ' errors=' + (body.errors?.length ?? 0)
+    );
+
+    if (code !== 200) {
+      Logger.log('V2 webhook non-200 — falling back to CSV. Response: ' + JSON.stringify(body));
+      exportAccrualAsCSV_(accruals, week);
+    }
+
+  } catch (e) {
+    Logger.log('V2 webhook threw — falling back to CSV: ' + e.toString());
+    exportAccrualAsCSV_(accruals, week);
+  }
+
+  setConfig({ lastAccrualExport: today });
+}
+
+/**
+ * ONE-TIME backfill: searches Stripe by email and writes cus_xxx to col Q.
+ * Run from Apps Script editor after adding the "Stripe Customer ID" header to col Q.
+ * Requires STRIPE_SECRET_KEY in Config sheet row 16 — clear it after backfill.
+ * Safe to re-run: skips rows that already have a cus_ value.
+ */
+function backfillStripeCustomerIds() {
+  const config     = getConfig();
+  const stripeKey  = config.STRIPE_SECRET_KEY;
+
+  if (!stripeKey) {
+    Logger.log('ERROR: STRIPE_SECRET_KEY not set in Config sheet row 16');
+    return;
+  }
+
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET.MEMBERS);
+  const data  = sheet.getDataRange().getValues();
+
+  let updated  = 0;
+  let skipped  = 0;
+  let notFound = 0;
+
+  for (let i = 1; i < data.length; i++) {
+    const row         = data[i];
+    const email       = String(row[COLS.EMAIL]      || '').trim();
+    const existingCus = String(row[COLS.STRIPE_CUS] || '').trim();
+
+    if (existingCus.startsWith('cus_')) {
+      skipped++;
+      continue;
+    }
+
+    if (!email || !email.includes('@')) {
+      Logger.log(`Row ${i + 1}: no valid email, skipping`);
+      continue;
+    }
+
+    try {
+      const response = UrlFetchApp.fetch(
+        `https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(email)}'&limit=1`,
+        {
+          method:             'get',
+          headers:            { Authorization: 'Bearer ' + stripeKey },
+          muteHttpExceptions: true,
+        }
+      );
+
+      const body = JSON.parse(response.getContentText());
+
+      if (response.getResponseCode() !== 200) {
+        Logger.log(`Row ${i + 1} (${email}): Stripe API error — ${body.error?.message}`);
+        continue;
+      }
+
+      if (!body.data || body.data.length === 0) {
+        Logger.log(`Row ${i + 1} (${email}): no Stripe customer found`);
+        notFound++;
+        continue;
+      }
+
+      const customerId = body.data[0].id;
+      // Write cus_xxx to col Q (COLS.STRIPE_CUS is 0-indexed; Sheets uses 1-indexed cols)
+      sheet.getRange(i + 1, COLS.STRIPE_CUS + 1).setValue(customerId);
+      data[i][COLS.STRIPE_CUS] = customerId;
+      updated++;
+
+      Logger.log(`Row ${i + 1} (${email}): written ${customerId}`);
+
+      // Rate-limit cushion — Stripe allows ~100 req/s; 500ms sleep every 20 rows
+      if (updated % 20 === 0) Utilities.sleep(500);
+
+    } catch (e) {
+      Logger.log(`Row ${i + 1} (${email}): exception — ${e.toString()}`);
+    }
+  }
+
+  Logger.log(
+    `backfillStripeCustomerIds complete: updated=${updated} skipped=${skipped} notFound=${notFound}`
+  );
+}
+
+// Private: CSV email fallback for exportWeeklyRoadAccrual
+function exportAccrualAsCSV_(accruals, week) {
+  const totalRoad = accruals.reduce((sum, a) => sum + a.amount, 0);
+  let csv = 'customer_id,tier,road_accrual\n';
+  accruals.forEach(a => {
+    csv += `${a.customerId},${a.tier},${a.amount}\n`;
+  });
   MailApp.sendEmail({
     to:      getAdminEmail(),
-    subject: `RH Week ${week} — $ROAD Accrual: ${totalRoad} $ROAD to distribute`,
-    body:    `Week ${week} $ROAD distribution\n\nTotal: ${totalRoad} $ROAD\nRecipients: ${accruals.length}\n\n${csv}\n\nACTION: Run distribute-road-tokens.js with this data, or approve via multisig.`,
+    subject: `RH ${week} — $ROAD Accrual: ${totalRoad} $ROAD to distribute`,
+    body:    `${week} $ROAD distribution\n\nTotal: ${totalRoad} $ROAD\nRecipients: ${accruals.length}\n\n${csv}\n\nACTION: Run distribute-road-tokens.js with this data, or approve via multisig.`,
   });
-
-  Logger.log(`$ROAD accrual export: ${totalRoad} $ROAD across ${accruals.length} members`);
-
-  // V2: POST to distribution webhook (uncomment when backend ready)
-  // const backendUrl = PropertiesService.getScriptProperties().getProperty('DISTRIBUTION_WEBHOOK');
-  // if (backendUrl) {
-  //   UrlFetchApp.fetch(backendUrl, {
-  //     method: 'post',
-  //     contentType: 'application/json',
-  //     payload: JSON.stringify({ week, accruals }),
-  //     headers: { 'Authorization': 'Bearer ' + PropertiesService.getScriptProperties().getProperty('WEBHOOK_SECRET') }
-  //   });
-  // }
+  Logger.log(`$ROAD accrual CSV sent: ${totalRoad} $ROAD across ${accruals.length} members`);
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
