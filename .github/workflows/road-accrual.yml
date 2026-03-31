@@ -12,7 +12,9 @@ name: Monthly $ROAD Accrual
 
 on:
   schedule:
-    - cron: '0 0 1 * *'
+    # DISABLED: ops webhook (Apps Script) handles accrual when ROAD_ACCRUAL_MODE=ops
+    # Re-enable by removing the # below and setting ROAD_ACCRUAL_MODE=stripe in Vercel
+    # - cron: '0 0 1 * *'
   workflow_dispatch:
 
 jobs:

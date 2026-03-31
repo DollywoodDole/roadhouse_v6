@@ -53,6 +53,11 @@ export const ACCRUAL: Record<string, number> = {
   partner:      2000,
 }
 
+// KV key tracking total remaining community $ROAD allocation.
+// null (key absent) = no cap enforced (unlimited).
+// 0 = depleted — no accruals until topped up.
+const COMMUNITY_CAP_KEY = 'road:community-bucket'
+
 // getMembershipTier() returns 'ranch-hand'; RoadBalance.tier uses 'ranch'
 const TIER_TO_ROAD_TIER: Record<string, RoadBalance['tier']> = {
   regular:      'regular',
@@ -105,14 +110,27 @@ export async function initRoadBalance(
 
 /**
  * Accrues the monthly $ROAD allocation for a single member.
+ * Checks the community bucket cap (road:community-bucket) before writing.
+ * Returns { accrued, capped } — accrued may be less than the full rate if
+ * the bucket has less than the full rate remaining.
  */
 export async function accrueMonthlyRoad(
   stripeCustomerId: string,
   email:            string,
   membershipTier:   string,
-): Promise<RoadBalance> {
+): Promise<{ accrued: number; capped: boolean }> {
   const amount = ACCRUAL[membershipTier] ?? 0
   if (amount === 0) throw new Error(`Unknown or non-accruing tier: ${membershipTier}`)
+
+  const redis  = getRedis()
+  const bucket = await redis.get<number>(COMMUNITY_CAP_KEY) // null = no cap
+
+  if (bucket !== null && bucket <= 0) {
+    console.warn(JSON.stringify({ evt: 'road.accrue.cap_depleted', stripeCustomerId }))
+    return { accrued: 0, capped: true }
+  }
+
+  const grant = (bucket !== null) ? Math.min(amount, bucket) : amount
 
   const existing = await getRoadBalance(stripeCustomerId)
   const tier: RoadBalance['tier'] = TIER_TO_ROAD_TIER[membershipTier] ?? 'guest'
@@ -123,19 +141,22 @@ export async function accrueMonthlyRoad(
         ...existing,
         email,
         tier,
-        balance: existing.balance + amount,
-        history: [...existing.history, { date: today, amount, reason: `Monthly accrual — ${tier}` }],
+        balance: existing.balance + grant,
+        history: [...existing.history, { date: today, amount: grant, reason: `Monthly accrual — ${tier}` }],
       }
     : {
         email,
         stripeCustomerId,
-        balance: amount,
+        balance: grant,
         tier,
-        history: [{ date: today, amount, reason: `Monthly accrual — ${tier}` }],
+        history: [{ date: today, amount: grant, reason: `Monthly accrual — ${tier}` }],
       }
 
-  await setRoadBalance(updated)
-  return updated
+  const writes: Promise<unknown>[] = [setRoadBalance(updated)]
+  if (bucket !== null) writes.push(redis.decrby(COMMUNITY_CAP_KEY, grant))
+  await Promise.all(writes)
+
+  return { accrued: grant, capped: grant < amount }
 }
 
 /**
@@ -150,11 +171,18 @@ export async function registerWallet(
   const existing = await getRoadBalance(stripeCustomerId)
   if (!existing) throw new Error('No $ROAD balance record found for this customer')
 
+  // Orphan cleanup — delete stale reverse index when member switches wallets
+  const prevAddress = existing.walletAddress
+  if (prevAddress && prevAddress !== walletAddress) {
+    try {
+      await getRedis().del(`wallet:${prevAddress}`)
+    } catch (err) {
+      console.warn('[registerWallet] orphan cleanup failed', { prevAddress, err })
+    }
+  }
+
   const updated: RoadBalance = { ...existing, walletAddress }
   await setRoadBalance(updated)
-  // Reverse index — enables wallet-address → customerId lookup
-  // TODO M3: if member switches wallets, old wallet:{prev} key is orphaned in KV.
-  // Add a deleteWalletIndex(prevKey) call here before writing the new index.
   await getRedis().set(`wallet:${walletAddress}`, stripeCustomerId)
   return updated
 }
