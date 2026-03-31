@@ -1,39 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, APP_URL } from '@/lib/stripe'
+import { getMembershipTier } from '@/lib/membership'
 
 export async function POST(req: NextRequest) {
   try {
-    const { priceId, customerEmail } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const { priceId, discordUserId } = body as { priceId?: string; discordUserId?: string }
 
-    if (!priceId) {
-      return NextResponse.json({ error: 'priceId is required' }, { status: 400 })
+    if (!priceId || typeof priceId !== 'string') {
+      return NextResponse.json({ error: 'priceId required' }, { status: 400 })
+    }
+
+    // Resolve tier from priceId — never trust client for gating
+    const tier = getMembershipTier(priceId)
+    if (!tier) {
+      return NextResponse.json({ error: 'Unknown price' }, { status: 400 })
+    }
+
+    const metadata: Record<string, string> = { tier }
+    if (discordUserId && /^\d{17,20}$/.test(discordUserId)) {
+      // Snowflake format validation — prevents injection into metadata
+      metadata.discord_user_id = discordUserId
     }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      ...(customerEmail ? { customer_email: customerEmail } : {}),
-      metadata: {
-        source: 'roadhouse-v6',
-        type: 'membership',
-      },
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata,
       subscription_data: {
-        metadata: {
-          source: 'roadhouse-membership',
-          platform: 'roadhouse-v6',
-        },
-        trial_period_days: 7, // 7-day free trial for new members
+        trial_period_days: 7,
+        metadata,
       },
-      success_url: `${APP_URL}?membership=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${APP_URL}?membership=cancelled`,
-      billing_address_collection: 'required',
-      allow_promotion_codes: true,
+      // Redirect to /welcome — guides member through wallet connect step
+      success_url: `${APP_URL}/welcome?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${APP_URL}/#membership`,
+      customer_creation:        'always',
+      billing_address_collection: 'auto',
+      allow_promotion_codes:    true,
       custom_text: {
         submit: {
           message: 'Welcome to the RoadHouse. Your membership tier activates immediately. $ROAD accumulation begins with your first billing cycle.',

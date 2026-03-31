@@ -21,6 +21,55 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import RoadHouse from './RoadHouse'
 
+/**
+ * Fetches member tier and $ROAD balance from KV via wallet address.
+ * Uses the wallet:{address} → customerId reverse index written by registerWallet().
+ * Falls back to 'guest' if wallet is not linked.
+ *
+ * Replace with useRoadToken() from @/lib/road-token in M3 when the SPL mint
+ * is live on mainnet — same interface, drop-in swap.
+ */
+function useMemberProfile() {
+  const { publicKey, connected } = useWallet()
+  const [profile, setProfile] = useState({
+    tier:        'guest',
+    roadBalance: 0,
+    loading:     true,
+    error:       null,
+  })
+
+  useEffect(() => {
+    if (!connected || !publicKey) {
+      setProfile({ tier: 'guest', roadBalance: 0, loading: false, error: null })
+      return
+    }
+
+    let cancelled = false
+
+    fetch(`/api/road/balance?walletAddress=${publicKey.toBase58()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        setProfile({
+          tier:        data.tier ?? 'regular',
+          roadBalance: data.balance ?? 0,
+          loading:     false,
+          error:       null,
+        })
+      })
+      .catch((err) => {
+        if (cancelled) return
+        // Wallet not linked yet — show guest tier, not an error state
+        setProfile({ tier: 'guest', roadBalance: 0, loading: false, error: null })
+        console.error('[useMemberProfile]', err.message)
+      })
+
+    return () => { cancelled = true }
+  }, [connected, publicKey])
+
+  return profile
+}
+
 // ── ConnectPrompt ────────────────────────────────────────────────────────────
 // Rendered by MemberGate when connected === false.
 
@@ -365,15 +414,9 @@ export default function RoadHouseDashboard() {
   useEffect(() => setMounted(true), [])
 
   const { connected, publicKey, disconnect } = useWallet()
+  const { tier: memberTier, roadBalance, loading } = useMemberProfile()
 
   if (!mounted) return null
-
-  // TODO: derive memberTier from $ROAD token balance via getTokenAccountsByOwner
-  //   import { getConnection, ROAD_MINT_PUBKEY, getTierFromBalance } from '@/lib/solana'
-  //   const accounts = await getConnection().getTokenAccountsByOwner(publicKey, { mint: ROAD_MINT_PUBKEY })
-  //   const balance  = parseTokenBalance(accounts)
-  //   const tier     = getTierFromBalance(balance)
-  const memberTier = 'founding'
 
   // Truncate publicKey to 4…4 display format
   const walletAddress = publicKey
@@ -386,18 +429,36 @@ export default function RoadHouseDashboard() {
       memberTier={memberTier}
       requiredTier="founding"
     >
-      <div style={{ minHeight: '100vh', background: '#0a0a08' }}>
-        <DashboardHeader
-          walletAddress={walletAddress}
-          memberTier={memberTier.toUpperCase()}
-          onDisconnect={disconnect}
-        />
-        {/* 5-tab main body — memberTier + walletAddress passed for tier display and listings */}
-        <RoadHouse
-          memberTier={memberTier}
-          walletAddress={walletAddress}
-        />
-      </div>
+      {connected && loading ? (
+        <div style={{
+          minHeight: '100vh',
+          background: '#0a0a08',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'Space Mono, monospace',
+          fontSize: '0.65rem',
+          letterSpacing: '0.2em',
+          color: '#4a4238',
+          textTransform: 'uppercase',
+        }}>
+          Loading…
+        </div>
+      ) : (
+        <div style={{ minHeight: '100vh', background: '#0a0a08' }}>
+          <DashboardHeader
+            walletAddress={walletAddress}
+            memberTier={memberTier.toUpperCase()}
+            onDisconnect={disconnect}
+          />
+          {/* 5-tab main body — memberTier + walletAddress + roadBalance passed through */}
+          <RoadHouse
+            memberTier={memberTier}
+            walletAddress={walletAddress}
+            roadBalance={roadBalance}
+          />
+        </div>
+      )}
     </MemberGate>
   )
 }

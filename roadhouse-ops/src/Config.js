@@ -72,4 +72,6 @@ function getTierOperatorMin()      { return getConfig(8); }
 function getMaxDailySubmissions()  { return getConfig(10); }
 function getAdminEmail()           { return getConfig(11); }
 function getDiscordWebhook()       { return getConfig(12); }
-function getRoadConversionRate()   { return getConfig(13); } // V2: score points per $ROAD
+function getRoadConversionRate()   { return getConfig(13); } // score points per $ROAD
+function getPlatformBaseUrl()      { return getConfig(14); } // https://roadhouse.capital
+function getCronSecret()           { return getConfig(15); } // matches CRON_SECRET on Vercel

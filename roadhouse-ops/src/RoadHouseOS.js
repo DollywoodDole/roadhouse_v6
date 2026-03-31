@@ -120,6 +120,35 @@ function weeklyLeaderboard() {
       }
     }
   }
+  // ── Write leaderboard to KV → Guild tab in dashboard reads this ──
+  const baseUrl    = getPlatformBaseUrl() || 'https://roadhouse.capital';
+  const cronSecret = getCronSecret();
+  const isoWeek    = getISOWeek(new Date());
+
+  if (baseUrl && cronSecret) {
+    const top10 = ranked.map(([mid, data], i) => ({
+      rank:        i + 1,
+      memberId:    mid,
+      handle:      data.handle || mid,
+      score:       data.score,
+      tier:        '',   // not tracked in Outputs_PROCESSED
+      weeklyDelta: 0,    // week-over-week delta not tracked yet
+    }));
+
+    try {
+      const res = UrlFetchApp.fetch(baseUrl + '/api/leaderboard/update', {
+        method:           'post',
+        contentType:      'application/json',
+        headers:          { Authorization: 'Bearer ' + cronSecret },
+        payload:          JSON.stringify({ week: isoWeek, top10 }),
+        muteHttpExceptions: true,
+      });
+      Logger.log('Leaderboard KV write: code=' + res.getResponseCode());
+    } catch (e) {
+      Logger.log('Leaderboard KV write failed (non-fatal): ' + e.toString());
+    }
+  }
+
   Logger.log(`Leaderboard sent to ${emails.length} members`);
 }
 
@@ -281,6 +310,20 @@ function exportWeeklyRoadAccrual() {
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
+
+/**
+ * Returns ISO week string — e.g. "2026-W13"
+ * Used by weeklyLeaderboard() for the KV leaderboard key.
+ */
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return d.getUTCFullYear() + '-W' + String(weekNo).padStart(2, '0');
+}
+
 function postToDiscord_(webhookUrl, content) {
   try {
     UrlFetchApp.fetch(webhookUrl, {

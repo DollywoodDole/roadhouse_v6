@@ -75,7 +75,7 @@ const TIERS = [
   },
 ]
 
-async function startSubscription(priceId: string | null | undefined) {
+async function startSubscription(priceId: string | null | undefined, discordUserId?: string) {
   if (!priceId) {
     alert(`This membership tier is not yet available. Check back soon or contact ${siteConfig.contactEmail}.`)
     return
@@ -83,7 +83,10 @@ async function startSubscription(priceId: string | null | undefined) {
   const res = await fetch('/api/subscription', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ priceId }),
+    body: JSON.stringify({
+      priceId,
+      ...(discordUserId?.trim() ? { discordUserId: discordUserId.trim() } : {}),
+    }),
   })
   const data = await res.json()
   if (data.url) window.location.href = data.url
@@ -91,12 +94,13 @@ async function startSubscription(priceId: string | null | undefined) {
 }
 
 export default function Membership() {
-  const [loading, setLoading] = useState<string | null>(null)
+  const [loading, setLoading]     = useState<string | null>(null)
+  const [discordId, setDiscordId] = useState('')
 
   const subscribe = async (tier: typeof TIERS[0]) => {
     setLoading(tier.id)
     try {
-      await startSubscription(tier.priceId)
+      await startSubscription(tier.priceId, discordId)
     } finally {
       setLoading(null)
     }
@@ -131,6 +135,30 @@ export default function Membership() {
         >
           Join Discord <ExternalLink size={10} />
         </a>
+      </div>
+
+      {/* Optional Discord ID — grants role at checkout instead of requiring /verify */}
+      <div className="mb-8 max-w-sm">
+        <label className="block text-xs font-mono tracking-wider text-rh-faint uppercase mb-2">
+          Discord ID{' '}
+          <span className="text-rh-faint/60 normal-case tracking-normal font-sans">
+            — optional, grants role at payment
+          </span>
+        </label>
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="e.g. 123456789012345678"
+          value={discordId}
+          onChange={(e) => setDiscordId(e.target.value.replace(/\D/g, '').slice(0, 20))}
+          className="w-full bg-rh-card border border-rh-border focus:border-gold/40 text-rh-text
+                     placeholder:text-rh-faint text-sm font-mono px-4 py-2.5 outline-none
+                     transition-colors rounded-sm"
+        />
+        <p className="text-rh-faint text-[10px] mt-1.5 leading-relaxed">
+          Settings → Advanced → Developer Mode, then right-click your username → Copy User ID.
+          Skip to link later via <code className="text-rh-muted">/verify</code> in the server.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
