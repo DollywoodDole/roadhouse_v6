@@ -103,11 +103,8 @@ function updateMultiplierFormulas() {
  *   2. updateMultiplierFormulas()
  *   3. Prints reminder to run backfillStripeCustomerIds() next
  *
- * After this completes:
- *   - Add STRIPE_SECRET_KEY to Config sheet row 16
- *   - Run backfillStripeCustomerIds()
- *   - Clear Config row 16 (delete the key)
- *   - Set ROAD_ACCRUAL_MODE=ops in Vercel
+ * After this completes, run:
+ *   clasp run runBackfill --params '["sk_live_..."]'
  */
 function runPreM3Setup() {
   Logger.log('=== RoadHouse OS — Pre-M3 Setup ===');
@@ -120,10 +117,52 @@ function runPreM3Setup() {
   Logger.log('');
   Logger.log('=== Setup complete ===');
   Logger.log('');
-  Logger.log('NEXT STEPS:');
-  Logger.log('  1. Open Config sheet, set A16=STRIPE_SECRET_KEY, B16=sk_live_...');
-  Logger.log('  2. Run backfillStripeCustomerIds() from Apps Script editor');
-  Logger.log('  3. Verify Logger: check updated=N matches active Stripe subscriber count');
-  Logger.log('  4. Delete Config B16 (remove Stripe key from sheet immediately)');
-  Logger.log('  5. Set ROAD_ACCRUAL_MODE=ops in Vercel env vars');
+  Logger.log('NEXT: clasp run runBackfill --params \'["sk_live_..."]\'');
+}
+
+/**
+ * Runs backfillStripeCustomerIds() without touching the spreadsheet for the key.
+ *
+ * Usage:
+ *   clasp run runBackfill --params '["sk_live_xxx"]'
+ *
+ * Writes the Stripe key to Config row 16 for the duration of the backfill,
+ * then clears it in a finally block — even if the backfill throws.
+ * Key is visible in the sheet for ~30-60 seconds while Stripe API calls run.
+ *
+ * After success:
+ *   - Verify Logger: updated=N should match active subscriber count in Stripe
+ *   - Set ROAD_ACCRUAL_MODE=ops in Vercel env vars
+ */
+function runBackfill(stripeKey) {
+  if (!stripeKey || !String(stripeKey).startsWith('sk_')) {
+    Logger.log('ERROR: pass your Stripe secret key as the parameter');
+    Logger.log('Usage: clasp run runBackfill --params \'["sk_live_..."]\'');
+    return;
+  }
+
+  const ss         = SpreadsheetApp.getActiveSpreadsheet();
+  const configSheet = ss.getSheetByName(SHEET.CONFIG);
+
+  if (!configSheet) {
+    Logger.log('ERROR: Config sheet not found');
+    return;
+  }
+
+  // Write key to row 16 — same row getStripeSecretKey() reads (getConfig(16))
+  configSheet.getRange(16, 1).setValue('STRIPE_SECRET_KEY');
+  configSheet.getRange(16, 2).setValue(stripeKey);
+  _configCache = null; // invalidate cache so getConfig(16) picks up new value
+  SpreadsheetApp.flush();
+
+  Logger.log('Stripe key written to Config row 16 — starting backfill');
+
+  try {
+    backfillStripeCustomerIds();
+  } finally {
+    configSheet.getRange(16, 2).clearContent();
+    _configCache = null;
+    SpreadsheetApp.flush();
+    Logger.log('Stripe key cleared from Config row 16');
+  }
 }
