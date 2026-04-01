@@ -26,6 +26,7 @@ const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
 
 const PUBLIC_PATHS = [
   // Pages
+  '/',            // landing page — public marketing
   '/login',
   '/welcome',     // post-checkout: session_id is the credential
   '/compound',    // public marketing page
@@ -60,7 +61,8 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Static files and public paths — allow immediately
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+  // '/' is exact-matched to avoid startsWith('/') matching everything
+  if (pathname === '/' || PUBLIC_PATHS.filter(p => p !== '/').some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
   if (pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|woff2?)$/)) {
