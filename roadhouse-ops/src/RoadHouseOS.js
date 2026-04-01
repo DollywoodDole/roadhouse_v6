@@ -264,7 +264,17 @@ function enforceSubmissionCap() {
   }
 }
 
-// ── TRIGGER 5: Monthly $ROAD Accrual → KV (V3) ───────────────
+// ── TRIGGER 5a: Monthly Stripe Backfill ──────────────────────
+// Trigger: Time-driven → 1st of month → 6:00 AM
+// Runs 1 hour before exportWeeklyRoadAccrual() so col Q + R are fresh.
+// Safe to run every month — skips rows where col Q already has cus_ value.
+function monthlyStripeBackfill() {
+  Logger.log('monthlyStripeBackfill: start');
+  backfillStripeCustomerIds();
+  Logger.log('monthlyStripeBackfill: complete');
+}
+
+// ── TRIGGER 5b: Monthly $ROAD Accrual → KV (V3) ──────────────
 // Trigger: Time-driven → 1st of month → 7:00 AM
 // V1: Exports CSV email for manual distribution (fallback)
 // V2: POSTs to /api/road/accrue → updates KV directly
