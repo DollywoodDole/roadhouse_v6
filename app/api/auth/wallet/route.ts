@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 import { cookies } from 'next/headers';
-import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT } from 'jose';
 
 /**
  * POST /api/auth/wallet
@@ -83,21 +83,3 @@ export async function DELETE() {
   return NextResponse.json({ ok: true });
 }
 
-/**
- * Verify wallet session token — used by middleware.
- * Returns null if invalid or expired.
- */
-export async function verifyWalletSession(token: string) {
-  try {
-    const { payload } = await jwtVerify(token, secret);
-    return payload as {
-      publicKey:  string;
-      customerId: string | null;
-      isMember:   boolean;
-      tier:       string | null;
-      provider:   'wallet';
-    };
-  } catch {
-    return null;
-  }
-}
