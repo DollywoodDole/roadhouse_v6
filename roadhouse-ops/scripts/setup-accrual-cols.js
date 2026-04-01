@@ -14,14 +14,30 @@ const CREDS_PATH     = path.join(ROOT, 'credentials.json');
 const TOKEN_PATH     = path.join(ROOT, 'token.json');
 const SPREADSHEET_ID = '1AyMQbzOPHiceZEqjtZTlr8xnVgYCh2v-3E5SaA9cCHY';
 
-// Config rows to upsert (key → value)
+// Load secrets from .env.local — never hardcode
+const ENV_PATH = path.resolve(ROOT, '..', '.env.local');
+const envVars  = {};
+if (fs.existsSync(ENV_PATH)) {
+  fs.readFileSync(ENV_PATH, 'utf8').split('\n').forEach(line => {
+    const m = line.match(/^([^#=]+)=(.*)$/);
+    if (m) envVars[m[1].trim()] = m[2].trim().replace(/^"|"$/g, '');
+  });
+}
+
+const CRON_SECRET         = envVars.CRON_SECRET         || '';
+const STRIPE_SECRET_KEY   = envVars.STRIPE_SECRET_KEY   || '';
+const STRIPE_PRICE_REGULAR    = envVars.NEXT_PUBLIC_STRIPE_SUB_REGULAR || '';
+const STRIPE_PRICE_RANCH_HAND = envVars.NEXT_PUBLIC_STRIPE_SUB_RANCH   || '';
+const STRIPE_PRICE_PARTNER    = envVars.NEXT_PUBLIC_STRIPE_SUB_PARTNER  || '';
+
+// Config rows to upsert (key → value) — values sourced from .env.local
 const CONFIG_ROWS = [
   ['PLATFORM_BASE_URL',       'https://roadhouse.capital'],
-  ['CRON_SECRET',             'REDACTED'],
-  ['STRIPE_SECRET_KEY',       'sk_test_REDACTED'],
-  ['STRIPE_PRICE_REGULAR',    'price_1TDtTLDv5Ly4OO7EB0NgxoLA'],
-  ['STRIPE_PRICE_RANCH_HAND', 'price_1TDtTLDv5Ly4OO7EBsQt7Kl3'],
-  ['STRIPE_PRICE_PARTNER',    'price_1TDtTMDv5Ly4OO7EqrFypjkI'],
+  ['CRON_SECRET',             CRON_SECRET],
+  ['STRIPE_SECRET_KEY',       STRIPE_SECRET_KEY],
+  ['STRIPE_PRICE_REGULAR',    STRIPE_PRICE_REGULAR],
+  ['STRIPE_PRICE_RANCH_HAND', STRIPE_PRICE_RANCH_HAND],
+  ['STRIPE_PRICE_PARTNER',    STRIPE_PRICE_PARTNER],
 ];
 
 async function getAuth() {
