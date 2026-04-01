@@ -9,6 +9,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@solana/wallet-adapter-react-ui'
+import { useRouter } from 'next/navigation'
 import { Loader2, Wallet, ChevronDown, Copy, LogOut, ExternalLink } from 'lucide-react'
 import { useRoadToken, formatRoadBalance, shortenAddress } from '@/lib/road-token'
 import { NETWORK } from '@/lib/solana'
@@ -22,6 +23,14 @@ export default function ConnectButton({ compact = false, className = '' }: Conne
   const { publicKey, disconnect, connecting, connected } = useWallet()
   const { setVisible } = useWalletModal()
   const { balance, tierLabel, loading: tokenLoading } = useRoadToken()
+  const router = useRouter()
+
+  const handleDisconnect = async () => {
+    setMenuOpen(false)
+    try { await fetch('/api/auth/wallet', { method: 'DELETE' }) } catch (_) {}
+    disconnect()
+    router.replace('/login')
+  }
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -170,7 +179,7 @@ export default function ConnectButton({ compact = false, className = '' }: Conne
             </a>
 
             <button
-              onClick={() => { disconnect(); setMenuOpen(false) }}
+              onClick={handleDisconnect}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] text-rh-muted hover:text-red-400 hover:bg-rh-card transition-colors"
             >
               <LogOut size={11} />

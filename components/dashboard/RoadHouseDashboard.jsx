@@ -19,6 +19,7 @@
 import { useState, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@solana/wallet-adapter-react-ui'
+import { useRouter } from 'next/navigation'
 import RoadHouse from './RoadHouse'
 
 /**
@@ -415,6 +416,7 @@ export default function RoadHouseDashboard() {
 
   const { connected, publicKey, disconnect } = useWallet()
   const { tier: memberTier, roadBalance, loading } = useMemberProfile()
+  const router = useRouter()
 
   if (!mounted) return null
 
@@ -422,6 +424,13 @@ export default function RoadHouseDashboard() {
   const walletAddress = publicKey
     ? publicKey.toBase58().slice(0, 4) + '...' + publicKey.toBase58().slice(-4)
     : null
+
+  // Clear JWT cookie → disconnect wallet → redirect to login
+  const handleDisconnect = async () => {
+    try { await fetch('/api/auth/wallet', { method: 'DELETE' }) } catch (_) {}
+    disconnect()
+    router.replace('/login')
+  }
 
   return (
     <MemberGate
@@ -449,7 +458,7 @@ export default function RoadHouseDashboard() {
           <DashboardHeader
             walletAddress={walletAddress}
             memberTier={memberTier.toUpperCase()}
-            onDisconnect={disconnect}
+            onDisconnect={handleDisconnect}
           />
           {/* 5-tab main body — memberTier + walletAddress + roadBalance passed through */}
           <RoadHouse

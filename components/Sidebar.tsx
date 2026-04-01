@@ -3,6 +3,7 @@
 import { siteConfig } from '@/lib/site-config'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { X, Menu, ExternalLink } from 'lucide-react'
 import WalletStatus from '@/components/wallet/WalletStatus'
 import NetworkIndicator from '@/components/wallet/NetworkIndicator'
@@ -33,9 +34,14 @@ const SOCIAL_LINKS = [
   { href: 'https://discord.gg/wwhhKcnQJ3',             icon: '💬', label: 'Discord' },
 ]
 
+const SIDEBAR_HIDDEN_PATHS = ['/login', '/compound', '/portal', '/welcome']
+
 export default function Sidebar() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('home')
+
+  if (SIDEBAR_HIDDEN_PATHS.some((p) => pathname.startsWith(p))) return null
 
   useEffect(() => {
     const handleScroll = () => {

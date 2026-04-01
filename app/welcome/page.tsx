@@ -3,6 +3,8 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 /* ─── Types ──────────────────────────────────────────────────────── */
 interface SessionData {
@@ -34,6 +36,9 @@ function WelcomeContent() {
   const params = useSearchParams();
   const router = useRouter();
   const sessionId = params.get('session_id');
+  const { connected, publicKey } = useWallet();
+  const { setVisible } = useWalletModal();
+  const [walletLoading, setWalletLoading] = useState(false);
 
   const [data, setData] = useState<SessionData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +65,19 @@ function WelcomeContent() {
       })
       .finally(() => setLoading(false));
   }, [sessionId, router]);
+
+  // Wallet connect on /welcome → establish session → go to dashboard
+  useEffect(() => {
+    if (!connected || !publicKey) return;
+    setWalletLoading(true);
+    fetch('/api/auth/wallet', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ publicKey: publicKey.toBase58() }),
+    })
+      .then(() => router.replace('/dashboard'))
+      .catch(() => setWalletLoading(false));
+  }, [connected, publicKey, router]);
 
   /* ── Loading ── */
   if (step === 'loading') {
@@ -186,14 +204,15 @@ function WelcomeContent() {
 
           {/* CTAs */}
           <div className="flex flex-col gap-3">
-            {/* Primary: connect wallet → dashboard */}
-            <Link
-              href="/dashboard"
-              className="w-full text-center bg-gold text-black font-mono text-xs tracking-[0.2em] uppercase py-4 hover:bg-gold/90 transition-colors"
+            {/* Primary: connect wallet → session → dashboard */}
+            <button
+              onClick={() => setVisible(true)}
+              disabled={walletLoading}
+              className="w-full text-center bg-gold text-black font-mono text-xs tracking-[0.2em] uppercase py-4 hover:bg-gold/90 transition-colors disabled:opacity-60"
               style={{ borderRadius: '2px' }}
             >
-              Connect Wallet — Unlock Dashboard →
-            </Link>
+              {walletLoading ? 'Connecting…' : 'Connect Wallet — Unlock Dashboard →'}
+            </button>
 
             {/* Secondary: portal (email-only, no wallet needed) */}
             <Link

@@ -25,13 +25,29 @@ const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
  */
 
 const PUBLIC_PATHS = [
+  // Pages
   '/login',
-  '/welcome',
-  '/compound',
-  '/portal',
-  '/api/webhooks',
+  '/welcome',     // post-checkout: session_id is the credential
+  '/compound',    // public marketing page
+  '/portal',      // email-only lookup, read-only
+  // API — webhook receivers (no session, have their own auth)
+  '/api/webhooks',        // canonical Stripe handler: /api/webhooks/stripe
+  '/api/webhook',         // 410 Gone — retired Stripe webhook, kept to surface misconfiguration
   '/api/discord',
+  // API — auth endpoints
   '/api/auth',
+  // API — cron-authed routes (CRON_SECRET Bearer, not session)
+  '/api/road/accrue',
+  '/api/leaderboard',
+  // API — public reads
+  '/api/road/balance',
+  '/api/road',
+  '/api/contact',
+  '/api/portal',
+  // API — checkout (priceId credential for one-time; session_id for lookup)
+  '/api/checkout',        // one-time payments: merch, events, adventures
+  '/api/subscription',    // subscription checkout session creation
+  // Static
   '/_next',
   '/favicon.ico',
   '/robots.txt',
