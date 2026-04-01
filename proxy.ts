@@ -37,6 +37,7 @@ const PUBLIC_PATHS = [
   '/api/discord',
   // API — auth endpoints
   '/api/auth',
+  '/api/wallet',          // wallet registration (secured by customerId + address validation)
   // API — cron-authed routes (CRON_SECRET Bearer, not session)
   '/api/road/accrue',
   '/api/leaderboard',

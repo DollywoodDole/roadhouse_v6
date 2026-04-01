@@ -66,18 +66,28 @@ function WelcomeContent() {
       .finally(() => setLoading(false));
   }, [sessionId, router]);
 
-  // Wallet connect on /welcome → establish session → go to dashboard
+  // Wallet connect on /welcome → register wallet in KV → establish session → go to dashboard
+  // Must call /api/wallet/register first so the wallet:{address} → customerId reverse index
+  // exists before /api/auth/wallet does its lookup (otherwise isMember stays false).
   useEffect(() => {
-    if (!connected || !publicKey) return;
+    if (!connected || !publicKey || !data) return;
     setWalletLoading(true);
-    fetch('/api/auth/wallet', {
+    const address = publicKey.toBase58();
+    fetch('/api/wallet/register', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ publicKey: publicKey.toBase58() }),
+      body:    JSON.stringify({ customerId: data.customerId, walletAddress: address }),
     })
+      .then(() =>
+        fetch('/api/auth/wallet', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ publicKey: address }),
+        })
+      )
       .then(() => router.replace('/dashboard'))
       .catch(() => setWalletLoading(false));
-  }, [connected, publicKey, router]);
+  }, [connected, publicKey, data, router]);
 
   /* ── Loading ── */
   if (step === 'loading') {
