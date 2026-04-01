@@ -141,28 +141,17 @@ function runBackfill(stripeKey) {
     return;
   }
 
-  const ss         = SpreadsheetApp.getActiveSpreadsheet();
-  const configSheet = ss.getSheetByName(SHEET.CONFIG);
-
-  if (!configSheet) {
-    Logger.log('ERROR: Config sheet not found');
-    return;
-  }
-
-  // Write key to row 16 — same row getStripeSecretKey() reads (getConfig(16))
-  configSheet.getRange(16, 1).setValue('STRIPE_SECRET_KEY');
-  configSheet.getRange(16, 2).setValue(stripeKey);
-  _configCache = null; // invalidate cache so getConfig(16) picks up new value
+  // setConfig() handles cache invalidation and key-based upsert
+  setConfig({ STRIPE_SECRET_KEY: stripeKey });
   SpreadsheetApp.flush();
 
-  Logger.log('Stripe key written to Config row 16 — starting backfill');
+  Logger.log('Stripe key written to Config — starting backfill');
 
   try {
     backfillStripeCustomerIds();
   } finally {
-    configSheet.getRange(16, 2).clearContent();
-    _configCache = null;
+    setConfig({ STRIPE_SECRET_KEY: '' });
     SpreadsheetApp.flush();
-    Logger.log('Stripe key cleared from Config row 16');
+    Logger.log('Stripe key cleared from Config');
   }
 }

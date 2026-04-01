@@ -113,4 +113,4 @@ function getDiscordWebhook()       { return getConfig(12); }
 function getRoadConversionRate()   { return getConfig(13); } // score points per $ROAD
 function getPlatformBaseUrl()      { return getConfig(14); } // https://roadhouse.capital
 function getCronSecret()           { return getConfig(15); } // matches CRON_SECRET on Vercel
-function getStripeSecretKey()      { return getConfig(16); } // sk_live_... — clear after backfill
+function getStripeSecretKey()      { return getConfig()['STRIPE_SECRET_KEY'] ?? ''; } // sk_live_... — clear after backfill
