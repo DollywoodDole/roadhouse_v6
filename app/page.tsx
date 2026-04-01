@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { siteConfig } from '@/lib/site-config'
 import Sidebar from '@/components/Sidebar'
 import Hero from '@/components/sections/Hero'
@@ -17,12 +18,27 @@ import RoadToken from '@/components/sections/RoadToken'
 import FoundingMint from '@/components/sections/FoundingMint'
 import SectionDivider from '@/components/ui/SectionDivider'
 
-export default function Home() {
+export default async function Home() {
+  const headersList = await headers()
+  const isMember        = headersList.get('x-rh-member') === '1'
+  const showUpgradePrompt = !isMember
+
   return (
     <div className="flex min-h-screen bg-rh-black">
       <Sidebar />
 
       <main className="main-content flex-1 w-full">
+        {showUpgradePrompt && (
+          <div className="px-8 lg:px-16 py-3 border-b border-gold/20 bg-gold/5">
+            <p className="text-[11px] text-gold-light tracking-wider">
+              You&apos;re signed in.{' '}
+              <a href="#membership" className="underline underline-offset-2 hover:text-gold transition-colors">
+                Select a tier below
+              </a>{' '}
+              to activate your membership.
+            </p>
+          </div>
+        )}
         <Hero />
         <SectionDivider />
         <KickStream />

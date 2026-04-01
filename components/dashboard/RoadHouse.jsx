@@ -7,7 +7,7 @@
  * CSS vars scoped to .rh-dash: --bg, --accent (gold), --accent2 (red), --accent3 (teal)
  * Grain overlay inherited from body.grain in globals.css — not re-declared here.
  *
- * Tabs: MY ROADHOUSE · ECONOMY · DESCI · GUILD · TREASURY
+ * Tabs: MY ROADHOUSE · ECONOMY · PROTOCOL · GUILD · TREASURY
  */
 
 import { useState, useEffect } from 'react'
@@ -25,7 +25,7 @@ import { getTreasurySnapshot, getGovernanceVotes } from '@/lib/gnosis'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
-const TABS = ['MY ROADHOUSE', 'ECONOMY', 'DESCI', 'GUILD', 'TREASURY']
+const TABS = ['MY ROADHOUSE', 'ECONOMY', 'PROTOCOL', 'GUILD', 'TREASURY']
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 
@@ -1070,168 +1070,297 @@ function EconomyTab({ walletAddress }) {
   )
 }
 
-// ── Tab 3: DESCI ─────────────────────────────────────────────────────────────
+// ── Tab 3: PROTOCOL ───────────────────────────────────────────────────────────
 
-function DeSciTab({ walletAddress }) {
-  const [experiment,   setExperiment]   = useState(null)
-  const [stats,        setStats]        = useState(null)
-  const [expLoading,   setExpLoading]   = useState(true)
-  const [bedtime,      setBedtime]      = useState('')
-  const [waketime,     setWaketime]     = useState('')
-  const [energyScore,  setEnergyScore]  = useState(5)
-  const [submitting,   setSubmitting]   = useState(false)
-  const [submitMsg,    setSubmitMsg]    = useState(null)
+const PROTOCOLS = [
+  {
+    id:              'compound-scouting',
+    name:            'Compound Scouting',
+    icon:            '⬡',
+    description:     'Log potential compound sites. Location, access, infrastructure, vibe.',
+    fields: [
+      { key: 'location',       label: 'Location / coordinates',   type: 'text',     placeholder: '49.2827° N, 123.1207° W or address' },
+      { key: 'access',         label: 'Access type',              type: 'select',   options: ['Road access', 'Off-grid', 'Seasonal', 'Restricted', 'Unknown'] },
+      { key: 'acreage',        label: 'Approximate acreage',      type: 'text',     placeholder: 'e.g. 40 acres' },
+      { key: 'infrastructure', label: 'Existing infrastructure',  type: 'textarea', placeholder: 'Buildings, utilities, water, power...' },
+      { key: 'notes',          label: 'Field notes',              type: 'textarea', placeholder: 'Observations, ownership status, photos linked...' },
+      { key: 'rating',         label: 'Viability rating',         type: 'select',   options: ['★★★★★ Strong lead', '★★★★ Promising', '★★★ Worth a look', '★★ Long shot', '★ Archive'] },
+    ],
+    scoreMultiplier: 'strategic_output',
+    guild:           'Frontier',
+  },
+  {
+    id:              'partner-prospecting',
+    name:            'Partner & Sponsor Prospecting',
+    icon:            '◆',
+    description:     'Track outreach to potential partners and sponsors. Pipeline visibility for Venture guild.',
+    fields: [
+      { key: 'contact', label: 'Contact / company',  type: 'text',     placeholder: 'Name, org, role' },
+      { key: 'channel', label: 'Outreach channel',   type: 'select',   options: ['Email', 'LinkedIn', 'X/Twitter', 'In-person', 'Referral', 'Cold call'] },
+      { key: 'stage',   label: 'Deal stage',         type: 'select',   options: ['Identified', 'First contact', 'Responded', 'Meeting booked', 'Proposal sent', 'Negotiating', 'Closed', 'Dead'] },
+      { key: 'ask',     label: 'Ask / offer size',   type: 'text',     placeholder: 'e.g. $5,000 sponsorship, product trade, venue partnership' },
+      { key: 'notes',   label: 'Notes',              type: 'textarea', placeholder: 'Context, next steps, follow-up date...' },
+    ],
+    scoreMultiplier: 'deal_closed',
+    guild:           'Venture',
+  },
+  {
+    id:              'marketing-gamification',
+    name:            'Marketing Gamification',
+    icon:            '◎',
+    description:     'Log content drops, reach events, and conversion milestones. Feeds the leaderboard.',
+    fields: [
+      { key: 'platform',    label: 'Platform',                 type: 'select',   options: ['Kick', 'TikTok', 'X/Twitter', 'Instagram', 'YouTube', 'Discord', 'Newsletter', 'IRL'] },
+      { key: 'type',        label: 'Content type',             type: 'select',   options: ['Stream', 'Short-form video', 'Long-form video', 'Post / thread', 'Story', 'Article', 'Event'] },
+      { key: 'reach',       label: 'Reach / impressions',      type: 'text',     placeholder: 'e.g. 4,200 views' },
+      { key: 'conversions', label: 'Conversions or clicks',    type: 'text',     placeholder: 'e.g. 12 link clicks, 3 signups' },
+      { key: 'url',         label: 'Content URL or proof',     type: 'text',     placeholder: 'https://' },
+      { key: 'notes',       label: 'Notes',                    type: 'textarea', placeholder: 'Campaign context, what worked, what did not...' },
+    ],
+    scoreMultiplier: 'content_published',
+    guild:           'Media',
+  },
+]
 
-  useEffect(() => {
-    Promise.all([getActiveExperiment(), getAggregateStats()])
-      .then(([exp, agg]) => {
-        setExperiment(exp)
-        setStats(agg)
-        setExpLoading(false)
-      })
-      .catch(() => setExpLoading(false))
-  }, [])
+function ProtocolCard({ protocol, memberTier }) {
+  const [open,       setOpen]       = useState(false)
+  const [form,       setForm]       = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted,  setSubmitted]  = useState(false)
 
-  const inputStyle = {
-    background: '#111009', border: '1px solid #2a2318', color: '#e2d9c8',
-    fontFamily: 'Space Mono, monospace', fontSize: '0.72rem',
-    padding: '0.5rem 0.75rem', borderRadius: 3, width: '100%',
-    outline: 'none', boxSizing: 'border-box',
-  }
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitting(true)
-    submitDailyEntry(walletAddress ?? 'anonymous', {
-      date:        new Date().toISOString().split('T')[0],
-      bedtime,
-      waketime,
-      energyScore: Number(energyScore),
-    }).then(() => {
-      setSubmitMsg('Entry recorded')
-      setStats(prev => prev ? { ...prev, totalEntries: prev.totalEntries + 1 } : prev)
-      setTimeout(() => setSubmitMsg(null), 3000)
-    }).catch(e => {
-      setSubmitMsg(e.message === 'Already submitted today'
-        ? 'Already submitted today'
-        : 'Submit failed — try again')
-      setTimeout(() => setSubmitMsg(null), 3000)
-    }).finally(() => setSubmitting(false))
+    try {
+      await fetch('/api/contributions', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          type:       protocol.id,
+          data:       form,
+          multiplier: protocol.scoreMultiplier,
+          guild:      protocol.guild,
+        }),
+      })
+      setSubmitted(true)
+      setForm({})
+      setTimeout(() => setSubmitted(false), 3000)
+    } catch (e) {
+      console.error('[Protocol submit]', e)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
-    <div className="rh-tab-body">
-      <SectionHead>Active Protocols</SectionHead>
-
-      {/* Active experiment card */}
-      <Card accent="red">
-        {expLoading ? (
-          <div className="rh-muted" style={{ fontSize: '0.72rem', padding: '2rem 0', textAlign: 'center' }}>
-            LOADING EXPERIMENT...
-          </div>
-        ) : (
-          <>
-            <span style={{
-              fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase',
-              color: 'var(--accent2)', border: '1px solid rgba(255,92,53,0.3)',
-              borderRadius: 2, padding: '0.2rem 0.5rem',
-              marginBottom: '0.75rem', display: 'inline-block',
+    <div style={{
+      border:     open ? '0.5px solid rgba(201,168,76,0.25)' : '0.5px solid rgba(255,255,255,0.06)',
+      marginBottom: '0.75rem',
+      transition: 'border-color 0.2s',
+      background: open ? 'rgba(201,168,76,0.03)' : 'transparent',
+    }}>
+      {/* Header */}
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width:          '100%',
+          padding:        '1rem 1.25rem',
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'space-between',
+          background:     'none',
+          border:         'none',
+          cursor:         'pointer',
+          textAlign:      'left',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ color: '#C9A84C', fontSize: '14px' }}>{protocol.icon}</span>
+          <div>
+            <p style={{
+              fontFamily:    '"Space Mono", monospace',
+              fontSize:      '11px',
+              letterSpacing: '0.1em',
+              color:         'rgba(255,255,255,0.85)',
+              margin:        0,
+              textTransform: 'uppercase',
             }}>
-              Week {experiment?.weekCurrent ?? 2} of {experiment?.weekTotal ?? 4}
-            </span>
-
-            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '2.25rem', letterSpacing: '0.06em', color: '#e2d9c8', margin: '0.25rem 0' }}>
-              {experiment?.title ?? 'Sleep Optimisation Sprint'}
-            </div>
-            <p className="rh-body" style={{ marginBottom: '0.5rem' }}>
-              {experiment?.description ?? '10pm–6am protocol. Track bedtime, wake time, energy.'}
+              {protocol.name}
             </p>
-            <p className="rh-muted" style={{ fontSize: '0.65rem', marginBottom: '1rem' }}>
-              {stats?.totalEntries ?? 23} members reporting this week
+            <p style={{
+              fontSize:   '10px',
+              color:      'rgba(255,255,255,0.3)',
+              margin:     '2px 0 0',
+              fontFamily: '"Space Mono", monospace',
+            }}>
+              {protocol.guild} Guild · {protocol.scoreMultiplier.replace(/_/g, ' ')}
             </p>
+          </div>
+        </div>
+        <span style={{
+          color:      'rgba(255,255,255,0.3)',
+          fontSize:   '12px',
+          transform:  open ? 'rotate(180deg)' : 'none',
+          transition: 'transform 0.2s',
+        }}>
+          ▾
+        </span>
+      </button>
 
-            {/* Aggregate bars */}
-            <div style={{ marginBottom: '1rem' }}>
-              {[
-                { label: 'AVG ENERGY SCORE', value: stats?.avgEnergyScore ?? 7.2, max: 10 },
-                { label: 'AVG SLEEP HOURS',  value: stats?.avgSleepHours  ?? 7.8, max: 9  },
-              ].map(b => (
-                <div key={b.label} style={{ marginBottom: '0.6rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                    <span className="rh-label" style={{ marginBottom: 0, display: 'inline', fontSize: '0.6rem' }}>{b.label}</span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--accent3)' }}>{b.value} / {b.max}</span>
-                  </div>
-                  <div style={{ background: '#2a2318', borderRadius: 2, height: 5 }}>
-                    <div style={{ width: `${(b.value / b.max) * 100}%`, height: '100%', background: 'var(--accent3)', borderRadius: 2 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Body */}
+      {open && (
+        <div style={{ padding: '0 1.25rem 1.25rem' }}>
+          <p style={{
+            fontSize:     '11px',
+            color:        'rgba(255,255,255,0.35)',
+            marginBottom: '1.25rem',
+            lineHeight:   1.7,
+            fontFamily:   '"Space Mono", monospace',
+          }}>
+            {protocol.description}
+          </p>
 
-            {/* Data submission — div + onClick, no <form> tag */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <div>
-                <Label>Bedtime</Label>
-                <input type="time" value={bedtime} onChange={e => setBedtime(e.target.value)} style={inputStyle} />
-              </div>
-              <div>
-                <Label>Wake Time</Label>
-                <input type="time" value={waketime} onChange={e => setWaketime(e.target.value)} style={inputStyle} />
-              </div>
-              <div>
-                <Label>Energy 1–10</Label>
-                <input type="number" min="1" max="10" value={energyScore} onChange={e => setEnergyScore(e.target.value)} placeholder="7" style={inputStyle} />
-              </div>
-            </div>
-
-            <div
-              onClick={submitting ? undefined : handleSubmit}
-              role="button"
-              style={{
-                background: 'var(--accent)', color: '#0a0a08',
-                fontFamily: 'Space Mono, monospace', fontSize: '0.7rem',
-                fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-                padding: '0.75rem', textAlign: 'center', borderRadius: 3,
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                opacity: submitting ? 0.6 : 1, transition: 'opacity 0.2s',
-              }}
-            >
-              {submitting ? 'Submitting...' : "Submit Today's Entry"}
-            </div>
-
-            {submitMsg && (
-              <div style={{
-                marginTop: '0.5rem', fontSize: '0.68rem', textAlign: 'center',
-                color: submitMsg === 'Entry recorded' ? 'var(--accent3)' : 'var(--accent2)',
+          {protocol.fields.map((field) => (
+            <div key={field.key} style={{ marginBottom: '0.875rem' }}>
+              <label style={{
+                display:       'block',
+                fontSize:      '9px',
+                letterSpacing: '0.15em',
+                color:         'rgba(255,255,255,0.3)',
+                textTransform: 'uppercase',
+                marginBottom:  '4px',
+                fontFamily:    '"Space Mono", monospace',
               }}>
-                {submitMsg}
-              </div>
-            )}
-          </>
-        )}
-      </Card>
+                {field.label}
+              </label>
 
-      <Divider />
+              {field.type === 'select' ? (
+                <select
+                  value={form[field.key] ?? ''}
+                  onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                  style={{
+                    width:      '100%',
+                    background: 'rgba(255,255,255,0.04)',
+                    border:     '0.5px solid rgba(255,255,255,0.1)',
+                    color:      'rgba(255,255,255,0.7)',
+                    fontFamily: '"Space Mono", monospace',
+                    fontSize:   '11px',
+                    padding:    '0.6rem 0.75rem',
+                    outline:    'none',
+                  }}
+                >
+                  <option value="">Select…</option>
+                  {field.options.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              ) : field.type === 'textarea' ? (
+                <textarea
+                  value={form[field.key] ?? ''}
+                  onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                  placeholder={field.placeholder}
+                  rows={3}
+                  style={{
+                    width:      '100%',
+                    background: 'rgba(255,255,255,0.04)',
+                    border:     '0.5px solid rgba(255,255,255,0.1)',
+                    color:      'rgba(255,255,255,0.7)',
+                    fontFamily: '"Space Mono", monospace',
+                    fontSize:   '11px',
+                    padding:    '0.6rem 0.75rem',
+                    outline:    'none',
+                    resize:     'vertical',
+                  }}
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={form[field.key] ?? ''}
+                  onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                  placeholder={field.placeholder}
+                  style={{
+                    width:      '100%',
+                    background: 'rgba(255,255,255,0.04)',
+                    border:     '0.5px solid rgba(255,255,255,0.1)',
+                    color:      'rgba(255,255,255,0.7)',
+                    fontFamily: '"Space Mono", monospace',
+                    fontSize:   '11px',
+                    padding:    '0.6rem 0.75rem',
+                    outline:    'none',
+                  }}
+                />
+              )}
+            </div>
+          ))}
 
-      {/* Upcoming experiments */}
-      <Card>
-        <Label>Upcoming</Label>
-        <div className="rh-stack-item" style={{ marginBottom: '0.6rem' }}>
-          <span style={{ fontSize: '0.6rem', color: '#4a4238', border: '1px solid #2a2318', borderRadius: 2, padding: '0.1rem 0.4rem', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>
-            PLANNED
-          </span>
-          <span className="rh-stack-role">Applied Tech: 3D print material stress test · Starts May 2026</span>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || submitted}
+            style={{
+              marginTop:     '0.5rem',
+              padding:       '0.65rem 1.25rem',
+              background:    submitted ? 'rgba(46,204,113,0.15)' : '#C9A84C',
+              border:        submitted ? '0.5px solid rgba(46,204,113,0.3)' : 'none',
+              color:         submitted ? '#2ECC71' : '#000',
+              fontFamily:    '"Space Mono", monospace',
+              fontSize:      '10px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              cursor:        submitting ? 'wait' : 'pointer',
+              opacity:       submitting ? 0.6 : 1,
+              transition:    'all 0.2s',
+            }}
+          >
+            {submitted ? '✓ Logged' : submitting ? 'Submitting…' : 'Log entry →'}
+          </button>
         </div>
-        <div className="rh-stack-item" style={{ marginBottom: '0.75rem' }}>
-          <span style={{ fontSize: '0.6rem', color: 'var(--accent3)', border: '1px solid rgba(74,240,200,0.2)', borderRadius: 2, padding: '0.1rem 0.4rem', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>
-            VOTING
-          </span>
-          <span className="rh-stack-role">Economic: 30-day micro-business sprint · Vote open on Snapshot</span>
-        </div>
-        {/* TODO: wire to lib/snapshot.ts getActiveProposals() */}
-        <a href="https://snapshot.org" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: 'var(--accent3)', textDecoration: 'none' }}>
-          Vote on next experiment →
-        </a>
-      </Card>
+      )}
+    </div>
+  )
+}
+
+function ProtocolTab({ memberTier }) {
+  return (
+    <div className="rh-tab-body">
+      <div style={{
+        display:        'flex',
+        justifyContent: 'space-between',
+        alignItems:     'baseline',
+        marginBottom:   '1.5rem',
+      }}>
+        <p style={{
+          fontFamily:    '"Space Mono", monospace',
+          fontSize:      '9px',
+          letterSpacing: '0.2em',
+          color:         'rgba(255,255,255,0.25)',
+          textTransform: 'uppercase',
+          margin:        0,
+        }}>
+          Active protocols — {new Date().toLocaleDateString('en-CA')}
+        </p>
+        <span style={{
+          fontFamily:    '"Space Mono", monospace',
+          fontSize:      '9px',
+          color:         'rgba(201,168,76,0.5)',
+          letterSpacing: '0.1em',
+        }}>
+          3 active
+        </span>
+      </div>
+
+      {PROTOCOLS.map((p) => (
+        <ProtocolCard key={p.id} protocol={p} memberTier={memberTier} />
+      ))}
+
+      <p style={{
+        marginTop:  '1.5rem',
+        fontSize:   '10px',
+        color:      'rgba(255,255,255,0.15)',
+        fontFamily: '"Space Mono", monospace',
+        lineHeight: 1.7,
+      }}>
+        Protocol submissions feed the Guild leaderboard. Verified entries earn
+        the full multiplier. Steward co-sign required for strategic_output tier.
+      </p>
     </div>
   )
 }
@@ -1559,7 +1688,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
   const tabContent = {
     'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} walletAddress={walletAddress} />,
     'ECONOMY':      <EconomyTab walletAddress={walletAddress} />,
-    'DESCI':        <DeSciTab walletAddress={walletAddress} />,
+    'PROTOCOL':     <ProtocolTab memberTier={memberTier} />,
     'GUILD':        <GuildTab walletAddress={walletAddress} />,
     'TREASURY':     <TreasuryTab memberTier={memberTier} />,
   }

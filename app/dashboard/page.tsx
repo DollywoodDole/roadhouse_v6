@@ -1,18 +1,27 @@
-'use client'
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import RoadHouseDashboard from '@/components/dashboard/RoadHouseDashboard';
 
 /**
  * RoadHouse Capital — Member Dashboard Route
  * ────────────────────────────────────────────
  * Route: /dashboard
  *
- * Client boundary — required for wallet adapter hook context to propagate.
- * Note: metadata export below is documentation only; Next.js ignores metadata
- * from client components. Title/robots are not actively served from this file.
+ * Server component: uses middleware-injected x-rh-member header to gate access.
+ * Middleware already redirects unauthenticated users to /login before this runs —
+ * this guard is a belt-and-suspenders check for the non-member case.
+ *
+ * Client boundary lives in RoadHouseDashboard.jsx ('use client').
  * Grain overlay inherited from body.grain in app/layout.tsx.
  */
 
-import RoadHouseDashboard from '@/components/dashboard/RoadHouseDashboard'
+export default async function DashboardPage() {
+  const headersList = await headers();
+  const isMember    = headersList.get('x-rh-member') === '1';
 
-export default function DashboardPage() {
-  return <RoadHouseDashboard />
+  if (!isMember) {
+    redirect('/?upgrade=1');
+  }
+
+  return <RoadHouseDashboard />;
 }
