@@ -29,12 +29,49 @@ function getRedis() {
   return new Redis({ url, token });
 }
 
+/**
+ * ADMIN_WALLETS — comma-separated Solana public keys that bypass KV membership
+ * check and always receive isMember=true, tier='praetor'.
+ * Set in Vercel env vars. Never commit values.
+ * Format: ADMIN_WALLETS=addr1,addr2
+ */
+function isAdminWallet(publicKey: string): boolean {
+  const list = process.env.ADMIN_WALLETS ?? '';
+  return list.split(',').map(s => s.trim()).filter(Boolean).includes(publicKey);
+}
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const { publicKey } = body as { publicKey?: string };
 
   if (!publicKey || typeof publicKey !== 'string') {
     return NextResponse.json({ error: 'publicKey required' }, { status: 400 });
+  }
+
+  // Admin bypass — always grant full access regardless of KV state
+  if (isAdminWallet(publicKey)) {
+    const token = await new SignJWT({
+      publicKey,
+      customerId: null,
+      isMember:   true,
+      tier:       'praetor',
+      provider:   'wallet',
+      admin:      true,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('7d')
+      .sign(secret);
+
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge:   60 * 60 * 24 * 7,
+      path:     '/',
+    });
+    return NextResponse.json({ ok: true, isMember: true, tier: 'praetor', admin: true });
   }
 
   const kv = getRedis();

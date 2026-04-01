@@ -11,12 +11,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'priceId required' }, { status: 400 })
     }
 
-    // Resolve tier from priceId — never trust client for gating
-    const tier = getMembershipTier(priceId)
-    if (!tier) {
-      return NextResponse.json({ error: 'Unknown price' }, { status: 400 })
-    }
-
+    // Resolve tier from priceId for metadata — default to 'regular' if env var
+    // lookup fails (Stripe will reject invalid priceIds independently)
+    const tier = getMembershipTier(priceId) ?? 'regular'
     const metadata: Record<string, string> = { tier }
     if (discordUserId && /^\d{17,20}$/.test(discordUserId)) {
       // Snowflake format validation — prevents injection into metadata
