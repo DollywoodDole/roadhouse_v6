@@ -1,6 +1,7 @@
 {
   "_comment": "Edit multipliers here — keep in sync with SWITCH() in Outputs_PROCESSED!J and ROAD conversion rate",
   "outputTypes": [
+    { "id": "sponsorship_secured",  "label": "Sponsorship Secured", "multiplier": 3.0, "proofRequired": true  },
     { "id": "deal_closed",         "label": "Deal Closed",         "multiplier": 2.5, "proofRequired": true  },
     { "id": "content_published",   "label": "Content Published",   "multiplier": 2.0, "proofRequired": true  },
     { "id": "code_shipped",        "label": "Code Shipped",        "multiplier": 2.0, "proofRequired": true  },
