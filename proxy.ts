@@ -40,7 +40,7 @@ const PUBLIC_PATHS = [
 
 const MEMBER_ONLY_PATHS = ['/dashboard'];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Static files and public paths — allow immediately
