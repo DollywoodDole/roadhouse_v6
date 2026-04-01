@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 import { cookies } from 'next/headers';
-import { SignJWT } from 'jose';
+import { SignJWT, jwtVerify } from 'jose';
 
 /**
  * POST /api/auth/wallet
@@ -81,5 +81,68 @@ export async function DELETE() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
   return NextResponse.json({ ok: true });
+}
+
+export async function GET(req: Request) {
+  /**
+   * GET /api/auth/wallet
+   * Session refresh — called on tab focus + every 6 hours by useSessionRefresh().
+   * Verifies the existing cookie, re-checks KV membership (catches tier changes),
+   * and reissues a fresh 7-day cookie without requiring wallet re-authentication.
+   */
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const match = cookieHeader.match(/rh-wallet-session=([^;]+)/);
+
+  if (!match) {
+    return NextResponse.json({ authenticated: false }, { status: 401 });
+  }
+
+  try {
+    const { payload } = await jwtVerify(match[1], secret);
+    const p = payload as {
+      publicKey:   string;
+      customerId:  string | null;
+      isMember:    boolean;
+      tier:        string | null;
+    };
+
+    // Re-check KV membership so tier changes reflect without full re-login
+    let isMember = p.isMember;
+    let tier     = p.tier;
+
+    if (p.customerId) {
+      const kv      = getRedis();
+      const balance = await kv.get<{ tier: string; balance: number }>(`road:${p.customerId}`);
+      isMember = !!balance;
+      tier     = balance?.tier ?? null;
+    }
+
+    const newToken = await new SignJWT({
+      publicKey:  p.publicKey,
+      customerId: p.customerId,
+      isMember,
+      tier,
+      provider:   'wallet',
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('7d')
+      .sign(secret);
+
+    const res = NextResponse.json({ authenticated: true, isMember, tier, publicKey: p.publicKey });
+    res.cookies.set(SESSION_COOKIE, newToken, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge:   60 * 60 * 24 * 7,
+      path:     '/',
+    });
+    return res;
+  } catch {
+    // Expired or invalid — clear the stale cookie
+    const res = NextResponse.json({ authenticated: false }, { status: 401 });
+    res.cookies.delete(SESSION_COOKIE);
+    return res;
+  }
 }
 

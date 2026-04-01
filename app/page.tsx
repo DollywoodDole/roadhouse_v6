@@ -20,8 +20,10 @@ import SectionDivider from '@/components/ui/SectionDivider'
 
 export default async function Home() {
   const headersList = await headers()
-  const isMember        = headersList.get('x-rh-member') === '1'
-  const showUpgradePrompt = !isMember
+  const memberHeader      = headersList.get('x-rh-member') // null = no session, '0'/'1' = session present
+  const isAuthenticated   = memberHeader !== null
+  const isMember          = memberHeader === '1'
+  const showUpgradePrompt = isAuthenticated && !isMember
 
   return (
     <div className="flex min-h-screen bg-rh-black">

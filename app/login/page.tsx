@@ -10,15 +10,17 @@ export default function LoginPage() {
   const { setVisible } = useWalletModal();
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState<string | null>(null);
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState<string | null>(null);
+  const [unregistered, setUnregistered] = useState(false);
 
-  // Wallet connect → POST /api/auth/wallet → redirect
+  // Wallet connect → POST /api/auth/wallet → redirect or show recovery UI
   useEffect(() => {
     if (!connected || !publicKey) return;
 
     setLoading(true);
     setError(null);
+    setUnregistered(false);
 
     fetch('/api/auth/wallet', {
       method:  'POST',
@@ -28,7 +30,13 @@ export default function LoginPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);
-        router.replace(data.isMember ? '/dashboard' : '/');
+        if (data.isMember) {
+          router.replace('/dashboard');
+        } else {
+          // Wallet connected but not linked to a subscription — show recovery UI
+          setLoading(false);
+          setUnregistered(true);
+        }
       })
       .catch((e: Error) => {
         setError(e.message);
@@ -116,66 +124,148 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Wallet */}
-        <button
-          onClick={() => { setError(null); setVisible(true); }}
-          disabled={loading}
-          style={{
-            width:          '100%',
-            padding:        '1rem',
-            background:     '#C9A84C',
-            border:         'none',
-            color:          '#000',
-            fontFamily:     '"Space Mono", monospace',
-            fontSize:       '11px',
-            letterSpacing:  '0.2em',
-            textTransform:  'uppercase',
-            cursor:         loading ? 'not-allowed' : 'pointer',
-            opacity:        loading ? 0.6 : 1,
-            marginBottom:   '0.75rem',
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'center',
-            gap:            '0.5rem',
-            transition:     'opacity 0.15s',
-          }}
-        >
-          {loading ? (
-            <>
-              <span style={{
-                width:          '10px',
-                height:         '10px',
-                border:         '1.5px solid #000',
-                borderTopColor: 'transparent',
-                borderRadius:   '50%',
-                display:        'inline-block',
-                animation:      'spin 0.7s linear infinite',
-              }} />
-              Connecting…
-            </>
-          ) : (
-            <>◎ Connect Wallet</>
-          )}
-        </button>
+        {unregistered ? (
+          /* Wallet connected but not linked to a subscription */
+          <>
+            <div style={{
+              border:       '0.5px solid rgba(201,168,76,0.2)',
+              background:   'rgba(201,168,76,0.04)',
+              padding:      '1rem',
+              marginBottom: '1.25rem',
+            }}>
+              <p style={{
+                fontFamily:    '"Space Mono", monospace',
+                fontSize:      '10px',
+                color:         'rgba(255,255,255,0.5)',
+                margin:        '0 0 0.5rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+              }}>
+                Wallet not linked
+              </p>
+              <p style={{
+                fontFamily: '"Space Mono", monospace',
+                fontSize:   '11px',
+                color:      'rgba(255,255,255,0.35)',
+                margin:     0,
+                lineHeight: 1.7,
+              }}>
+                This wallet isn&apos;t connected to a RoadHouse subscription yet.
+              </p>
+            </div>
 
-        {/* Portal fallback */}
-        <a
-          href="/portal"
-          style={{
-            display:        'block',
-            textAlign:      'center',
-            fontSize:       '10px',
-            color:          'rgba(255,255,255,0.2)',
-            letterSpacing:  '0.12em',
-            textDecoration: 'none',
-            marginTop:      '1.5rem',
-            transition:     'color 0.15s',
-          }}
-          onMouseEnter={(e) => ((e.target as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.4)')}
-          onMouseLeave={(e) => ((e.target as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.2)')}
-        >
-          Email lookup only — view portal →
-        </a>
+            <a href="/portal" style={{
+              display:       'block',
+              width:         '100%',
+              padding:       '1rem',
+              background:    '#C9A84C',
+              color:         '#000',
+              fontFamily:    '"Space Mono", monospace',
+              fontSize:      '11px',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              textAlign:     'center',
+              marginBottom:  '0.75rem',
+              boxSizing:     'border-box',
+            }}>
+              Link via portal →
+            </a>
+
+            <a href="/#membership" style={{
+              display:        'block',
+              textAlign:      'center',
+              fontSize:       '10px',
+              color:          'rgba(255,255,255,0.25)',
+              fontFamily:     '"Space Mono", monospace',
+              letterSpacing:  '0.12em',
+              textDecoration: 'none',
+            }}>
+              Or subscribe to get started →
+            </a>
+
+            <button
+              onClick={() => { setUnregistered(false); disconnect(); }}
+              style={{
+                display:       'block',
+                width:         '100%',
+                marginTop:     '0.75rem',
+                padding:       '0.5rem',
+                background:    'none',
+                border:        'none',
+                color:         'rgba(255,255,255,0.2)',
+                fontFamily:    '"Space Mono", monospace',
+                fontSize:      '9px',
+                letterSpacing: '0.1em',
+                cursor:        'pointer',
+              }}
+            >
+              ← Try a different wallet
+            </button>
+          </>
+        ) : (
+          /* Default: wallet connect button + portal link */
+          <>
+            <button
+              onClick={() => { setError(null); setVisible(true); }}
+              disabled={loading}
+              style={{
+                width:          '100%',
+                padding:        '1rem',
+                background:     '#C9A84C',
+                border:         'none',
+                color:          '#000',
+                fontFamily:     '"Space Mono", monospace',
+                fontSize:       '11px',
+                letterSpacing:  '0.2em',
+                textTransform:  'uppercase',
+                cursor:         loading ? 'not-allowed' : 'pointer',
+                opacity:        loading ? 0.6 : 1,
+                marginBottom:   '0.75rem',
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                gap:            '0.5rem',
+                transition:     'opacity 0.15s',
+              }}
+            >
+              {loading ? (
+                <>
+                  <span style={{
+                    width:          '10px',
+                    height:         '10px',
+                    border:         '1.5px solid #000',
+                    borderTopColor: 'transparent',
+                    borderRadius:   '50%',
+                    display:        'inline-block',
+                    animation:      'spin 0.7s linear infinite',
+                  }} />
+                  Connecting…
+                </>
+              ) : (
+                <>◎ Connect Wallet</>
+              )}
+            </button>
+
+            <a
+              href="/portal"
+              style={{
+                display:        'block',
+                textAlign:      'center',
+                fontSize:       '10px',
+                color:          'rgba(255,255,255,0.2)',
+                letterSpacing:  '0.12em',
+                textDecoration: 'none',
+                marginTop:      '1.5rem',
+                transition:     'color 0.15s',
+              }}
+              onMouseEnter={(e) => ((e.target as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.4)')}
+              onMouseLeave={(e) => ((e.target as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.2)')}
+            >
+              Email lookup only — view portal →
+            </a>
+          </>
+        )}
       </div>
 
       {/* Bottom note */}

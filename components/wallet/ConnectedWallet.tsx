@@ -20,9 +20,10 @@ interface Props {
 export default function ConnectedWallet({ customerId }: Props) {
   const { publicKey, connected, wallet } = useWallet()
   const { setVisible } = useWalletModal()
-  const [copied,     setCopied]     = useState(false)
-  const [registered, setRegistered] = useState(false)
-  const [regError,   setRegError]   = useState('')
+  const [copied,         setCopied]         = useState(false)
+  const [registered,     setRegistered]     = useState(false)
+  const [dashboardReady, setDashboardReady] = useState(false)
+  const [regError,       setRegError]       = useState('')
   const registeredRef = useRef(false)
 
   const copy = async () => {
@@ -32,22 +33,34 @@ export default function ConnectedWallet({ customerId }: Props) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Auto-register wallet in KV when connected (once per session)
+  // Auto-register wallet in KV when connected, then issue session cookie
   useEffect(() => {
     if (!connected || !publicKey || !customerId || registeredRef.current) return
     registeredRef.current = true
 
+    const address = publicKey.toBase58()
+
     fetch('/api/wallet/register', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ customerId, walletAddress: publicKey.toBase58() }),
+      body:    JSON.stringify({ customerId, walletAddress: address }),
     })
       .then(r => r.json())
-      .then(json => {
-        if (json.ok) {
-          setRegistered(true)
-        } else {
+      .then(async json => {
+        if (!json.ok) {
           setRegError(json.error ?? 'Registration failed')
+          return
+        }
+        setRegistered(true)
+        // Issue session cookie so member can navigate directly to dashboard
+        const sessionRes = await fetch('/api/auth/wallet', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ publicKey: address }),
+        })
+        const sessionData = await sessionRes.json()
+        if (sessionData.isMember) {
+          setDashboardReady(true)
         }
       })
       .catch(() => setRegError('Network error'))
@@ -107,6 +120,11 @@ export default function ConnectedWallet({ customerId }: Props) {
             Airdrop registered
           </span>
         )}
+        {dashboardReady && (
+          <span className="text-[10px] font-mono text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+            Session active
+          </span>
+        )}
       </div>
 
       {/* Full address */}
@@ -130,6 +148,16 @@ export default function ConnectedWallet({ customerId }: Props) {
 
       {regError && (
         <p className="mt-3 text-xs text-red-400">{regError}</p>
+      )}
+
+      {dashboardReady && (
+        <a
+          href="/dashboard"
+          className="inline-block mt-4 px-4 py-2.5 bg-gold text-rh-black text-[11px] font-mono tracking-[0.15em] uppercase hover:bg-gold-light transition-colors"
+          style={{ borderRadius: '2px' }}
+        >
+          Go to Dashboard →
+        </a>
       )}
     </div>
   )

@@ -21,6 +21,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import { useRouter } from 'next/navigation'
 import RoadHouse from './RoadHouse'
+import { useSessionRefresh } from '@/lib/use-session-refresh'
 
 /**
  * Fetches member tier and $ROAD balance from KV via wallet address.
@@ -413,6 +414,7 @@ export default function RoadHouseDashboard() {
   // All hooks must be called unconditionally first; return null before first render.
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+  useSessionRefresh()
 
   const { connected, publicKey, disconnect } = useWallet()
   const { tier: memberTier, roadBalance, loading } = useMemberProfile()

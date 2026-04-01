@@ -7,48 +7,42 @@ const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
 /**
  * Route gating — wallet session JWT only (no next-auth / Google OAuth).
  *
- * PUBLIC (no auth needed):
- *   /login, /welcome, /compound, /portal
- *   /api/webhooks/*, /api/discord/*, /api/auth/*
- *   /_next/*, static assets
+ * FULLY_PUBLIC: No session resolution at all. Fast path.
+ *   These routes never need to know who the user is.
  *
- * LANDING / (auth required, membership optional):
- *   Session present → allow
- *   No session → /login
+ * SESSION_OPTIONAL: Resolve session if present, set x-rh-member/x-rh-tier
+ *   headers, but never redirect. Publicly accessible — benefits from knowing
+ *   who the user is (e.g. upgrade banner on /, TokenGate on /partners).
  *
- * DASHBOARD /dashboard (auth + active membership required):
- *   Session + isMember → allow
- *   Session + !isMember → / (upgrade prompt)
- *   No session → /login
- *
- * /partners — TokenGate handles this at component level, skip here
+ * Authenticated (all other routes): session required → /login if missing.
+ *   /dashboard: additionally requires isMember → /?upgrade=1 if not.
  */
 
-const PUBLIC_PATHS = [
-  // Pages
-  '/',            // landing page — public marketing
+const FULLY_PUBLIC = [
   '/login',
-  '/welcome',     // post-checkout: session_id is the credential
-  '/compound',    // public marketing page
-  '/portal',      // email-only lookup, read-only
-  // API — webhook receivers (no session, have their own auth)
-  '/api/webhooks',        // canonical Stripe handler: /api/webhooks/stripe
-  '/api/webhook',         // 410 Gone — retired Stripe webhook, kept to surface misconfiguration
+  '/welcome',
+  '/compound',
+  '/portal',
+  // API — webhook receivers (have their own auth)
+  '/api/webhooks',
+  '/api/webhook',
   '/api/discord',
-  // API — auth endpoints
+  // API — auth + wallet registration
   '/api/auth',
-  '/api/wallet',          // wallet registration (secured by customerId + address validation)
-  // API — cron-authed routes (CRON_SECRET Bearer, not session)
+  '/api/wallet',
+  // API — cron-authed (CRON_SECRET Bearer)
   '/api/road/accrue',
   '/api/leaderboard',
   // API — public reads
-  '/api/road/balance',
   '/api/road',
   '/api/contact',
   '/api/portal',
-  // API — checkout (priceId credential for one-time; session_id for lookup)
-  '/api/checkout',        // one-time payments: merch, events, adventures
-  '/api/subscription',    // subscription checkout session creation
+  // API — checkout (credential is priceId or session_id, not session cookie)
+  '/api/checkout',
+  '/api/subscription',
+  // API — contributions + bounties (validated internally by wallet/customerId)
+  '/api/contributions',
+  '/api/bounties',
   // Static
   '/_next',
   '/favicon.ico',
@@ -56,21 +50,41 @@ const PUBLIC_PATHS = [
   '/sitemap.xml',
 ];
 
-const MEMBER_ONLY_PATHS = ['/dashboard'];
+/**
+ * Session-optional routes: publicly accessible, but middleware resolves the
+ * session if a cookie is present and injects x-rh-member / x-rh-tier headers.
+ * Never redirects — the page or client component decides what to render.
+ */
+const SESSION_OPTIONAL = [
+  '/',        // landing — shows upgrade banner for authenticated non-members
+  '/partners', // public render — TokenGate handles membership prompt client-side
+];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Static files and public paths — allow immediately
-  // '/' is exact-matched to avoid startsWith('/') matching everything
-  if (pathname === '/' || PUBLIC_PATHS.filter(p => p !== '/').some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
+  // Static files — fast path before anything else
   if (pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|woff2?)$/)) {
     return NextResponse.next();
   }
 
+  // Fully public — no session resolution, immediate passthrough
+  if (FULLY_PUBLIC.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  // Resolve session for all remaining routes
   const session = await resolveWalletSession(req);
+
+  // Session-optional: resolve but never redirect
+  if (SESSION_OPTIONAL.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+    const res = NextResponse.next();
+    if (session) {
+      res.headers.set('x-rh-member', session.isMember ? '1' : '0');
+      res.headers.set('x-rh-tier',   session.tier ?? '');
+    }
+    return res;
+  }
 
   // /login — skip to destination if already authenticated
   if (pathname === '/login') {
@@ -80,15 +94,15 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // No session → /login
+  // All other routes: require session
   if (!session) {
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('from', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Dashboard requires active membership
-  if (MEMBER_ONLY_PATHS.some((p) => pathname.startsWith(p)) && !session.isMember) {
+  // /dashboard — additionally requires active membership
+  if (pathname.startsWith('/dashboard') && !session.isMember) {
     return NextResponse.redirect(new URL('/?upgrade=1', req.url));
   }
 
