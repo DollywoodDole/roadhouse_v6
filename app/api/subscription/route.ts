@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
       // Redirect to /welcome — guides member through wallet connect step
       success_url: `${APP_URL}/welcome?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${APP_URL}/#membership`,
-      customer_creation:        'always',
       billing_address_collection: 'auto',
       allow_promotion_codes:    true,
       custom_text: {
