@@ -1,21 +1,30 @@
 {
-  "_comment": "Edit multipliers here — keep in sync with SWITCH() in Outputs_PROCESSED!J and ROAD conversion rate",
+  "_comment": "Source of truth for output types + multipliers. Keep in sync with SWITCH() in Setup.js:updateMultiplierFormulas() and the Google Form dropdown.",
   "outputTypes": [
-    { "id": "sponsorship_secured",  "label": "Sponsorship Secured", "multiplier": 3.0, "proofRequired": true  },
-    { "id": "deal_closed",         "label": "Deal Closed",         "multiplier": 2.5, "proofRequired": true  },
-    { "id": "content_published",   "label": "Content Published",   "multiplier": 2.0, "proofRequired": true  },
-    { "id": "code_shipped",        "label": "Code Shipped",        "multiplier": 2.0, "proofRequired": true  },
-    { "id": "research_published",  "label": "Research Published",  "multiplier": 1.8, "proofRequired": true  },
-    { "id": "strategic_output",    "label": "Strategic Output",    "multiplier": 1.7, "proofRequired": false },
-    { "id": "community_build",     "label": "Community Build",     "multiplier": 1.5, "proofRequired": false },
-    { "id": "training_log",        "label": "Training Log",        "multiplier": 1.2, "proofRequired": false },
-    { "id": "daily_checkin",       "label": "Daily Check-In",      "multiplier": 1.0, "proofRequired": false }
+    { "id": "sponsorship_secured", "label": "Sponsorship Secured", "multiplier": 3.0, "proofRequired": true,  "m3Notes": "URL to signed deal or Stripe sponsorship checkout" },
+    { "id": "deal_closed",         "label": "Deal Closed",         "multiplier": 2.5, "proofRequired": true,  "m3Notes": "URL to contract or confirmation" },
+    { "id": "bounty_completed",    "label": "Bounty Completed",    "multiplier": 2.2, "proofRequired": true,  "m3Notes": "M3 — link to bounty claim in dashboard; requires steward approval before $ROAD releases" },
+    { "id": "content_published",   "label": "Content Published",   "multiplier": 2.0, "proofRequired": true,  "m3Notes": "URL to published piece" },
+    { "id": "code_shipped",        "label": "Code Shipped",        "multiplier": 2.0, "proofRequired": true,  "m3Notes": "URL to PR, commit, or deployed feature" },
+    { "id": "research_published",  "label": "Research Published",  "multiplier": 1.8, "proofRequired": true,  "m3Notes": "URL to published or shared research" },
+    { "id": "strategic_output",    "label": "Strategic Output",    "multiplier": 1.7, "proofRequired": false, "m3Notes": "Memo, deck, or proposal" },
+    { "id": "community_build",     "label": "Community Build",     "multiplier": 1.5, "proofRequired": false, "m3Notes": "Event, intro, or community action" },
+    { "id": "peer_review",         "label": "Peer Review",         "multiplier": 1.5, "proofRequired": false, "m3Notes": "M3 — reviewing another member's submission or bounty claim" },
+    { "id": "training_log",        "label": "Training Log",        "multiplier": 1.2, "proofRequired": false, "m3Notes": "DeSci / physical / skill log" },
+    { "id": "daily_checkin",       "label": "Daily Check-In",      "multiplier": 1.0, "proofRequired": false, "m3Notes": "Accountability check-in" }
   ],
   "tierThresholds": {
+    "_note": "Ops tiers (col H) are score-based. Subscription tiers (col R) are Stripe-based. They are independent.",
     "Observer":     0,
     "Contributor":  500,
     "Producer":     2000,
     "Operator":     5000
+  },
+  "subscriptionTiers": {
+    "_note": "Monthly $ROAD base accrual by Stripe subscription tier (col R). Activity accrual (score × roadConversion) is separate.",
+    "regular":    100,
+    "ranch-hand": 500,
+    "partner":    2000
   },
   "activityStatus": {
     "Active":    { "outputsIn30Days": 20 },
@@ -30,6 +39,6 @@
   },
   "roadConversion": {
     "pointsPerRoad": 10,
-    "_note": "10 score points = 1 $ROAD. Adjust to control weekly token velocity."
+    "_note": "Activity stream: 10 score points = 1 $ROAD. Separate from the subscription base accrual above."
   }
 }

@@ -5,21 +5,24 @@
 // ============================================================
 
 // ── Members sheet column indices (0-based) ────────────────────
-// Matches the actual column layout from Config.js COL constants.
-// Cols Q + R are new — add headers before running backfill.
-//   Q: "Stripe Customer ID"   R: "Subscription Tier"
+// Mirrors COL constants in Config.js (COL.M_x - 1).
+// Q + R: Stripe identity — written by backfill.
+// S + T + U: Steward ops — added by setupStewardColumns() in Setup.js.
 const COLS = {
-  INTERNAL_ID:      0,  // A — RH-XXXX (COL.M_ID)
-  HANDLE:           1,  // B
-  NAME:             2,  // C
-  EMAIL:            3,  // D
-  OPS_TIER:         7,  // H — M_TIER formula (Observer/Contributor/Producer/Operator — NOT used for $ROAD rate)
-  TOTAL_SCORE:      8,  // I — M_TOTAL_SCORE
-  WALLET:           13, // N — Solana pubkey (COL.M_WALLET)
-  WALLET_VERIFIED:  14, // O — checkbox (COL.M_WALLET_VERIFIED)
-  NOTES:            15, // P — COL.M_NOTES
-  STRIPE_CUS:       16, // Q — Stripe Customer ID (cus_xxx)
-  SUB_TIER:         17, // R — Subscription tier (regular/ranch-hand/partner) — written by backfill
+  INTERNAL_ID:        0,  // A — RH-XXXX
+  HANDLE:             1,  // B
+  NAME:               2,  // C
+  EMAIL:              3,  // D
+  OPS_TIER:           7,  // H — ops tier (Observer/Contributor/Producer/Operator — NOT $ROAD rate)
+  TOTAL_SCORE:        8,  // I — total score
+  WALLET:             13, // N — Solana pubkey
+  WALLET_VERIFIED:    14, // O — checkbox
+  NOTES:              15, // P
+  STRIPE_CUS:         16, // Q — Stripe Customer ID (cus_xxx)
+  SUB_TIER:           17, // R — Subscription tier (regular/ranch-hand/partner)
+  STEWARD:            18, // S — Is_Steward checkbox (M3)
+  VERIFIED_BOUNTIES:  19, // T — count of approved bounty verifications (M3)
+  LAST_VERIFICATION:  20, // U — date of most recent steward verification (M3)
 };
 
 // ── TRIGGER 1: Sync Members → Form dropdown ──────────────────
@@ -357,8 +360,9 @@ function exportWeeklyRoadAccrual() {
   const week = getISOWeek(new Date());
 
   // V3: POST to platform API
-  const baseUrl    = config.PLATFORM_BASE_URL;
-  const cronSecret = config.CRON_SECRET;
+  // Secrets come from Script Properties via getCronSecret() — never from the sheet.
+  const baseUrl    = getPlatformBaseUrl();
+  const cronSecret = getCronSecret();
 
   if (!baseUrl || !cronSecret) {
     Logger.log('PLATFORM_BASE_URL or CRON_SECRET missing — falling back to CSV');
@@ -428,10 +432,12 @@ function getSubTierFromPriceId_(priceId, config) {
  */
 function backfillStripeCustomerIds() {
   const config    = getConfig();
-  const stripeKey = config.STRIPE_SECRET_KEY;
+  // Key lives in Script Properties — never the spreadsheet.
+  // Set it once via: setScriptSecrets(null, 'sk_live_...')
+  const stripeKey = getStripeSecretKey();
 
   if (!stripeKey) {
-    Logger.log('ERROR: STRIPE_SECRET_KEY not in Config sheet. Add it to row 16, run, then clear it.');
+    Logger.log('ERROR: STRIPE_SECRET_KEY not set. Run setScriptSecrets(null, "sk_live_...") from the editor.');
     return;
   }
 

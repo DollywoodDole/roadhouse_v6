@@ -1,8 +1,15 @@
 'use strict';
 /**
  * setup-accrual-cols.js
- * One-time setup: adds Members sheet col Q/R headers and Config rows 14-19.
+ *
+ * One-time Node.js setup: adds Members sheet col Q/R headers and
+ * non-sensitive Config rows (price IDs, platform URL).
+ *
  * Run: node scripts/setup-accrual-cols.js
+ *
+ * SECRETS (CRON_SECRET, STRIPE_SECRET_KEY) are NOT written to the sheet.
+ * Set them once in the Apps Script editor:
+ *   setScriptSecrets('your_cron_secret', 'sk_live_...')
  */
 
 const fs   = require('fs');
@@ -14,7 +21,7 @@ const CREDS_PATH     = path.join(ROOT, 'credentials.json');
 const TOKEN_PATH     = path.join(ROOT, 'token.json');
 const SPREADSHEET_ID = '1AyMQbzOPHiceZEqjtZTlr8xnVgYCh2v-3E5SaA9cCHY';
 
-// Load secrets from .env.local — never hardcode
+// Load non-sensitive env vars from .env.local (price IDs are NEXT_PUBLIC — not secrets)
 const ENV_PATH = path.resolve(ROOT, '..', '.env.local');
 const envVars  = {};
 if (fs.existsSync(ENV_PATH)) {
@@ -24,17 +31,13 @@ if (fs.existsSync(ENV_PATH)) {
   });
 }
 
-const CRON_SECRET         = envVars.CRON_SECRET         || '';
-const STRIPE_SECRET_KEY   = envVars.STRIPE_SECRET_KEY   || '';
 const STRIPE_PRICE_REGULAR    = envVars.NEXT_PUBLIC_STRIPE_SUB_REGULAR || '';
 const STRIPE_PRICE_RANCH_HAND = envVars.NEXT_PUBLIC_STRIPE_SUB_RANCH   || '';
 const STRIPE_PRICE_PARTNER    = envVars.NEXT_PUBLIC_STRIPE_SUB_PARTNER  || '';
 
-// Config rows to upsert (key → value) — values sourced from .env.local
+// Only non-sensitive values go into the Config sheet
 const CONFIG_ROWS = [
   ['PLATFORM_BASE_URL',       'https://roadhouse.capital'],
-  ['CRON_SECRET',             CRON_SECRET],
-  ['STRIPE_SECRET_KEY',       STRIPE_SECRET_KEY],
   ['STRIPE_PRICE_REGULAR',    STRIPE_PRICE_REGULAR],
   ['STRIPE_PRICE_RANCH_HAND', STRIPE_PRICE_RANCH_HAND],
   ['STRIPE_PRICE_PARTNER',    STRIPE_PRICE_PARTNER],
@@ -55,33 +58,40 @@ async function main() {
   const auth   = await getAuth();
   const sheets = google.sheets({ version: 'v4', auth });
 
-  // ── 1. Read Members sheet row 1 to find/confirm col Q and R ─────────────
+  // ── 1. Members sheet — add col Q, R, S, T, U headers ────────────────────
   console.log('Reading Members sheet header row...');
   const membersHeader = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: 'Members!1:1',
   });
   const headerRow = membersHeader.data.values?.[0] ?? [];
-  const colQ = headerRow[16]; // index 16 = col Q
-  const colR = headerRow[17]; // index 17 = col R
-  console.log(`  Col Q (index 16): "${colQ ?? '(empty)'}"`);
-  console.log(`  Col R (index 17): "${colR ?? '(empty)'}"`);
 
-  if (colQ === 'Stripe Customer ID' && colR === 'Subscription Tier') {
-    console.log('  ✓ Headers already in place, skipping write');
+  const needed = {
+    Q: { idx: 16, label: 'Stripe Customer ID' },
+    R: { idx: 17, label: 'Subscription Tier'  },
+    S: { idx: 18, label: 'Is_Steward'         },
+    T: { idx: 19, label: 'Verified_Bounties'  },
+    U: { idx: 20, label: 'Last_Verification_Date' },
+  };
+
+  const missing = Object.entries(needed).filter(([, { idx, label }]) => headerRow[idx] !== label);
+
+  if (missing.length === 0) {
+    console.log('  ✓ All column headers already in place');
   } else {
-    console.log('  Writing col Q and R headers...');
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'Members!Q1:R1',
-      valueInputOption: 'RAW',
-      requestBody: { values: [['Stripe Customer ID', 'Subscription Tier']] },
-    });
-    console.log('  ✓ Members!Q1 = "Stripe Customer ID"');
-    console.log('  ✓ Members!R1 = "Subscription Tier"');
+    for (const [col, { idx, label }] of missing) {
+      const colLetter = String.fromCharCode(65 + idx); // A=65
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `Members!${colLetter}1`,
+        valueInputOption: 'RAW',
+        requestBody: { values: [[label]] },
+      });
+      console.log(`  ✓ Members!${colLetter}1 = "${label}"`);
+    }
   }
 
-  // ── 2. Read Config sheet — build key→row map ─────────────────────────────
+  // ── 2. Config sheet — upsert non-sensitive rows ──────────────────────────
   console.log('\nReading Config sheet...');
   const configData = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -90,25 +100,25 @@ async function main() {
   const configRows = configData.data.values ?? [];
   const keyRowMap  = {};
   configRows.forEach(([key], i) => {
-    if (key) keyRowMap[String(key).trim()] = i + 1; // 1-indexed
+    if (key) keyRowMap[String(key).trim()] = i + 1;
   });
 
-  console.log(`  Config sheet has ${configRows.length} rows`);
+  console.log(`  Config sheet: ${configRows.length} rows`);
 
-  // ── 3. Upsert each config key ────────────────────────────────────────────
   for (const [key, value] of CONFIG_ROWS) {
+    if (!value) {
+      console.log(`  ⚠ Skipping ${key} — not found in .env.local`);
+      continue;
+    }
     if (keyRowMap[key]) {
-      // Update existing row
-      const rowNum = keyRowMap[key];
       await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `Config!B${rowNum}`,
+        range: `Config!B${keyRowMap[key]}`,
         valueInputOption: 'RAW',
         requestBody: { values: [[value]] },
       });
-      console.log(`  ✓ Updated row ${rowNum}: ${key}`);
+      console.log(`  ✓ Updated: ${key}`);
     } else {
-      // Append new row
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
         range: 'Config!A:B',
@@ -120,12 +130,17 @@ async function main() {
     }
   }
 
+  // ── 3. Next steps ────────────────────────────────────────────────────────
   console.log('\n✓ Sheet setup complete.\n');
-  console.log('Next steps (in Apps Script editor):');
-  console.log('  1. Run backfillStripeCustomerIds()');
-  console.log('  2. Verify Members col Q + R populated');
-  console.log('  3. Run exportWeeklyRoadAccrual()');
-  console.log('  4. Set ROAD_ACCRUAL_MODE=ops in Vercel\n');
+  console.log('NEXT — Apps Script editor (one-time):');
+  console.log('  1. setScriptSecrets("your_cron_secret", "sk_live_...")');
+  console.log('     Secrets stay in Script Properties — never in this sheet.');
+  console.log('');
+  console.log('  2. runM3Migration()');
+  console.log('     Adds steward cols S/T/U + updates multiplier formulas.');
+  console.log('');
+  console.log('  3. runBackfill()');
+  console.log('     Fills cols Q + R with Stripe IDs for all members.\n');
 }
 
 main().catch(err => {
