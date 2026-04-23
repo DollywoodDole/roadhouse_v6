@@ -14,7 +14,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/motors/inventory" className="opacity-90 hover:opacity-100 transition-opacity">
             <Image
-              src="/rh-logo.png"
+              src="/motors/rh-logo.png"
               alt="RoadHouse Motors"
               width={120}
               height={42}
@@ -48,7 +48,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
       <footer className="border-t border-white/10 py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Image
-            src="/rh-logo.png"
+            src="/motors/rh-logo.png"
             alt="RoadHouse Motors"
             width={80}
             height={28}

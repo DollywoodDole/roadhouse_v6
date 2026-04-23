@@ -58,7 +58,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           {/* Hero image */}
           <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-[#1A1A1A]">
             <Image
-              src={vehicle.images[0] ?? '/Hero-backround.jpg'}
+              src={vehicle.images[0] ?? '/motors/Hero-backround.jpg'}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               fill
               className="object-cover"
@@ -68,7 +68,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             {/* RoadHouse watermark */}
             <div className="absolute bottom-4 left-4 opacity-25">
-              <Image src="/rh-logo.png" alt="RoadHouse" width={96} height={33} className="object-contain" unoptimized />
+              <Image src="/motors/rh-logo.png" alt="RoadHouse" width={96} height={33} className="object-contain" unoptimized />
             </div>
             <span
               className={clsx(
