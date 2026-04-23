@@ -58,14 +58,18 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           {/* Hero image */}
           <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-[#1A1A1A]">
             <Image
-              src={vehicle.images[0] ?? '/motors/placeholder.jpg'}
+              src={vehicle.images[0] ?? '/Hero-backround.jpg'}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               fill
               className="object-cover"
               priority
               sizes="(max-width: 1024px) 100vw, 60vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            {/* RoadHouse watermark */}
+            <div className="absolute bottom-4 left-4 opacity-25">
+              <Image src="/rh-logo.png" alt="RoadHouse" width={96} height={33} className="object-contain" />
+            </div>
             <span
               className={clsx(
                 'absolute top-4 right-4 text-[10px] font-semibold tracking-widest uppercase px-3 py-1.5 rounded-full backdrop-blur-sm',

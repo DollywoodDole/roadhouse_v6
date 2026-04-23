@@ -47,13 +47,24 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
       {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-[#1A1A1A]">
         <Image
-          src={vehicle.images[0] ?? '/motors/placeholder.jpg'}
+          src={vehicle.images[0] ?? '/Hero-backround.jpg'}
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+        {/* RoadHouse watermark */}
+        <div className="absolute bottom-3 left-3 opacity-30 group-hover:opacity-50 transition-opacity">
+          <Image
+            src="/rh-logo.png"
+            alt="RoadHouse"
+            width={80}
+            height={28}
+            className="object-contain"
+          />
+        </div>
 
         {/* Status badge */}
         <span
