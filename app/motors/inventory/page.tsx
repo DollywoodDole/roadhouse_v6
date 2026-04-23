@@ -50,7 +50,7 @@ export default async function InventoryPage({ searchParams }: PageProps) {
       {/* Banner */}
       <div className="border border-white/10 rounded-xl bg-[#111111] px-6 py-5">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-white/30 mb-1">
-          Serving Saskatchewan Since 1987
+          RoadHouse Motors · Saskatchewan
         </p>
         <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-tight">
           Saskatchewan&apos;s Trusted Auto Group
