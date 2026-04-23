@@ -68,7 +68,10 @@ export async function proxy(req: NextRequest) {
   const host = req.headers.get('host') ?? '';
 
   // motors.roadhouse.capital/* → /motors/*
+  // If pathname already starts with /motors (e.g. browser following a redirect),
+  // pass through directly — prevents /motors/motors/... double-prefix.
   if (host.startsWith('motors.')) {
+    if (pathname.startsWith('/motors')) return NextResponse.next();
     const rewritePath = pathname === '/' ? '/motors' : `/motors${pathname}`;
     const url = req.nextUrl.clone();
     url.pathname = rewritePath;
