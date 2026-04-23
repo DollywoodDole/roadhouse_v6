@@ -71,7 +71,12 @@ export async function proxy(req: NextRequest) {
   // If pathname already starts with /motors (e.g. browser following a redirect),
   // pass through directly — prevents /motors/motors/... double-prefix.
   if (host.startsWith('motors.')) {
-    if (pathname.startsWith('/motors') || pathname.startsWith('/_next') || pathname.startsWith('/api')) {
+    if (
+      pathname.startsWith('/motors') ||
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      /\.(png|jpg|jpeg|gif|svg|ico|webp|css|js|woff2?)$/.test(pathname)
+    ) {
       return NextResponse.next();
     }
     const rewritePath = pathname === '/' ? '/motors' : `/motors${pathname}`;
