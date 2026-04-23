@@ -63,6 +63,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
             width={80}
             height={28}
             className="object-contain"
+            unoptimized
           />
         </div>
 

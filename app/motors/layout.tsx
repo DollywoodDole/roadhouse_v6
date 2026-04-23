@@ -20,6 +20,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
               height={42}
               className="object-contain"
               priority
+              unoptimized
             />
           </Link>
 
@@ -52,6 +53,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
             width={80}
             height={28}
             className="object-contain opacity-20"
+            unoptimized
           />
           <p className="text-white/20 text-xs">
             &copy; {new Date().getFullYear()} RoadHouse Motors. All rights reserved.
