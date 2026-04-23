@@ -58,7 +58,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           {/* Hero image */}
           <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-[#1A1A1A]">
             <Image
-              src={vehicle.images[0] ?? '/motors/Hero-backround.jpg'}
+              src={vehicle.images[0] ?? '/motors/rh-coming-soon.svg'}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               fill
               className="object-cover"

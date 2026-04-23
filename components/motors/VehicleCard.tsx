@@ -47,7 +47,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
       {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-[#1A1A1A]">
         <Image
-          src={vehicle.images[0] ?? '/motors/Hero-backround.jpg'}
+          src={vehicle.images[0] ?? '/motors/rh-coming-soon.svg'}
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
