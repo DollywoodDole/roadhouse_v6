@@ -447,6 +447,14 @@ Infra confirmed: domain live · all env vars set · Stripe webhook e2e · Discor
 
 Ops layer bootstrapped: `roadhouse-ops/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
 
+## MOTORS — 2026-04-23
+
+RoadHouse Motors scaffolded and audited. Subdomain `motors.roadhouse.capital` routes to `/app/motors/*` via `proxy.ts` host rewrite. 6 seed vehicles for O'Brian's Automotive Group live in Upstash Redis. Build clean, all routes 200, KV confirmed at `count: 6`, auth guard on seed POST verified, 404 on unknown VIN confirmed. Zero Web3/Solana/RH Capital terms in rendered motors HTML. `.env.local` pulled from Vercel production via `vercel env pull`.
+
+**Known pre-existing repo issues (not motors):**
+- No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
+- `bigint: Failed to load bindings` — Solana `bigint-buffer` native addon warning at build time. Pure JS fallback runs fine. Fix: `npm rebuild` or pin `bigint-buffer` to a version with prebuilt binaries for this Node version.
+
 ---
 
 ## M3 TODO — June 2026 (priority order)
