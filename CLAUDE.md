@@ -13,6 +13,7 @@
 2. Web3 architecture — design only, no mainnet until legal locked ✅ M2 complete
 3. Adventure NFTs + DAO — on-chain credentials, guilds, steward verification 🟢 M3 active
 4. Claude agent team — orchestrator + specialists, human-gated outputs
+5. RoadHouse Motors — dealer inventory platform (motors.roadhouse.capital) 🟢 active
 
 ---
 
@@ -20,7 +21,7 @@
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 16 App Router — `next dev --webpack` locally |
+| Framework | Next.js 16 App Router — `next dev --webpack` locally · **proxy.ts** (not middleware.ts) |
 | Language | TypeScript strict |
 | Styling | Tailwind (app pages) · CSS vars + inline styles (dashboard only — see BRAND) |
 | Payments | Stripe — subscriptions, one-time, webhooks |
@@ -125,6 +126,47 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 
 **Nav rule:** No Nav.tsx / Header.tsx. Navigation = Sidebar.tsx only.
 `/compound` and `/partners` in sidebar. `/partners` is sidebar-only (gated content).
+
+### Motors subdomain (`motors.roadhouse.capital`)
+
+```
+/app/motors/
+  layout.tsx              ← isolated layout — no Solana/wallet/RH Capital branding
+  page.tsx                ← redirect → /motors/inventory
+  /inventory/page.tsx     ← server component; auto-seeds KV on first load; filter via search params
+  /vehicle/[vin]/page.tsx ← detail page; spec table, feature badges, Request Info CTA shell
+
+/components/motors/
+  VehicleCard.tsx         ← framer-motion entrance; Hero-backround.jpg bg; rh-logo watermark; status badge; CAD price
+  InventoryGrid.tsx       ← 1/2/3 responsive grid; empty state
+  FilterBar.tsx           ← client component; make/year/price/status filters → URL search params
+
+/lib/motors/
+  seed.ts                 ← 6 mock vehicles for O'Brian's Automotive Group (dealer_id: obrians)
+  storage.ts              ← Upstash Redis CRUD: seedInventory, getInventory, getVehicleByVin, getInventoryCount
+
+/types/inventory.ts       ← Vehicle interface + InventoryFilters interface
+
+/app/api/motors/seed/
+  route.ts                ← POST (Bearer CRON_SECRET) seed 6 vehicles; GET returns count
+```
+
+**Motors KV key pattern:**
+```
+motors:inventory:obrians:{vin}   → Vehicle JSON
+motors:index:obrians             → Redis SET of VINs (index for efficient bulk reads)
+```
+
+**Motors constraints (permanent):**
+- Zero $ROAD, Web3, Solana, or RoadHouse Capital branding on any motors page
+- Dealer-facing only — O'Brian's Automotive Group identity
+- subdomain isolated — no nav links from main roadhouse.capital site
+- `proxy.ts` handles `motors.*` host rewrite → `/motors/*` before any auth logic
+- All motors routes are FULLY_PUBLIC in proxy.ts
+
+**Assets used:**
+- Card/hero background: `/public/Hero-backround.jpg` (1200×1200 JPEG)
+- Watermark: `/public/rh-logo.png` (852×295 RGBA PNG) — 30% opacity on cards, 25% on detail hero
 
 ---
 

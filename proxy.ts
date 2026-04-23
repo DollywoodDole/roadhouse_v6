@@ -43,6 +43,9 @@ const FULLY_PUBLIC = [
   // API — contributions + bounties (validated internally by wallet/customerId)
   '/api/contributions',
   '/api/bounties',
+  // Motors — public dealer subdomain, no auth
+  '/motors',
+  '/api/motors',
   // Static
   '/_next',
   '/favicon.ico',
@@ -61,7 +64,17 @@ const SESSION_OPTIONAL = [
 ];
 
 export async function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, search } = req.nextUrl;
+  const host = req.headers.get('host') ?? '';
+
+  // motors.roadhouse.capital/* → /motors/*
+  if (host.startsWith('motors.')) {
+    const rewritePath = pathname === '/' ? '/motors' : `/motors${pathname}`;
+    const url = req.nextUrl.clone();
+    url.pathname = rewritePath;
+    url.search = search;
+    return NextResponse.rewrite(url);
+  }
 
   // Static files — fast path before anything else
   if (pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|woff2?)$/)) {
