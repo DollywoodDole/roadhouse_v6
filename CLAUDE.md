@@ -131,24 +131,29 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 
 ```
 /app/motors/
-  layout.tsx              ← isolated layout — no Solana/wallet/RH Capital branding
+  layout.tsx              ← isolated layout; OG/Twitter metadata (rh-motors-header.jpg); phone (306) 381-8222; footer DL331386
   page.tsx                ← redirect → /motors/inventory
   /inventory/page.tsx     ← server component; auto-seeds KV on first load; filter via search params
   /vehicle/[vin]/page.tsx ← detail page; spec table, feature badges, Request Info CTA shell
 
 /components/motors/
-  VehicleCard.tsx         ← framer-motion entrance; Hero-backround.jpg bg; rh-logo watermark; status badge; CAD price
+  VehicleCard.tsx         ← framer-motion entrance; rh-logo watermark; status badge; CAD price; images[0] as card photo
   InventoryGrid.tsx       ← 1/2/3 responsive grid; empty state
   FilterBar.tsx           ← client component; make/year/price/status filters → URL search params
 
 /lib/motors/
-  seed.ts                 ← 6 mock vehicles for O'Brian's Automotive Group (dealer_id: obrians)
-  storage.ts              ← Upstash Redis CRUD: seedInventory, getInventory, getVehicleByVin, getInventoryCount
+  seed.ts                 ← 12 manually curated O'Brian's vehicles with local photos (fallback only; KV is source of truth)
+  storage.ts              ← Upstash Redis CRUD: seedInventory, getInventory, getVehicleByVin, getInventoryCount,
+                             getIndexedVins, removeVehicle
+  scraper.ts              ← Scrapes obrians.ca Webflow CMS; fetchInventorySlugs(), parseListing(), scrapeObriansInventory()
 
 /types/inventory.ts       ← Vehicle interface + InventoryFilters interface
 
 /app/api/motors/seed/
-  route.ts                ← POST (Bearer CRON_SECRET) seed 6 vehicles; GET returns count
+  route.ts                ← POST (Bearer CRON_SECRET) seed from seed.ts; GET returns count
+/app/api/motors/sync/
+  route.ts                ← POST (Bearer CRON_SECRET) full O'Brian's scrape+sync; GET returns count
+                             maxDuration=300; runs via Vercel cron daily at 9am CST
 ```
 
 **Motors KV key pattern:**
@@ -157,16 +162,31 @@ motors:inventory:obrians:{vin}   → Vehicle JSON
 motors:index:obrians             → Redis SET of VINs (index for efficient bulk reads)
 ```
 
+**Motors sync — how it works:**
+- Vercel cron: `0 15 * * *` (9am CST / 3pm UTC) → `POST /api/motors/sync`
+- Scrapes obrians.ca Webflow inventory page for all JetBoost slugs (each slug ends with the 17-char VIN)
+- Fetches each listing page; parses `#listing-info` div attributes for price/mileage/specs, `featureString` JS var for features, Webflow CDN images (skip first 2: branded overlay + feature icon collage)
+- Skips `formPrice=1000` (O'Brian's sentinel for "contact for price")
+- Upserts valid vehicles; removes VINs from KV that are sold OR became unparseable since last run
+- Current inventory: ~131 priced vehicles, $5,900–$96,900, no manual work required
+- To trigger manually: `POST /api/motors/sync` with `Authorization: Bearer {CRON_SECRET}`
+
+**CRON_SECRET note:** Vercel validates this at build time when crons are in vercel.json — it must have NO trailing whitespace. Fixed via `~/.local/bin/vercel env rm/add`. If re-setting, use `printf` not `echo` to avoid adding a newline.
+
 **Motors constraints (permanent):**
 - Zero $ROAD, Web3, Solana, or RoadHouse Capital branding on any motors page
-- Dealer-facing only — O'Brian's Automotive Group identity
+- No O'Brian's phone numbers, logos, or dealer name in any scraped content displayed to users
 - subdomain isolated — no nav links from main roadhouse.capital site
 - `proxy.ts` handles `motors.*` host rewrite → `/motors/*` before any auth logic
 - All motors routes are FULLY_PUBLIC in proxy.ts
+- Webflow CDN (`cdn.prod.website-files.com`) added to next/image remotePatterns for scraped vehicle photos
 
 **Assets used:**
-- Card/hero background: `/public/Hero-backround.jpg` (1200×1200 JPEG)
-- Watermark: `/public/rh-logo.png` (852×295 RGBA PNG) — 30% opacity on cards, 25% on detail hero
+- Inventory banner: `/public/motors/rh-motors-header.svg` (Canva AI, displayed cropped 16/7.2 aspect ratio)
+- OG/Twitter image: `/public/motors/rh-motors-header.jpg` (2560×1440 JPEG rendered from SVG)
+- Watermark: `/public/motors/rh-logo.png` — 30% opacity on cards
+- Placeholder: `/public/motors/rh-coming-soon.svg`
+- Local vehicle photos: `/public/motors/*.jpeg` (12 manually sourced from O'Brian's CDN, 4th/clean listing photo)
 
 ---
 
@@ -447,9 +467,20 @@ Infra confirmed: domain live · all env vars set · Stripe webhook e2e · Discor
 
 Ops layer bootstrapped: `roadhouse-ops/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
 
-## MOTORS — 2026-04-23
+## MOTORS — 2026-04-24
 
-RoadHouse Motors scaffolded and audited. Subdomain `motors.roadhouse.capital` routes to `/app/motors/*` via `proxy.ts` host rewrite. 6 seed vehicles for O'Brian's Automotive Group live in Upstash Redis. Build clean, all routes 200, KV confirmed at `count: 6`, auth guard on seed POST verified, 404 on unknown VIN confirmed. Zero Web3/Solana/RH Capital terms in rendered motors HTML. `.env.local` pulled from Vercel production via `vercel env pull`.
+RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live with 131 real O'Brian's vehicles synced from obrians.ca. Daily automated sync at 9am CST via Vercel cron — no CSV, no manual updates.
+
+**Completed this session:**
+- Inventory banner replaced with Canva AI SVG header (cropped 16/7.2 aspect ratio, 10% top+bottom)
+- OG/Twitter card image: JPEG rendered at 2560×1440 from SVG (SVG not supported by Twitter/X)
+- Phone number (306) 381-8222, dealer licence DL331386 in footer
+- 12 manually curated O'Brian's listings with real photos (local JPEG assets)
+- `lib/motors/scraper.ts` — scrapes Webflow CMS JetBoost data + individual listing pages (8 concurrent)
+- `app/api/motors/sync/route.ts` — CRON_SECRET-authenticated sync endpoint (maxDuration=300)
+- Vercel cron `0 15 * * *` wired; CRON_SECRET cleaned in Vercel (trailing `\n` removed via `~/.local/bin/vercel env rm/add`)
+- Sentinel price filter: `formPrice=1000` = "contact for price" → excluded
+- Stale KV cleanup: vehicles that become unparseable between runs are removed
 
 **Known pre-existing repo issues (not motors):**
 - No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
