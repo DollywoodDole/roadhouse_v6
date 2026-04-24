@@ -48,22 +48,8 @@ export default async function InventoryPage({ searchParams }: PageProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Banner */}
-      <div
-        className="relative border border-white/10 rounded-xl overflow-hidden px-6 py-12 sm:py-16"
-        style={{ backgroundImage: 'url(/motors/rh-motors-header.svg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className="absolute inset-0 bg-black/55 rounded-xl" />
-        <div className="relative z-10">
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-white/60 mb-1">
-            RoadHouse Motors · Saskatchewan
-          </p>
-          <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-tight">
-            RoadHouse Motors
-          </h1>
-          <p className="text-white/60 text-sm mt-1">
-            {vehicles.length} vehicle{vehicles.length !== 1 ? 's' : ''} in inventory
-          </p>
-        </div>
+      <div className="border border-white/10 rounded-xl overflow-hidden">
+        <img src="/motors/rh-motors-header.svg" alt="RoadHouse Motors" className="w-full block" />
       </div>
 
       {/* Filters */}
