@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'RoadHouse Motors',
-  description: "Saskatchewan's Trusted Auto Group. Browse our certified pre-owned and new vehicle inventory.",
+  description: "RoadHouse Motors. Browse our certified pre-owned and new vehicle inventory.",
 }
 
 export default function MotorsLayout({ children }: { children: React.ReactNode }) {
