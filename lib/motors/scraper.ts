@@ -116,8 +116,8 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     ? featMatch[1].split('|').map(f => f.trim()).filter(Boolean)
     : []
 
-  // Vehicle CDN images — deduplicate and skip index 0 (branded overlay with
-  // O'Brian's phone number) and index 1 (feature-icon collage image)
+  // Vehicle CDN images — deduplicate, skip index 0 (branded overlay) and
+  // index 1 (feature-icon collage), and strip O'Brian's own coming-soon placeholder
   const allImgs = [
     ...new Set(
       [...html.matchAll(
@@ -125,8 +125,8 @@ export function parseListing(html: string, slug: string): Vehicle | null {
       )].map(m => m[0])
     ),
   ]
-  // Images at index >=2 are clean exterior/interior shots
-  const images = allImgs.length >= 3 ? allImgs.slice(2) : allImgs.slice(1)
+  const cleanImgs = allImgs.filter(u => !u.toLowerCase().includes('comingsoon'))
+  const images = cleanImgs.length >= 3 ? cleanImgs.slice(2) : cleanImgs.slice(1)
 
   const body_style = bodyRaw || specs['Body'] || 'Vehicle'
   const engine     = specs['Engine'] || ''
