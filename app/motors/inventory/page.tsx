@@ -48,7 +48,7 @@ export default async function InventoryPage({ searchParams }: PageProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Banner */}
-      <div className="border border-white/10 rounded-xl overflow-hidden" style={{ aspectRatio: '16 / 7.83' }}>
+      <div className="border border-white/10 rounded-xl overflow-hidden" style={{ aspectRatio: '16 / 7.2' }}>
         <img src="/motors/rh-motors-header.svg" alt="RoadHouse Motors" className="w-full h-full object-cover block" />
       </div>
 
