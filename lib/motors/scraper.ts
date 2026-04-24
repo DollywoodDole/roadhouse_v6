@@ -99,7 +99,8 @@ export function parseListing(html: string, slug: string): Vehicle | null {
   const transmission = htmlAttr(tag, 'formTransmission') || 'Automatic'
   const bodyRaw      = htmlAttr(tag, 'formBody')
 
-  if (!vin || !year || !price || !mileage || !make || !model) return null
+  // 1000 is O'Brian's sentinel for "contact for price" — skip unpublished pricing
+  if (!vin || !year || !price || price === 1000 || !mileage || !make || !model) return null
 
   // Spec pairs: text-block-8 (label) → text-block-9 (value)
   const specs: Record<string, string> = {}
