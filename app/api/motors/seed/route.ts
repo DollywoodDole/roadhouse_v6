@@ -4,7 +4,7 @@ import { SEED_VEHICLES, SEED_DEALER_ID } from '@/lib/motors/seed'
 
 export async function POST(req: Request) {
   const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET?.trim()}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
