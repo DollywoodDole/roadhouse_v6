@@ -93,10 +93,5 @@
       ]
     }
   ],
-  "crons": [
-    {
-      "path": "/api/motors/sync",
-      "schedule": "0 15 * * *"
-    }
-  ]
+  "crons": []
 }
