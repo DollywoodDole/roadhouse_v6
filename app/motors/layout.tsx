@@ -56,7 +56,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
             unoptimized
           />
           <p className="text-white/20 text-xs">
-            &copy; {new Date().getFullYear()} RoadHouse Motors. All rights reserved.
+            &copy; {new Date().getFullYear()} RoadHouse Motors. All rights reserved. &nbsp;·&nbsp; Dealer Licence DL331386
           </p>
         </div>
       </footer>
