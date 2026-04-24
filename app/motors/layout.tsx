@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://motors.roadhouse.capital/motors/rh-motors-header.svg',
-        width: 1920,
-        height: 1080,
+        url: 'https://motors.roadhouse.capital/motors/rh-motors-header.jpg',
+        width: 2560,
+        height: 1440,
         alt: 'RoadHouse Motors',
       },
     ],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'RoadHouse Motors',
     description: 'Browse our certified pre-owned and new vehicle inventory.',
-    images: ['https://motors.roadhouse.capital/motors/rh-motors-header.svg'],
+    images: ['https://motors.roadhouse.capital/motors/rh-motors-header.jpg'],
   },
 }
 
