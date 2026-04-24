@@ -52,7 +52,7 @@ export const SEED_VEHICLES: Vehicle[] = [
     price: 51200,
     msrp: 56500,
     status: 'available',
-    images: ['/motors/rh-coming-soon.svg'],
+    images: ['/motors/f150-xlt-2022.jpeg'],
     fuel_type: 'Gasoline',
     transmission: 'Automatic',
     exterior_color: 'Iconic Silver',
