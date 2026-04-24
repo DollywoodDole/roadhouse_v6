@@ -26,10 +26,10 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
 
           <div className="flex items-center gap-4">
             <a
-              href="tel:+13065550100"
+              href="tel:+13063818222"
               className="hidden sm:block text-white/60 text-sm hover:text-white transition-colors"
             >
-              (306) 555-0100
+              (306) 381-8222
             </a>
             <Link
               href="/motors/inventory"
