@@ -3,8 +3,30 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://motors.roadhouse.capital'),
   title: 'RoadHouse Motors',
   description: "RoadHouse Motors. Browse our certified pre-owned and new vehicle inventory.",
+  openGraph: {
+    title: 'RoadHouse Motors',
+    description: 'Browse our certified pre-owned and new vehicle inventory. Saskatchewan delivery available.',
+    url: 'https://motors.roadhouse.capital',
+    siteName: 'RoadHouse Motors',
+    type: 'website',
+    images: [
+      {
+        url: 'https://motors.roadhouse.capital/motors/rh-motors-header.svg',
+        width: 1920,
+        height: 1080,
+        alt: 'RoadHouse Motors',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RoadHouse Motors',
+    description: 'Browse our certified pre-owned and new vehicle inventory.',
+    images: ['https://motors.roadhouse.capital/motors/rh-motors-header.svg'],
+  },
 }
 
 export default function MotorsLayout({ children }: { children: React.ReactNode }) {
