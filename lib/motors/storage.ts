@@ -78,3 +78,17 @@ export async function getInventoryCount(dealer_id: string): Promise<number> {
   const redis = getRedis()
   return redis.scard(dealerIndexKey(dealer_id))
 }
+
+export async function getIndexedVins(dealer_id: string): Promise<Set<string>> {
+  const redis = getRedis()
+  const vins = await redis.smembers<string[]>(dealerIndexKey(dealer_id))
+  return new Set(vins ?? [])
+}
+
+export async function removeVehicle(dealer_id: string, vin: string): Promise<void> {
+  const redis = getRedis()
+  await Promise.all([
+    redis.del(vehicleKey(dealer_id, vin)),
+    redis.srem(dealerIndexKey(dealer_id), vin),
+  ])
+}

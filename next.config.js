@@ -70,6 +70,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'arweave.net' },
       { protocol: 'https', hostname: '*.ipfs.nftstorage.link' },
       { protocol: 'https', hostname: 'roadhouse.capital' },
+      // O'Brian's vehicle photos served from Webflow's CDN
+      { protocol: 'https', hostname: 'cdn.prod.website-files.com' },
     ],
   },
 
