@@ -18,13 +18,20 @@ export async function POST(req: Request) {
 
   const { vehicles, removed, errors } = await scrapeObriansInventory(existingVins)
 
-  // Upsert all scraped vehicles into KV
+  // Upsert all successfully scraped vehicles
   if (vehicles.length > 0) {
     await seedInventory(vehicles)
   }
 
-  // Remove vehicles no longer on O'Brian's site
-  await Promise.all(removed.map(vin => removeVehicle(DEALER_ID, vin)))
+  // Remove vehicles that are either:
+  // a) no longer on O'Brian's site (sold), or
+  // b) still listed but failed to parse (became contact-for-price, etc.)
+  const parsedVins = new Set(vehicles.map(v => v.vin))
+  const staleVins  = [...existingVins].filter(v => !parsedVins.has(v))
+  await Promise.all([
+    ...removed.map(vin => removeVehicle(DEALER_ID, vin)),
+    ...staleVins.filter(v => !removed.includes(v)).map(vin => removeVehicle(DEALER_ID, vin)),
+  ])
 
   const added   = vehicles.filter(v => !existingVins.has(v.vin)).length
   const updated = vehicles.filter(v =>  existingVins.has(v.vin)).length
