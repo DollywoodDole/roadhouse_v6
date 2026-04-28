@@ -4,7 +4,6 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://motors.roadhouse.capital'),
-  verification: { google: 'sWfAY2bmfrYqN9ghLpEYtWAJsMpnVMn6-My3LCeBMfc' },
   title: 'RoadHouse Motors',
   description: "RoadHouse Motors. Browse our certified pre-owned and new vehicle inventory. Saskatchewan delivery available.",
   openGraph: {
