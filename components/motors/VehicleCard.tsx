@@ -51,17 +51,17 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        {/* RoadHouse watermark */}
-        <div className="absolute bottom-3 left-3 opacity-30 group-hover:opacity-50 transition-opacity">
+        {/* RoadHouse watermark — hidden on mobile to save space */}
+        <div className="absolute bottom-2 left-2 opacity-25 group-hover:opacity-45 transition-opacity hidden sm:block">
           <Image
             src="/motors/rh-logo.png"
             alt="RoadHouse"
-            width={80}
-            height={28}
+            width={72}
+            height={25}
             className="object-contain"
             unoptimized
           />
@@ -70,7 +70,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
         {/* Status badge */}
         <span
           className={clsx(
-            'absolute top-3 right-3 text-[10px] font-semibold tracking-widest uppercase px-2.5 py-1 rounded-full backdrop-blur-sm',
+            'absolute top-2 right-2 text-[9px] md:text-xs font-semibold tracking-widest uppercase px-2 py-0.5 md:px-3 md:py-1 rounded-full backdrop-blur-sm',
             badge.className
           )}
         >
@@ -79,48 +79,52 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-3 md:p-5 space-y-2 md:space-y-3">
         {/* Year · Stock */}
-        <p className="text-[10px] font-medium tracking-widest uppercase text-white/40">
+        <p className="text-[9px] md:text-xs font-medium tracking-widest uppercase text-white/60">
           {vehicle.year} &middot; {vehicle.stock_number}
         </p>
 
-        {/* Make Model / Trim */}
+        {/* Make / Model + Trim */}
         <div>
-          <h3 className="text-white font-semibold text-base leading-tight">
+          <h3 className="text-white font-semibold text-sm md:text-lg leading-tight">
             {vehicle.make} {vehicle.model}
           </h3>
-          <p className="text-white/50 text-sm">{vehicle.trim}</p>
+          <p className="text-white/70 text-xs md:text-base">{vehicle.trim}</p>
         </div>
 
-        {/* Specs row */}
-        <p className="text-[11px] text-white/40 flex flex-wrap gap-x-3 gap-y-1">
+        {/* Specs — hidden on mobile to keep cards compact */}
+        <p className="hidden sm:flex text-xs text-white/60 flex-wrap gap-x-3 gap-y-1">
           <span>{formattedMileage} km</span>
-          <span className="text-white/20">&middot;</span>
+          <span className="text-white/40">&middot;</span>
           <span>{vehicle.transmission}</span>
-          <span className="text-white/20">&middot;</span>
+          <span className="text-white/40">&middot;</span>
           <span>{vehicle.fuel_type}</span>
+        </p>
+        {/* Condensed specs for mobile */}
+        <p className="sm:hidden text-[10px] text-white/55 truncate">
+          {formattedMileage} km &middot; {vehicle.fuel_type}
         </p>
 
         {/* Divider */}
         <div className="border-t border-white/10" />
 
-        {/* Price */}
-        <div className="flex items-end justify-between">
+        {/* Price + CTA — stacked on mobile, inline on desktop */}
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
           <div>
             {formattedMsrp && (
-              <p className="text-white/30 text-xs line-through">{formattedMsrp}</p>
+              <p className="text-white/50 text-xs md:text-sm line-through">{formattedMsrp}</p>
             )}
-            <p className="text-white font-bold text-xl">{formattedPrice}</p>
-            <p className="text-white/30 text-[10px]">CAD + taxes</p>
+            <p className="text-white font-bold text-lg md:text-2xl">{formattedPrice}</p>
+            <p className="text-white/50 text-[10px] md:text-xs">CAD + taxes</p>
           </div>
 
           <Link
             href={`/motors/vehicle/${vehicle.vin}`}
             className={clsx(
-              'text-sm font-semibold px-4 py-2 rounded-lg transition-colors',
+              'text-xs md:text-base font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors text-center',
               vehicle.status === 'sold'
-                ? 'bg-white/5 text-white/30 cursor-not-allowed pointer-events-none'
+                ? 'bg-white/5 text-white/50 cursor-not-allowed pointer-events-none'
                 : 'bg-white text-black hover:bg-white/90'
             )}
           >

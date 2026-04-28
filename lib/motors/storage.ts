@@ -63,6 +63,16 @@ export async function getInventory(
   if (filters.status) {
     vehicles = vehicles.filter((v) => v.status === filters.status)
   }
+  if (filters.search) {
+    const q = filters.search.toLowerCase()
+    vehicles = vehicles.filter((v) =>
+      v.make.toLowerCase().includes(q) ||
+      v.model.toLowerCase().includes(q) ||
+      v.trim.toLowerCase().includes(q) ||
+      v.year.toString().includes(q) ||
+      v.exterior_color.toLowerCase().includes(q)
+    )
+  }
 
   return vehicles.sort((a, b) => a.price - b.price)
 }

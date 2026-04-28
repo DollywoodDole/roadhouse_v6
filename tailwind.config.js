@@ -10,6 +10,7 @@ module.exports = {
       fontFamily: {
         cormorant: ['var(--font-cormorant)', 'Georgia', 'serif'],
         mono: ['var(--font-dm-mono)', 'Courier New', 'monospace'],
+        roboto: ['Roboto', 'system-ui', 'sans-serif'],
       },
       colors: {
         gold: {

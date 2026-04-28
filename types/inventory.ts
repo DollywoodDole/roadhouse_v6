@@ -32,4 +32,5 @@ export interface InventoryFilters {
   price_min?: number
   price_max?: number
   status?: VehicleStatus
+  search?: string
 }

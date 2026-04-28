@@ -116,8 +116,12 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     ? featMatch[1].split('|').map(f => f.trim()).filter(Boolean)
     : []
 
-  // Vehicle CDN images — deduplicate, skip index 0 (branded overlay) and
-  // index 1 (feature-icon collage), and strip O'Brian's own coming-soon placeholder
+  // Vehicle CDN images — Webflow loads the gallery via JS so the static HTML only
+  // contains photos that were rendered server-side (varies per listing). Related-vehicle
+  // thumbnails from the "similar vehicles" section also bleed in. We group by the first
+  // 18 hex chars of each filename (the Webflow upload-batch ID) and take the largest
+  // group with ≥ 5 images — a vehicle's own gallery always wins over singletons and
+  // small clusters of site-asset variants or related-vehicle thumbnails.
   const allImgs = [
     ...new Set(
       [...html.matchAll(
@@ -126,7 +130,18 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     ),
   ]
   const cleanImgs = allImgs.filter(u => !u.toLowerCase().includes('comingsoon'))
-  const images = cleanImgs.length >= 3 ? cleanImgs.slice(2) : cleanImgs.slice(1)
+  const batchGroups = new Map<string, string[]>()
+  for (const url of cleanImgs) {
+    const key = (url.split('/').pop() ?? '').split('_')[0].slice(0, 18)
+    const group = batchGroups.get(key) ?? []
+    group.push(url)
+    batchGroups.set(key, group)
+  }
+  let bestGroup: string[] = []
+  for (const group of batchGroups.values()) {
+    if (group.length > bestGroup.length) bestGroup = group
+  }
+  const images = bestGroup.length >= 5 ? bestGroup : []
 
   const body_style = bodyRaw || specs['Body'] || 'Vehicle'
   const engine     = specs['Engine'] || ''
