@@ -59,6 +59,8 @@ function vehicleJsonLd(v: Vehicle) {
     v.status === 'pending'   ? 'https://schema.org/PreOrder' :
                                'https://schema.org/SoldOut'
 
+  const image = v.images[0]?.startsWith('http') ? v.images[0] : null
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Car',
@@ -73,6 +75,8 @@ function vehicleJsonLd(v: Vehicle) {
     fuelType: v.fuel_type,
     vehicleTransmission: v.transmission,
     vin: v.vin,
+    itemCondition: 'https://schema.org/UsedCondition',
+    ...(image ? { image } : {}),
     mileageFromOdometer: {
       '@type': 'QuantitativeValue',
       value: v.mileage,
