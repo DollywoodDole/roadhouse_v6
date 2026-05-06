@@ -64,6 +64,7 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
   const hasFilters =
     params.get('search') ||
     params.get('make') ||
+    params.get('model') ||
     params.get('price') ||
     params.get('year_min') ||
     params.get('status')
@@ -104,6 +105,18 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
             <ChevronDown />
           </div>
         </div>
+      </div>
+
+      {/* Model */}
+      <div>
+        <label className={labelClass}>Model</label>
+        <input
+          type="text"
+          placeholder="e.g. F-150, RAV4…"
+          defaultValue={params.get('model') ?? ''}
+          onChange={(e) => push('model', e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       {/* Year */}

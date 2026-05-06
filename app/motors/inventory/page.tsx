@@ -52,6 +52,9 @@ function parseFilters(sp: Record<string, string | string[] | undefined>): Invent
   const make = sp['make']
   if (typeof make === 'string' && make) filters.make = make
 
+  const model = sp['model']
+  if (typeof model === 'string' && model) filters.model = model
+
   const yearMin = sp['year_min']
   if (typeof yearMin === 'string' && yearMin) filters.year_min = parseInt(yearMin, 10)
 

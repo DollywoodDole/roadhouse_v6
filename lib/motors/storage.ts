@@ -46,7 +46,7 @@ export async function getInventory(
   }
   if (filters.model) {
     const model = filters.model.toLowerCase()
-    vehicles = vehicles.filter((v) => v.model.toLowerCase() === model)
+    vehicles = vehicles.filter((v) => v.model.toLowerCase().includes(model))
   }
   if (filters.year_min !== undefined) {
     vehicles = vehicles.filter((v) => v.year >= filters.year_min!)
