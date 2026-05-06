@@ -486,13 +486,16 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - `components/motors/VehicleImage.tsx` — client component with `onError` fallback to `rh-coming-soon.svg`; `unoptimized` auto-set for SVG srcs
 - Scraper image fix: switched from largest-batch (≥5) to first-batch (≥3) — fixes wrong vehicle photos bleeding in from "similar vehicles" section of listing pages
 - `app/motors/robots.txt/route.ts` — GET route handler returning `text/plain`; replaces broken metadata route (Next.js only supports `robots.ts` at app root, not subdirectories)
-- `app/motors/sitemap.ts` — uses `v.updated_at` for real `lastModified` timestamps instead of `new Date()`
-- `app/motors/layout.tsx` — AutoDealer JSON-LD sitewide
-- `app/motors/vehicle/[vin]/page.tsx` — Car JSON-LD: added `itemCondition: UsedCondition` + `image` field; BreadcrumbList JSON-LD (Home → Inventory → vehicle)
+- `app/motors/sitemap.ts` — real `lastModified` from `v.updated_at`; one entry per make with available inventory so Google indexes `?make=Ford` as a distinct ranking page
+- `app/motors/layout.tsx` — AutoDealer JSON-LD sitewide; `priceRange` + `image` added
+- `app/motors/vehicle/[vin]/page.tsx` — Car JSON-LD: `itemCondition`, `image`, `description`; BreadcrumbList JSON-LD; "Browse more [make] vehicles →" internal link
 - `components/motors/CreditForm.tsx` — extracted from page as client component; reads `?vehicle=` search param to pre-fill Vehicle Interest field
-- `app/motors/credit/page.tsx` — server component with metadata + Suspense wrapper around CreditForm; FAQPage JSON-LD for bad-credit financing search intent
-- `app/motors/inventory/page.tsx` — dynamic `generateMetadata`: `?make=Ford` gets its own title/description/canonical so Google indexes make-filtered pages as separate ranking pages
-- CI simplified: removed broken lint job (no ESLint config), removed redundant Vercel deploy steps
+- `app/motors/credit/page.tsx` — server component with metadata + Suspense; FAQPage JSON-LD; Twitter card + OG image added
+- `app/motors/inventory/page.tsx` — dynamic `generateMetadata` with Twitter card; H1 and ItemList JSON-LD now reflect active `?make=` filter; FilterSidebar `makes` prop derived from live KV (no sold vehicles), parallel fetched
+- `components/motors/FilterSidebar.tsx` — `makes: string[]` prop replaces hardcoded list; only shows makes actually in stock; debounced search + model filter added
+- `components/motors/HeroSection.tsx` — `make?: string` prop; H1 is now "Used [Make] Vehicles for Sale in Saskatchewan" when filtered, else "Used Vehicles for Sale in Saskatchewan"
+- `app/api/motors/feed/route.ts` — `GET /api/motors/feed?format=json|xml` — exports full KV inventory; AAMVA XML for Facebook/Kijiji/AutoTrader; Bearer CRON_SECRET auth
+- CI simplified: removed broken lint job, removed redundant Vercel deploy steps
 
 **Known pre-existing repo issues (not motors):**
 - No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
