@@ -7,20 +7,40 @@ import FilterSidebar from '@/components/motors/FilterSidebar'
 import HeroSection from '@/components/motors/HeroSection'
 import type { InventoryFilters, VehicleStatus } from '@/types/inventory'
 
-export const metadata: Metadata = {
-  title: 'Used Vehicles for Sale in Saskatchewan | RoadHouse Motors',
-  description: 'Browse certified pre-owned trucks, SUVs, and cars at RoadHouse Motors. Competitive pricing, Saskatchewan delivery available. Dealer Licence DL331386.',
-  alternates: { canonical: 'https://motors.roadhouse.capital/inventory' },
-  openGraph: {
-    title: 'Used Vehicles for Sale in Saskatchewan | RoadHouse Motors',
-    description: 'Certified pre-owned trucks, SUVs, and cars. Saskatchewan delivery available.',
-    url: 'https://motors.roadhouse.capital/inventory',
-    images: [{ url: 'https://motors.roadhouse.capital/motors/rh-motors-header.jpg', width: 2560, height: 1440 }],
-  },
-}
+const BASE = 'https://motors.roadhouse.capital'
+const OG_IMAGE = { url: `${BASE}/motors/rh-motors-header.jpg`, width: 2560, height: 1440 }
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const sp = await searchParams
+  const make = typeof sp['make'] === 'string' ? sp['make'] : null
+
+  if (make) {
+    const title = `Used ${make} Vehicles for Sale in Saskatchewan | RoadHouse Motors`
+    const description = `Browse used ${make} trucks, SUVs, and cars at RoadHouse Motors. Certified pre-owned ${make} inventory in Saskatchewan. Delivery available. Dealer Licence DL331386.`
+    const url = `${BASE}/inventory?make=${encodeURIComponent(make)}`
+    return {
+      title,
+      description,
+      alternates: { canonical: url },
+      openGraph: { title, description, url, images: [OG_IMAGE] },
+    }
+  }
+
+  return {
+    title: 'Used Vehicles for Sale in Saskatchewan | RoadHouse Motors',
+    description: 'Browse certified pre-owned trucks, SUVs, and cars at RoadHouse Motors. Competitive pricing, Saskatchewan delivery available. Dealer Licence DL331386.',
+    alternates: { canonical: `${BASE}/inventory` },
+    openGraph: {
+      title: 'Used Vehicles for Sale in Saskatchewan | RoadHouse Motors',
+      description: 'Certified pre-owned trucks, SUVs, and cars. Saskatchewan delivery available.',
+      url: `${BASE}/inventory`,
+      images: [OG_IMAGE],
+    },
+  }
 }
 
 function parseFilters(sp: Record<string, string | string[] | undefined>): InventoryFilters {

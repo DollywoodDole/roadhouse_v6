@@ -53,6 +53,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
+function breadcrumbJsonLd(v: Vehicle) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'RoadHouse Motors', item: BASE },
+      { '@type': 'ListItem', position: 2, name: 'Inventory', item: `${BASE}/inventory` },
+      { '@type': 'ListItem', position: 3, name: `${v.year} ${v.make} ${v.model} ${v.trim}`, item: `${BASE}/vehicle/${v.vin}` },
+    ],
+  }
+}
+
 function vehicleJsonLd(v: Vehicle) {
   const availability =
     v.status === 'available' ? 'https://schema.org/InStock' :
@@ -130,6 +142,10 @@ export default async function VehicleDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleJsonLd(vehicle)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(vehicle)) }}
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
