@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 const MAKES = [
   'Buick', 'Cadillac', 'Chevrolet', 'Chrysler', 'Dodge', 'Ford', 'GMC',
@@ -48,6 +48,9 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
   const pathname = usePathname()
   const params   = useSearchParams()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchVal, setSearchVal] = useState(params.get('search') ?? '')
+  const [modelVal, setModelVal]   = useState(params.get('model') ?? '')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const push = useCallback(
     (key: string, value: string) => {
@@ -59,7 +62,19 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
     [router, pathname, params]
   )
 
-  const clearAll = () => router.push(pathname)
+  const pushDebounced = useCallback(
+    (key: string, value: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(() => push(key, value), 300)
+    },
+    [push]
+  )
+
+  const clearAll = () => {
+    setSearchVal('')
+    setModelVal('')
+    router.push(pathname)
+  }
 
   const hasFilters =
     params.get('search') ||
@@ -81,8 +96,8 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
         <input
           type="search"
           placeholder="Year, make, model, colour…"
-          defaultValue={params.get('search') ?? ''}
-          onChange={(e) => push('search', e.target.value)}
+          value={searchVal}
+          onChange={(e) => { setSearchVal(e.target.value); pushDebounced('search', e.target.value) }}
           className={inputClass}
         />
       </div>
@@ -113,8 +128,8 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
         <input
           type="text"
           placeholder="e.g. F-150, RAV4…"
-          defaultValue={params.get('model') ?? ''}
-          onChange={(e) => push('model', e.target.value)}
+          value={modelVal}
+          onChange={(e) => { setModelVal(e.target.value); pushDebounced('model', e.target.value) }}
           className={inputClass}
         />
       </div>
