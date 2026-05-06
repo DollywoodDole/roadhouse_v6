@@ -29,9 +29,21 @@ export const metadata: Metadata = {
   },
 }
 
+const autoDealer = {
+  '@context': 'https://schema.org',
+  '@type': 'AutoDealer',
+  name: 'RoadHouse Motors',
+  url: 'https://motors.roadhouse.capital',
+  telephone: '+13063818222',
+  description: 'Certified pre-owned trucks, SUVs, and cars for sale in Saskatchewan. Saskatchewan delivery available.',
+  areaServed: { '@type': 'AdministrativeArea', name: 'Saskatchewan', containedInPlace: { '@type': 'Country', name: 'Canada' } },
+  address: { '@type': 'PostalAddress', addressRegion: 'SK', addressCountry: 'CA' },
+}
+
 export default function MotorsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-roboto flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(autoDealer) }} />
 
       {/* Sticky top nav */}
       <header className="sticky top-0 z-50 bg-[#0A0A0A]/95 backdrop-blur border-b border-white/[0.08]">
