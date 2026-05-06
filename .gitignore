@@ -66,3 +66,4 @@ yarn-error.log*
 
 .env*.local
 .vercel
+.gitnexus/
