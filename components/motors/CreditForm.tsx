@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 const provinces = [
@@ -53,6 +53,7 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function CreditForm() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', dob: '', maritalStatus: '',
@@ -89,34 +90,11 @@ export default function CreditForm() {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error ?? 'Submission failed')
       }
-      setStatus('success')
+      router.push('/motors/credit/thank-you')
     } catch (err) {
       setStatus('error')
       setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     }
-  }
-
-  if (status === 'success') {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 gap-5 text-center">
-        <div className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center">
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-light text-gray-900">Application Received</h1>
-        <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
-          Thanks, {form.firstName}. We&apos;ll review your application and be in touch within one business day.
-          A confirmation has been sent to {form.email}.
-        </p>
-        <Link
-          href="/motors/inventory"
-          className="mt-4 text-gray-400 hover:text-gray-600 text-sm transition-colors underline underline-offset-2"
-        >
-          Back to inventory
-        </Link>
-      </div>
-    )
   }
 
   return (
