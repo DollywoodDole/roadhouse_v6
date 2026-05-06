@@ -4,11 +4,6 @@ import Link from 'next/link'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 
-const MAKES = [
-  'Buick', 'Cadillac', 'Chevrolet', 'Chrysler', 'Dodge', 'Ford', 'GMC',
-  'Honda', 'Hyundai', 'Jeep', 'Kia', 'Lincoln', 'Mazda', 'Mitsubishi',
-  'Nissan', 'RAM', 'Subaru', 'Toyota', 'Volkswagen',
-]
 
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: 15 }, (_, i) => CURRENT_YEAR - i)
@@ -41,9 +36,10 @@ const ChevronDown = () => (
 
 interface FilterSidebarProps {
   vehicleCount: number
+  makes: string[]
 }
 
-export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
+export default function FilterSidebar({ vehicleCount, makes }: FilterSidebarProps) {
   const router   = useRouter()
   const pathname = usePathname()
   const params   = useSearchParams()
@@ -112,7 +108,7 @@ export default function FilterSidebar({ vehicleCount }: FilterSidebarProps) {
             className={selectClass}
           >
             <option value="">All Makes</option>
-            {MAKES.map((m) => (
+            {makes.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>

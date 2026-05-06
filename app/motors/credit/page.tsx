@@ -10,6 +10,13 @@ export const metadata: Metadata = {
     title: 'Apply for Financing | RoadHouse Motors SK',
     description: 'Apply for vehicle financing. We work with all credit situations. Saskatchewan delivery available.',
     url: 'https://motors.roadhouse.capital/credit',
+    images: [{ url: 'https://motors.roadhouse.capital/motors/rh-motors-header.jpg', width: 2560, height: 1440 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Apply for Financing | RoadHouse Motors SK',
+    description: 'Bad credit, no credit, bankruptcy — we work with all credit situations in Saskatchewan.',
+    images: ['https://motors.roadhouse.capital/motors/rh-motors-header.jpg'],
   },
 }
 

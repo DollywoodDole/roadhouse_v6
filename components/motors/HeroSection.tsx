@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 
-export default function HeroSection() {
+export default function HeroSection({ make }: { make?: string }) {
   const heroRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function HeroSection() {
       {/* Text */}
       <div className="absolute bottom-14 left-0 right-0 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white leading-tight">
-          Browse Inventory
+          {make ? `Used ${make} Vehicles for Sale in Saskatchewan` : 'Used Vehicles for Sale in Saskatchewan'}
         </h1>
         <p className="mt-2 text-white/55 text-base font-normal">
           Certified pre-owned · Saskatchewan delivery available

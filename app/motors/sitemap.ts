@@ -5,7 +5,7 @@ import { SEED_DEALER_ID } from '@/lib/motors/seed'
 const BASE = 'https://motors.roadhouse.capital'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let vehicles: { vin: string; updated_at: string }[] = []
+  let vehicles: { vin: string; make: string; status: string; updated_at: string }[] = []
   try {
     vehicles = await getInventory(SEED_DEALER_ID)
   } catch {
@@ -18,6 +18,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'daily',
     priority: 0.8,
   }))
+
+  // One sitemap entry per make with available inventory — unique metadata, indexable as distinct pages
+  const makeCounts = new Map<string, number>()
+  vehicles.forEach((v) => {
+    if (v.status !== 'sold') makeCounts.set(v.make, (makeCounts.get(v.make) ?? 0) + 1)
+  })
+  const makeUrls: MetadataRoute.Sitemap = Array.from(makeCounts.entries())
+    .filter(([, count]) => count > 0)
+    .map(([make]) => ({
+      url: `${BASE}/inventory?make=${encodeURIComponent(make)}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.75,
+    }))
 
   return [
     {
@@ -32,6 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    ...makeUrls,
     ...vehicleUrls,
   ]
 }

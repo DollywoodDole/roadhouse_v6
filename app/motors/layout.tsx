@@ -36,9 +36,12 @@ const autoDealer = {
   name: 'RoadHouse Motors',
   url: 'https://motors.roadhouse.capital',
   telephone: '+13063818222',
-  description: 'Certified pre-owned trucks, SUVs, and cars for sale in Saskatchewan. Saskatchewan delivery available.',
+  description: 'Certified pre-owned trucks, SUVs, and cars for sale in Saskatchewan. Bad credit, no credit, bankruptcy welcome. Saskatchewan delivery available.',
+  priceRange: '$5,900 – $96,900 CAD',
+  image: 'https://motors.roadhouse.capital/motors/rh-motors-header.jpg',
   areaServed: { '@type': 'AdministrativeArea', name: 'Saskatchewan', containedInPlace: { '@type': 'Country', name: 'Canada' } },
   address: { '@type': 'PostalAddress', addressRegion: 'SK', addressCountry: 'CA' },
+  licence: 'DL331386',
 }
 
 export default function MotorsLayout({ children }: { children: React.ReactNode }) {

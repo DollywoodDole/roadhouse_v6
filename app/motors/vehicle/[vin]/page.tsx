@@ -89,6 +89,7 @@ function vehicleJsonLd(v: Vehicle) {
     vin: v.vin,
     itemCondition: 'https://schema.org/UsedCondition',
     ...(image ? { image } : {}),
+    ...(v.description ? { description: v.description } : {}),
     mileageFromOdometer: {
       '@type': 'QuantitativeValue',
       value: v.mileage,
@@ -150,12 +151,20 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         {/* Back */}
-        <Link
-          href="/motors/inventory"
-          className="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors"
-        >
-          <span aria-hidden>←</span> Back to Inventory
-        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          <Link
+            href="/motors/inventory"
+            className="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors"
+          >
+            <span aria-hidden>←</span> Back to Inventory
+          </Link>
+          <Link
+            href={`/motors/inventory?make=${encodeURIComponent(vehicle.make)}`}
+            className="inline-flex items-center gap-1 text-white/35 hover:text-white/70 text-sm transition-colors"
+          >
+            Browse more {vehicle.make} vehicles <span aria-hidden>→</span>
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Left — images + specs */}
