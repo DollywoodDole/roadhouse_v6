@@ -53,7 +53,7 @@ export default function FilterSidebar({ vehicleCount, makes }: FilterSidebarProp
       const next = new URLSearchParams(params.toString())
       if (value) next.set(key, value)
       else next.delete(key)
-      router.push(`${pathname}?${next.toString()}`)
+      router.push(`${pathname}?${next.toString()}`, { scroll: false })
     },
     [router, pathname, params]
   )
@@ -69,7 +69,7 @@ export default function FilterSidebar({ vehicleCount, makes }: FilterSidebarProp
   const clearAll = () => {
     setSearchVal('')
     setModelVal('')
-    router.push(pathname)
+    router.push(pathname, { scroll: false })
   }
 
   const hasFilters =
