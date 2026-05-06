@@ -467,12 +467,12 @@ Infra confirmed: domain live · all env vars set · Stripe webhook e2e · Discor
 
 Ops layer bootstrapped: `roadhouse-ops/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
 
-## MOTORS — 2026-04-24
+## MOTORS — 2026-05-06
 
-RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live with 131 real O'Brian's vehicles synced from obrians.ca. Daily automated sync at 9am CST via Vercel cron — no CSV, no manual updates.
+RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live with ~131 real O'Brian's vehicles synced from obrians.ca. Daily automated sync at 9am CST via Vercel cron — no CSV, no manual updates.
 
-**Completed this session:**
-- Inventory banner replaced with Canva AI SVG header (cropped 16/7.2 aspect ratio, 10% top+bottom)
+**Infrastructure (2026-04-24):**
+- Inventory banner: Canva AI SVG header (cropped 16/7.2 aspect ratio, 10% top+bottom)
 - OG/Twitter card image: JPEG rendered at 2560×1440 from SVG (SVG not supported by Twitter/X)
 - Phone number (306) 381-8222, dealer licence DL331386 in footer
 - 12 manually curated O'Brian's listings with real photos (local JPEG assets)
@@ -481,6 +481,18 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - Vercel cron `0 15 * * *` wired; CRON_SECRET cleaned in Vercel (trailing `\n` removed via `~/.local/bin/vercel env rm/add`)
 - Sentinel price filter: `formPrice=1000` = "contact for price" → excluded
 - Stale KV cleanup: vehicles that become unparseable between runs are removed
+
+**SEO + Image fixes (2026-05-06):**
+- `components/motors/VehicleImage.tsx` — client component with `onError` fallback to `rh-coming-soon.svg`; `unoptimized` auto-set for SVG srcs
+- Scraper image fix: switched from largest-batch (≥5) to first-batch (≥3) — fixes wrong vehicle photos bleeding in from "similar vehicles" section of listing pages
+- `app/motors/robots.txt/route.ts` — GET route handler returning `text/plain`; replaces broken metadata route (Next.js only supports `robots.ts` at app root, not subdirectories)
+- `app/motors/sitemap.ts` — uses `v.updated_at` for real `lastModified` timestamps instead of `new Date()`
+- `app/motors/layout.tsx` — AutoDealer JSON-LD sitewide
+- `app/motors/vehicle/[vin]/page.tsx` — Car JSON-LD: added `itemCondition: UsedCondition` + `image` field; BreadcrumbList JSON-LD (Home → Inventory → vehicle)
+- `components/motors/CreditForm.tsx` — extracted from page as client component; reads `?vehicle=` search param to pre-fill Vehicle Interest field
+- `app/motors/credit/page.tsx` — server component with metadata + Suspense wrapper around CreditForm; FAQPage JSON-LD for bad-credit financing search intent
+- `app/motors/inventory/page.tsx` — dynamic `generateMetadata`: `?make=Ford` gets its own title/description/canonical so Google indexes make-filtered pages as separate ranking pages
+- CI simplified: removed broken lint job (no ESLint config), removed redundant Vercel deploy steps
 
 **Known pre-existing repo issues (not motors):**
 - No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
