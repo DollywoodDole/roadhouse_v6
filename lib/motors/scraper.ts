@@ -116,12 +116,12 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     ? featMatch[1].split('|').map(f => f.trim()).filter(Boolean)
     : []
 
-  // Vehicle CDN images — Webflow loads the gallery via JS so the static HTML only
-  // contains photos that were rendered server-side (varies per listing). Related-vehicle
-  // thumbnails from the "similar vehicles" section also bleed in. We group by the first
-  // 18 hex chars of each filename (the Webflow upload-batch ID) and take the largest
-  // group with ≥ 5 images — a vehicle's own gallery always wins over singletons and
-  // small clusters of site-asset variants or related-vehicle thumbnails.
+  // Vehicle CDN images — Webflow renders gallery images server-side but also includes
+  // thumbnails from a "similar vehicles" section lower on the page. We group by the
+  // first 18 hex chars of each filename (the Webflow upload-batch ID). The vehicle's
+  // own gallery always appears first in the HTML, so we take the FIRST batch with ≥ 3
+  // images rather than the largest — this prevents a popular "similar" listing (e.g. a
+  // Jeep Patriot appearing on many pages) from overriding the actual vehicle's photos.
   const allImgs = [
     ...new Set(
       [...html.matchAll(
@@ -137,11 +137,12 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     group.push(url)
     batchGroups.set(key, group)
   }
-  let bestGroup: string[] = []
-  for (const group of batchGroups.values()) {
-    if (group.length > bestGroup.length) bestGroup = group
-  }
-  const images = bestGroup.length >= 5 ? bestGroup : []
+  // First batch key encountered = vehicle's own gallery (appears before "similar" section)
+  const firstKey = cleanImgs.length > 0
+    ? (cleanImgs[0].split('/').pop() ?? '').split('_')[0].slice(0, 18)
+    : null
+  const firstGroup = firstKey ? (batchGroups.get(firstKey) ?? []) : []
+  const images = firstGroup.length >= 3 ? firstGroup : []
 
   const body_style = bodyRaw || specs['Body'] || 'Vehicle'
   const engine     = specs['Engine'] || ''

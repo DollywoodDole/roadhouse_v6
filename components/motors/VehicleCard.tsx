@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { clsx } from 'clsx'
 import type { Vehicle } from '@/types/inventory'
+import VehicleImage from './VehicleImage'
 
 const STATUS_BADGE: Record<Vehicle['status'], { label: string; className: string }> = {
   available: { label: 'Available',  className: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' },
@@ -46,7 +47,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
     >
       {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-[#1A1A1A]">
-        <Image
+        <VehicleImage
           src={vehicle.images[0] ?? '/motors/rh-coming-soon.svg'}
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           fill

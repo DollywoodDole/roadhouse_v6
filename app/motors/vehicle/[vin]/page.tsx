@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import VehicleImage from '@/components/motors/VehicleImage'
 import { getVehicleByVin } from '@/lib/motors/storage'
 import { SEED_DEALER_ID } from '@/lib/motors/seed'
 import { clsx } from 'clsx'
@@ -141,7 +142,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           <div className="lg:col-span-3 space-y-6">
             {/* Primary image */}
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-[#1A1A1A]">
-              <Image
+              <VehicleImage
                 src={vehicle.images[0] ?? '/motors/rh-coming-soon.svg'}
                 alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                 fill
@@ -166,7 +167,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {vehicle.images.slice(1, 8).map((src, i) => (
                   <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#1A1A1A]">
-                    <Image
+                    <VehicleImage
                       src={src}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — photo ${i + 2}`}
                       fill
