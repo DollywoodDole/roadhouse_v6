@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { href: '#token',        icon: '$',  label: '$ROAD Token' },
   { href: '#mint',         icon: '⬡',  label: 'Founding Mint' },
   { href: '#roadmap',      icon: '→',  label: 'Roadmap' },
+  { href: '#branches',     icon: '◈',  label: 'Branches' },
   { href: '#contact',      icon: '✉',  label: 'Contact' },
   { href: '/partners',    icon: '★',  label: 'Partners' },
 ]

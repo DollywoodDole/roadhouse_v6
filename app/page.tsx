@@ -12,6 +12,7 @@ import Compound from '@/components/sections/Compound'
 import Sponsorships from '@/components/sections/Sponsorships'
 import Guilds from '@/components/sections/Guilds'
 import Roadmap from '@/components/sections/Roadmap'
+import Branches from '@/components/sections/Branches'
 import CoconutCowboy from '@/components/sections/CoconutCowboy'
 import OpportunitiesAndContact from '@/components/sections/OpportunitiesAndContact'
 import RoadToken from '@/components/sections/RoadToken'
@@ -66,6 +67,8 @@ export default async function Home() {
         <FoundingMint />
         <SectionDivider />
         <Roadmap />
+        <SectionDivider />
+        <Branches />
         <SectionDivider />
         <CoconutCowboy />
         <SectionDivider />
