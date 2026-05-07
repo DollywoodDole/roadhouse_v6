@@ -46,9 +46,9 @@ export default async function Home() {
         <SectionDivider />
         <KickStream />
         <SectionDivider />
-        <CommunityFeed />
-        <SectionDivider />
         <Merch />
+        <SectionDivider />
+        <CommunityFeed />
         <SectionDivider />
         <Membership />
         <SectionDivider />

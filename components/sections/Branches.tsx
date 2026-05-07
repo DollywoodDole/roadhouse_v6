@@ -259,7 +259,8 @@ export default function Branches() {
                 src="/coconutcowboywebpic.png"
                 alt="Coconut Cowboy website"
                 fill
-                className="object-cover object-top"
+                className="object-cover"
+                style={{ objectPosition: 'center 28%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             </a>

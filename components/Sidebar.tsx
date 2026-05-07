@@ -11,8 +11,8 @@ import NetworkIndicator from '@/components/wallet/NetworkIndicator'
 const NAV_ITEMS = [
   { href: '#home',         icon: '⌂',  label: 'Home' },
   { href: '#stream',       icon: '▶',  label: 'Live Stream' },
-  { href: '#feed',         icon: '◈',  label: 'Community Feed' },
   { href: '#merch',        icon: '🛒', label: 'Merch Store' },
+  { href: '#feed',         icon: '◈',  label: 'Community Feed' },
   { href: '#membership',   icon: '★',  label: 'Membership' },
   { href: '#events',       icon: '◆',  label: 'Events' },
   { href: '#adventures',   icon: '◈',  label: 'Adventures' },
