@@ -251,7 +251,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
               alt={`${branch.name} website`}
               fill
               className="object-cover"
-              style={{ objectPosition: isCoconut ? 'center 28%' : 'center top' }}
+              style={{ objectPosition: isCoconut ? 'center 48%' : 'center 20%' }}
               sizes="(max-width: 1024px) 100vw, 60vw"
             />
           </a>
