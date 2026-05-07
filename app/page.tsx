@@ -48,6 +48,8 @@ export default async function Home() {
         <SectionDivider />
         <Merch />
         <SectionDivider />
+        <Branches />
+        <SectionDivider />
         <CommunityFeed />
         <SectionDivider />
         <Membership />
@@ -67,8 +69,6 @@ export default async function Home() {
         <FoundingMint />
         <SectionDivider />
         <Roadmap />
-        <SectionDivider />
-        <Branches />
         <SectionDivider />
         <CoconutCowboy />
         <SectionDivider />

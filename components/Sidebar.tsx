@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '#home',         icon: '⌂',  label: 'Home' },
   { href: '#stream',       icon: '▶',  label: 'Live Stream' },
   { href: '#merch',        icon: '🛒', label: 'Merch Store' },
+  { href: '#branches',     icon: '◈',  label: 'Branches' },
   { href: '#feed',         icon: '◈',  label: 'Community Feed' },
   { href: '#membership',   icon: '★',  label: 'Membership' },
   { href: '#events',       icon: '◆',  label: 'Events' },
@@ -22,7 +23,6 @@ const NAV_ITEMS = [
   { href: '#token',        icon: '$',  label: '$ROAD Token' },
   { href: '#mint',         icon: '⬡',  label: 'Founding Mint' },
   { href: '#roadmap',      icon: '→',  label: 'Roadmap' },
-  { href: '#branches',     icon: '◈',  label: 'Branches' },
   { href: '#contact',      icon: '✉',  label: 'Contact' },
   { href: '/partners',    icon: '★',  label: 'Partners' },
 ]
