@@ -105,6 +105,7 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
     Config.js                   ← SHEET/COL constants, getConfig() cache, tier helpers
     RoadHouseOS.js              ← 5 triggers: form sync · leaderboard · inactive alert · cap · $ROAD export
     WalletRegistry.js           ← wallet registration + duplicate detection (V2)
+    MotorsInventory.js          ← daily Motors inventory sync → Google Sheet (9:30am Regina)
   scripts/
     bootstrap.js                ← 7-step idempotent orchestrator
     create-sheet.js             ← 6-tab spreadsheet + formula engine
@@ -500,6 +501,26 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 **Known pre-existing repo issues (not motors):**
 - No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
 - `bigint: Failed to load bindings` — Solana `bigint-buffer` native addon warning at build time. Pure JS fallback runs fine. Fix: `npm rebuild` or pin `bigint-buffer` to a version with prebuilt binaries for this Node version.
+
+**Google Sheet inventory (2026-05-08):**
+- `roadhouse-ops/src/MotorsInventory.js` — Apps Script daily sync at 9:30am Regina time
+- Fetches `GET /api/motors/feed?format=json` (Bearer CRON_SECRET), writes all vehicles to sheet
+- Sheet: `My Drive/RoadHouse_Motors/Motors_Inventory` — ID stored in Script Properties as `MOTORS_SHEET_ID`
+- One-time setup: run `setupMotorsSheet()` from Apps Script editor; trigger auto-registers
+- Sheet ID: `1g_Q-wXDWkQ0cBYSdZFxWBY6CW6S4u-ZFH0lO_4FfD9s`
+
+**Facebook social manager (2026-05-08):**
+- `roadhouse-motors-social-manager/` — standalone Python tool (NOT part of Next.js app)
+- `social_manager.py` — fetches feed, generates FCAA-compliant posts with `claude-sonnet-4-6`, posts to FB Page
+- Runs daily at 9am CST via GitHub Actions (`.github/workflows/motors-social.yml`) — no PC required
+- 3 posts/day · vehicles with CDN images only · uses `images[1]` (skips branded hero shot)
+- `posted.json` committed back to repo after each run — prevents duplicate posts across days
+- FCAA compliance: no financing claims, no superlatives, closing line: `DL#331386 | (306) 381-8222 | Prices exclude taxes & licensing`
+- Manual trigger: GitHub Actions tab → RoadHouse Motors — Daily Social Post → Run workflow
+- Meta App ID: `915612138190380` · FB Page ID: `1047748735096733`
+- GitHub secrets required: `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN` · `FB_PAGE_ID` (var)
+- Local dry run: `cd roadhouse-motors-social-manager && venv\Scripts\python social_manager.py`
+- Local live run: add `--live` · reset history: add `--reset`
 
 ---
 
