@@ -248,7 +248,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
                 alt={`${branch.name} — RoadHouse Motors`}
                 fill
                 className="object-cover"
-                style={{ objectPosition: 'center bottom' }}
+                style={{ objectPosition: 'center 90%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             ) : (
