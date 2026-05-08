@@ -252,32 +252,13 @@ function FeaturedCard({ branch }: { branch: Branch }) {
                 style={{ objectPosition: 'center center' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
-            ) : isCoconut ? (
-              /* Coconut Cowboy — zoomed out 20% */
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  transform: 'scale(0.80)',
-                  transformOrigin: 'center center',
-                }}
-              >
-                <Image
-                  src={branch.preview!}
-                  alt={`${branch.name} website`}
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 68%' }}
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-              </div>
             ) : (
               <Image
                 src={branch.preview!}
                 alt={`${branch.name} website`}
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
-                style={{ objectPosition: 'center 53%' }}
+                style={{ objectPosition: isCoconut ? 'center 68%' : 'center 53%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             )}
@@ -322,8 +303,8 @@ function VehicleShowcase({ vehicles }: { vehicles: Vehicle[] }) {
               </div>
             )}
             {/* Watermark */}
-            <div className="absolute top-2 right-2 z-10">
-              <Image src="/rh-logo.png" alt="" width={48} height={48} style={{ opacity: 0.88 }} aria-hidden />
+            <div className="absolute top-0 right-0 z-10">
+              <Image src="/rh-logo.png" alt="" width={192} height={192} style={{ opacity: 0.88 }} aria-hidden />
             </div>
           </div>
 
