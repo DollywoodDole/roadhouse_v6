@@ -243,34 +243,21 @@ function FeaturedCard({ branch }: { branch: Branch }) {
             aria-label={`Visit ${branch.name}`}
           >
             {branch.heroImage ? (
-              <div style={{ position: 'absolute', inset: 0, transform: 'scale(0.88)', transformOrigin: 'center center' }}>
-                <Image
-                  src={branch.preview!}
-                  alt={`${branch.name} — RoadHouse Motors`}
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center center' }}
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-              </div>
-            ) : isCoconut ? (
-              <div style={{ position: 'absolute', inset: 0, transform: 'scale(0.85)', transformOrigin: 'center center' }}>
-                <Image
-                  src={branch.preview!}
-                  alt={`${branch.name} website`}
-                  fill
-                  className="object-cover"
-                  style={{ objectPosition: 'center 88%' }}
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-              </div>
+              <Image
+                src={branch.preview!}
+                alt={`${branch.name} — RoadHouse Motors`}
+                fill
+                className="object-cover"
+                style={{ objectPosition: 'center bottom' }}
+                sizes="(max-width: 1024px) 100vw, 60vw"
+              />
             ) : (
               <Image
                 src={branch.preview!}
                 alt={`${branch.name} website`}
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
-                style={{ objectPosition: 'center 53%' }}
+                style={{ objectPosition: isCoconut ? 'center 88%' : 'center 53%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             )}
@@ -315,7 +302,7 @@ function VehicleShowcase({ vehicles }: { vehicles: Vehicle[] }) {
               </div>
             )}
             {/* Watermark */}
-            <div className="absolute right-0 z-10" style={{ top: '5%' }}>
+            <div className="absolute right-0 z-10" style={{ top: '2%' }}>
               <Image src="/rh-logo.png" alt="" width={234} height={234} style={{ opacity: 0.88 }} aria-hidden />
             </div>
           </div>
