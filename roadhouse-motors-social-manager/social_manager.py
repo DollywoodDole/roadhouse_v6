@@ -12,6 +12,8 @@ Usage:
 """
 
 import os
+import sys
+import io
 import json
 import argparse
 import requests
@@ -19,6 +21,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from anthropic import Anthropic
 from dotenv import load_dotenv
+
+# Force UTF-8 output on Windows terminals
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 load_dotenv()
 
@@ -199,12 +205,12 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
             continue
 
         print()
-        print("  ┌─ POST PREVIEW " + "─" * 40)
+        print("  --- POST PREVIEW " + "-" * 40)
         for line in post_text.splitlines():
-            print(f"  │ {line}")
-        print(f"  │")
-        print(f"  │ [link attachment: {url}]")
-        print("  └" + "─" * 55)
+            print(f"  | {line}")
+        print(f"  |")
+        print(f"  | [link: {url}]")
+        print("  " + "-" * 57)
         print()
 
         if dry_run:
