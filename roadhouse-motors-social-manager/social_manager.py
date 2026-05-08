@@ -65,10 +65,12 @@ def save_posted(posted: dict) -> None:
 
 
 def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
-    """Available only, not yet posted, newest first."""
+    """Available only, not yet posted, has real CDN images, newest first."""
     candidates = [
         v for v in vehicles
-        if v.get("status") == "available" and v.get("vin") not in posted
+        if v.get("status") == "available"
+        and v.get("vin") not in posted
+        and any(img.startswith("http") for img in (v.get("images") or []))
     ]
     candidates.sort(key=lambda v: v.get("updated_at", ""), reverse=True)
     return candidates[:limit]
@@ -207,7 +209,9 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
         price     = _fmt_price(v.get("price_cad"))
         km        = _fmt_km(v.get("mileage_km"))
         images    = [img for img in (v.get("images") or []) if img.startswith("http")]
-        image_url = images[0] if images else None
+        # Skip images[0] — O'Brian's first gallery shot tends to be the branded hero.
+        # images[1] is typically the first clean exterior vehicle photo.
+        image_url = images[1] if len(images) > 1 else (images[0] if images else None)
 
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
