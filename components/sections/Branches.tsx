@@ -239,20 +239,41 @@ function FeaturedCard({ branch }: { branch: Branch }) {
             target="_blank"
             rel="noopener noreferrer"
             className="relative block overflow-hidden"
-            style={{ height: branch.heroImage ? '420px' : '380px' }}
+            style={{ height: branch.heroImage ? '420px' : '380px', background: '#1A1712' }}
             aria-label={`Visit ${branch.name}`}
           >
-            <Image
-              src={branch.preview!}
-              alt={branch.heroImage ? `${branch.name} — RoadHouse Motors` : `${branch.name} website`}
-              fill
-              className="object-cover transition-transform duration-700 hover:scale-105"
-              style={{
-                objectPosition: isCoconut ? 'center 48%' : branch.heroImage ? 'center center' : 'center 20%',
-              }}
-              sizes="(max-width: 1024px) 100vw, 60vw"
-            />
-            {/* Subtle left-edge gradient to blend into the card */}
+            {branch.heroImage ? (
+              /* Zoomed-out hero: scale wrapper so full car is visible */
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  transform: 'scale(0.67)',
+                  transformOrigin: 'center center',
+                }}
+              >
+                <Image
+                  src={branch.preview!}
+                  alt={`${branch.name} — RoadHouse Motors`}
+                  fill
+                  className="object-cover"
+                  style={{ objectPosition: 'center center' }}
+                  sizes="(max-width: 1024px) 100vw, 60vw"
+                />
+              </div>
+            ) : (
+              <Image
+                src={branch.preview!}
+                alt={`${branch.name} website`}
+                fill
+                className="object-cover transition-transform duration-700 hover:scale-105"
+                style={{
+                  objectPosition: isCoconut ? 'center 68%' : 'center 53%',
+                }}
+                sizes="(max-width: 1024px) 100vw, 60vw"
+              />
+            )}
+            {/* Left-edge fade into card */}
             {branch.heroImage && (
               <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-rh-card to-transparent pointer-events-none" />
             )}
@@ -292,6 +313,10 @@ function VehicleShowcase({ vehicles }: { vehicles: Vehicle[] }) {
                 <Image src="/motors/rh-coming-soon.svg" alt="" width={60} height={60} className="opacity-20" />
               </div>
             )}
+            {/* Watermark */}
+            <div className="absolute top-2 right-2 z-10">
+              <Image src="/rh-logo.png" alt="" width={28} height={28} className="opacity-30" aria-hidden />
+            </div>
           </div>
 
           {/* Info */}
