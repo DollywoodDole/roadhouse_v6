@@ -243,21 +243,31 @@ function FeaturedCard({ branch }: { branch: Branch }) {
             aria-label={`Visit ${branch.name}`}
           >
             {branch.heroImage ? (
-              /* Zoomed-out hero: scale wrapper so full car is visible */
+              /* Full image — no cropping */
+              <Image
+                src={branch.preview!}
+                alt={`${branch.name} — RoadHouse Motors`}
+                fill
+                className="object-contain"
+                style={{ objectPosition: 'center center' }}
+                sizes="(max-width: 1024px) 100vw, 60vw"
+              />
+            ) : isCoconut ? (
+              /* Coconut Cowboy — zoomed out 20% */
               <div
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  transform: 'scale(0.67)',
+                  transform: 'scale(0.80)',
                   transformOrigin: 'center center',
                 }}
               >
                 <Image
                   src={branch.preview!}
-                  alt={`${branch.name} — RoadHouse Motors`}
+                  alt={`${branch.name} website`}
                   fill
                   className="object-cover"
-                  style={{ objectPosition: 'center center' }}
+                  style={{ objectPosition: 'center 68%' }}
                   sizes="(max-width: 1024px) 100vw, 60vw"
                 />
               </div>
@@ -267,9 +277,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
                 alt={`${branch.name} website`}
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
-                style={{
-                  objectPosition: isCoconut ? 'center 68%' : 'center 53%',
-                }}
+                style={{ objectPosition: 'center 53%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             )}
@@ -315,7 +323,7 @@ function VehicleShowcase({ vehicles }: { vehicles: Vehicle[] }) {
             )}
             {/* Watermark */}
             <div className="absolute top-2 right-2 z-10">
-              <Image src="/rh-logo.png" alt="" width={28} height={28} className="opacity-30" aria-hidden />
+              <Image src="/rh-logo.png" alt="" width={48} height={48} style={{ opacity: 0.88 }} aria-hidden />
             </div>
           </div>
 
