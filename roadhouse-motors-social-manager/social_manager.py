@@ -126,16 +126,29 @@ Write ONE Facebook post. Rules:
 
 # ── Facebook ──────────────────────────────────────────────────────────────────
 
-def post_to_facebook(message: str, link: str) -> bool:
-    resp = requests.post(
-        f"{FB_GRAPH_URL}/{FB_PAGE_ID}/feed",
-        data={
-            "message": message,
-            "link": link,
-            "access_token": FB_PAGE_TOKEN,
-        },
-        timeout=30,
-    )
+def post_to_facebook(message: str, link: str, image_url: str | None = None) -> bool:
+    if image_url:
+        # Post as photo with caption — same image[0] logic as the website VehicleCard
+        resp = requests.post(
+            f"{FB_GRAPH_URL}/{FB_PAGE_ID}/photos",
+            data={
+                "url":          image_url,
+                "caption":      message,
+                "access_token": FB_PAGE_TOKEN,
+            },
+            timeout=30,
+        )
+    else:
+        # Fallback: text post with link attachment
+        resp = requests.post(
+            f"{FB_GRAPH_URL}/{FB_PAGE_ID}/feed",
+            data={
+                "message":      message,
+                "link":         link,
+                "access_token": FB_PAGE_TOKEN,
+            },
+            timeout=30,
+        )
     result = resp.json()
     if "id" in result:
         post_id = result["id"]
@@ -188,14 +201,17 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
     newly_posted: dict = {}
 
     for i, v in enumerate(picks, 1):
-        vin   = v["vin"]
-        title = f"{v.get('year')} {v.get('make')} {v.get('model')} {v.get('trim', '')}".strip()
-        url   = v.get("url", "https://motors.roadhouse.capital")
-        price = _fmt_price(v.get("price_cad"))
-        km    = _fmt_km(v.get("mileage_km"))
+        vin       = v["vin"]
+        title     = f"{v.get('year')} {v.get('make')} {v.get('model')} {v.get('trim', '')}".strip()
+        url       = v.get("url", "https://motors.roadhouse.capital")
+        price     = _fmt_price(v.get("price_cad"))
+        km        = _fmt_km(v.get("mileage_km"))
+        images    = [img for img in (v.get("images") or []) if img.startswith("http")]
+        image_url = images[0] if images else None
 
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
+        print(f"  Image: {image_url or 'none'}")
 
         print("  Generating post...")
         try:
@@ -220,7 +236,7 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
                 "dry_run": True,
             }
         else:
-            success = post_to_facebook(post_text, url)
+            success = post_to_facebook(post_text, url, image_url)
             newly_posted[vin] = {
                 "title": title,
                 "posted_at": datetime.now(timezone.utc).isoformat() if success else None,
