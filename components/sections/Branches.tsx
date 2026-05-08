@@ -243,12 +243,11 @@ function FeaturedCard({ branch }: { branch: Branch }) {
             aria-label={`Visit ${branch.name}`}
           >
             {branch.heroImage ? (
-              /* Full image — no cropping */
               <Image
                 src={branch.preview!}
                 alt={`${branch.name} — RoadHouse Motors`}
                 fill
-                className="object-contain"
+                className="object-cover"
                 style={{ objectPosition: 'center center' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
@@ -258,7 +257,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
                 alt={`${branch.name} website`}
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
-                style={{ objectPosition: isCoconut ? 'center 68%' : 'center 53%' }}
+                style={{ objectPosition: isCoconut ? 'center 88%' : 'center 53%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             )}
@@ -303,8 +302,8 @@ function VehicleShowcase({ vehicles }: { vehicles: Vehicle[] }) {
               </div>
             )}
             {/* Watermark */}
-            <div className="absolute top-0 right-0 z-10">
-              <Image src="/rh-logo.png" alt="" width={192} height={192} style={{ opacity: 0.88 }} aria-hidden />
+            <div className="absolute right-0 z-10" style={{ top: '10%' }}>
+              <Image src="/rh-logo.png" alt="" width={234} height={234} style={{ opacity: 0.88 }} aria-hidden />
             </div>
           </div>
 
