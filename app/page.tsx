@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import { siteConfig } from '@/lib/site-config'
+import { getInventory } from '@/lib/motors/storage'
 import Sidebar from '@/components/Sidebar'
 import Hero from '@/components/sections/Hero'
 import KickStream from '@/components/sections/KickStream'
@@ -26,6 +27,10 @@ export default async function Home() {
   const isMember          = memberHeader === '1'
   const showUpgradePrompt = isAuthenticated && !isMember
 
+  const showcaseVehicles = await getInventory('obrians', { status: 'available' })
+    .then(v => v.sort((a, b) => b.price - a.price).slice(0, 3))
+    .catch(() => [])
+
   return (
     <div className="flex min-h-screen bg-rh-black">
       <Sidebar />
@@ -48,7 +53,7 @@ export default async function Home() {
         <SectionDivider />
         <Merch />
         <SectionDivider />
-        <Branches />
+        <Branches showcaseVehicles={showcaseVehicles} />
         <SectionDivider />
         <CommunityFeed />
         <SectionDivider />

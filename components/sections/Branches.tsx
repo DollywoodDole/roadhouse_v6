@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { ExternalLink } from 'lucide-react'
+import type { Vehicle } from '@/types/inventory'
 
 interface Branch {
   num: string
@@ -11,6 +12,7 @@ interface Branch {
   stat: string | null
   entity: string
   preview?: string
+  heroImage?: boolean // product photo — no browser chrome
 }
 
 const BRANCHES: Branch[] = [
@@ -23,6 +25,8 @@ const BRANCHES: Branch[] = [
     status: 'live',
     stat: '~131 vehicles in stock',
     entity: 'RoadHouse',
+    preview: '/motors/rh_motors_lambo.png',
+    heroImage: true,
   },
   {
     num: '02',
@@ -58,19 +62,23 @@ const BRANCHES: Branch[] = [
   },
 ]
 
+function GhostNum({ num }: { num: string }) {
+  return (
+    <span
+      className="absolute top-0 left-4 text-[7rem] lg:text-[8rem] font-light leading-none select-none pointer-events-none"
+      style={{ fontFamily: 'var(--font-cormorant)', color: 'rgba(255,255,255,0.03)' }}
+      aria-hidden
+    >
+      {num}
+    </span>
+  )
+}
+
 function StandardCard({ branch }: { branch: Branch }) {
   return (
     <div className="relative bg-rh-card border border-rh-border rounded-lg overflow-hidden card-ambient">
-      <span
-        className="absolute top-0 left-4 text-[7rem] lg:text-[8rem] font-light leading-none select-none pointer-events-none"
-        style={{ fontFamily: 'var(--font-cormorant)', color: 'rgba(255,255,255,0.03)' }}
-        aria-hidden
-      >
-        {branch.num}
-      </span>
-
+      <GhostNum num={branch.num} />
       <div className="relative flex flex-col md:flex-row md:items-center gap-6 p-6 md:p-8">
-        {/* Identity */}
         <div className="flex-shrink-0 md:w-72">
           <div className="flex items-center gap-2.5 mb-1">
             <Image src="/rh-logo.png" alt="" width={20} height={20} className="opacity-50" aria-hidden />
@@ -97,7 +105,6 @@ function StandardCard({ branch }: { branch: Branch }) {
 
         <div className="hidden md:block w-px self-stretch bg-rh-border flex-shrink-0" />
 
-        {/* Description */}
         <div className="flex-1">
           <p className="text-[13px] text-rh-muted leading-relaxed tracking-wide">{branch.description}</p>
           {branch.stat && (
@@ -105,7 +112,6 @@ function StandardCard({ branch }: { branch: Branch }) {
           )}
         </div>
 
-        {/* Status + CTA */}
         <div className="flex flex-row md:flex-col items-center md:items-end gap-3 flex-shrink-0">
           {branch.status === 'live' ? (
             <>
@@ -137,14 +143,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
 
   return (
     <div className="relative bg-rh-card border border-rh-border rounded-lg overflow-hidden card-ambient">
-      <span
-        className="absolute top-0 left-4 text-[7rem] lg:text-[8rem] font-light leading-none select-none pointer-events-none"
-        style={{ fontFamily: 'var(--font-cormorant)', color: 'rgba(255,255,255,0.03)' }}
-        aria-hidden
-      >
-        {branch.num}
-      </span>
-
+      <GhostNum num={branch.num} />
       <div className="relative flex flex-col lg:flex-row gap-0">
         {/* Left: identity + description + CTA */}
         <div className="flex flex-col justify-between gap-6 p-6 md:p-8 lg:w-80 xl:w-96 flex-shrink-0">
@@ -162,14 +161,12 @@ function FeaturedCard({ branch }: { branch: Branch }) {
               className="text-4xl lg:text-5xl font-light italic text-rh-text leading-tight"
               style={{ fontFamily: 'var(--font-cormorant)' }}
             >
-              {branch.name.includes(' ') && !isCoconut
-                ? branch.name
-                : branch.name.split(' ').map((word, i) => (
-                    <span key={i}>
-                      {word}
-                      {i < branch.name.split(' ').length - 1 && <br />}
-                    </span>
-                  ))}
+              {branch.name.split(' ').map((word, i, arr) => (
+                <span key={i}>
+                  {word}
+                  {i < arr.length - 1 && <br />}
+                </span>
+              ))}
             </div>
             <div
               className="text-[10px] text-rh-faint tracking-wider mt-1.5"
@@ -177,9 +174,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
             >
               {branch.domain}
             </div>
-
             <div className="gold-line mt-4 max-w-[80px]" />
-
             <p className="text-[13px] text-rh-muted leading-relaxed tracking-wide mt-4">{branch.description}</p>
             {branch.stat && (
               <div className="mt-2 text-[10px] tracking-widest uppercase text-gold/50">{branch.stat}</div>
@@ -211,49 +206,56 @@ function FeaturedCard({ branch }: { branch: Branch }) {
           </div>
         </div>
 
-        {/* Right: site preview */}
+        {/* Right: image panel */}
         <div className="flex-1 border-t lg:border-t-0 lg:border-l border-rh-border min-h-[320px] lg:min-h-0 overflow-hidden">
-          {/* Browser chrome */}
-          <div className="flex items-center gap-2.5 px-3 py-2 bg-rh-elevated border-b border-rh-border">
-            <div className="flex gap-1.5 flex-shrink-0">
-              <div className="w-2.5 h-2.5 rounded-full bg-rh-faint/40" />
-              <div className="w-2.5 h-2.5 rounded-full bg-rh-faint/40" />
-              <div className="w-2.5 h-2.5 rounded-full bg-rh-faint/40" />
+          {!branch.heroImage && (
+            /* Browser chrome — website previews only */
+            <div className="flex items-center gap-2.5 px-3 py-2 bg-rh-elevated border-b border-rh-border">
+              <div className="flex gap-1.5 flex-shrink-0">
+                <div className="w-2.5 h-2.5 rounded-full bg-rh-faint/40" />
+                <div className="w-2.5 h-2.5 rounded-full bg-rh-faint/40" />
+                <div className="w-2.5 h-2.5 rounded-full bg-rh-faint/40" />
+              </div>
+              <div
+                className="flex-1 bg-rh-card rounded px-2.5 py-1 text-[10px] text-rh-faint truncate"
+                style={{ fontFamily: 'var(--font-dm-mono)' }}
+              >
+                {branch.domain}
+              </div>
+              <a
+                href={branch.href!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 text-rh-faint hover:text-gold transition-colors"
+                aria-label="Open in new tab"
+              >
+                <ExternalLink size={11} />
+              </a>
             </div>
-            <div
-              className="flex-1 bg-rh-card rounded px-2.5 py-1 text-[10px] text-rh-faint truncate"
-              style={{ fontFamily: 'var(--font-dm-mono)' }}
-            >
-              {branch.domain}
-            </div>
-            <a
-              href={branch.href!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0 text-rh-faint hover:text-gold transition-colors"
-              aria-label="Open in new tab"
-            >
-              <ExternalLink size={11} />
-            </a>
-          </div>
+          )}
 
-          {/* Screenshot */}
           <a
             href={branch.href!}
             target="_blank"
             rel="noopener noreferrer"
             className="relative block overflow-hidden"
-            style={{ height: '380px' }}
+            style={{ height: branch.heroImage ? '420px' : '380px' }}
             aria-label={`Visit ${branch.name}`}
           >
             <Image
               src={branch.preview!}
-              alt={`${branch.name} website`}
+              alt={branch.heroImage ? `${branch.name} — RoadHouse Motors` : `${branch.name} website`}
               fill
-              className="object-cover"
-              style={{ objectPosition: isCoconut ? 'center 48%' : 'center 20%' }}
+              className="object-cover transition-transform duration-700 hover:scale-105"
+              style={{
+                objectPosition: isCoconut ? 'center 48%' : branch.heroImage ? 'center center' : 'center 20%',
+              }}
               sizes="(max-width: 1024px) 100vw, 60vw"
             />
+            {/* Subtle left-edge gradient to blend into the card */}
+            {branch.heroImage && (
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-rh-card to-transparent pointer-events-none" />
+            )}
           </a>
         </div>
       </div>
@@ -261,7 +263,69 @@ function FeaturedCard({ branch }: { branch: Branch }) {
   )
 }
 
-export default function Branches() {
+function VehicleShowcase({ vehicles }: { vehicles: Vehicle[] }) {
+  if (!vehicles.length) return null
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {vehicles.map((v) => (
+        <a
+          key={v.vin}
+          href={`https://motors.roadhouse.capital/vehicle/${v.vin}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group bg-rh-card border border-rh-border rounded-lg overflow-hidden hover:border-gold/40 transition-colors duration-300"
+        >
+          {/* Image */}
+          <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
+            {v.images[0] ? (
+              <Image
+                src={v.images[0]}
+                alt={`${v.year} ${v.make} ${v.model}`}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                sizes="(max-width: 768px) 100vw, 33vw"
+                unoptimized
+              />
+            ) : (
+              <div className="absolute inset-0 bg-rh-elevated flex items-center justify-center">
+                <Image src="/motors/rh-coming-soon.svg" alt="" width={60} height={60} className="opacity-20" />
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="p-4">
+            <div className="text-[9px] tracking-[0.3em] uppercase text-rh-faint mb-1.5">
+              {v.exterior_color} · {v.mileage.toLocaleString('en-CA')} km
+            </div>
+            <div
+              className="text-xl font-light italic text-rh-text leading-tight"
+              style={{ fontFamily: 'var(--font-cormorant)' }}
+            >
+              {v.year} {v.make} {v.model}
+            </div>
+            {v.trim && (
+              <div className="text-[10px] text-rh-muted mt-0.5">{v.trim}</div>
+            )}
+            <div
+              className="text-lg font-light text-gold mt-2"
+              style={{ fontFamily: 'var(--font-cormorant)' }}
+            >
+              ${v.price.toLocaleString('en-CA')} CAD
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  )
+}
+
+interface BranchesProps {
+  showcaseVehicles?: Vehicle[]
+}
+
+export default function Branches({ showcaseVehicles = [] }: BranchesProps) {
   return (
     <section id="branches" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
@@ -281,13 +345,18 @@ export default function Branches() {
       </div>
 
       <div className="space-y-4">
-        {BRANCHES.map((branch) =>
-          branch.preview ? (
-            <FeaturedCard key={branch.num} branch={branch} />
-          ) : (
-            <StandardCard key={branch.num} branch={branch} />
-          )
-        )}
+        {BRANCHES.map((branch) => (
+          <div key={branch.num} className="space-y-4">
+            {branch.preview ? (
+              <FeaturedCard branch={branch} />
+            ) : (
+              <StandardCard branch={branch} />
+            )}
+            {branch.num === '01' && showcaseVehicles.length > 0 && (
+              <VehicleShowcase vehicles={showcaseVehicles} />
+            )}
+          </div>
+        ))}
       </div>
     </section>
   )
