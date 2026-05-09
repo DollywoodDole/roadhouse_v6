@@ -3,6 +3,7 @@ import './globals.css'
 import { SolanaWalletProvider } from '@/components/wallet/WalletProvider'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://roadhouse.capital'),
   title: 'RoadHouse — Where Standards Matter',
   description: 'A creator-owned ecosystem at the intersection of streaming, community, and culture. Saskatchewan, Canada. Praetorian Holdings Corp.',
   keywords: ['RoadHouse', 'Kick streaming', 'Coconut Cowboy', 'community', 'DAO', 'Saskatchewan'],
@@ -13,6 +14,14 @@ export const metadata: Metadata = {
     url: 'https://roadhouse.capital',
     siteName: 'RoadHouse',
     type: 'website',
+    images: [
+      {
+        url: '/rh-hero.jpg',
+        width: 1080,
+        height: 1080,
+        alt: 'RoadHouse',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -20,6 +29,7 @@ export const metadata: Metadata = {
     creator: '@dollywooddole',
     title: 'RoadHouse — Where Standards Matter',
     description: 'A creator-owned ecosystem. Discretion. High Standards. One Smooth Ride.',
+    images: ['/rh-hero.jpg'],
   },
 }
 
