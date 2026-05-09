@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import VehicleImage from '@/components/motors/VehicleImage'
+import PaymentEstimator from '@/components/motors/PaymentEstimator'
 import { getVehicleByVin } from '@/lib/motors/storage'
 import { SEED_DEALER_ID } from '@/lib/motors/seed'
 import { clsx } from 'clsx'
@@ -250,6 +251,11 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               <p className="text-white/35 text-xs">CAD + applicable taxes</p>
             </div>
 
+            {/* Payment Estimator */}
+            {vehicle.status !== 'sold' && vehicle.price > 0 && (
+              <PaymentEstimator price={vehicle.price} vin={vehicle.vin} />
+            )}
+
             {/* CTAs */}
             {vehicle.status !== 'sold' ? (
               <div className="space-y-3">
@@ -257,7 +263,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                   href={creditHref}
                   className="block w-full bg-white text-black font-semibold text-base py-3.5 rounded-xl hover:bg-white/90 transition-colors text-center"
                 >
-                  Apply for Financing
+                  Get Pre-Qualified
                 </Link>
                 <a
                   href="tel:+13063818222"

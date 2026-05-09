@@ -205,7 +205,7 @@ export default function FilterSidebar({ vehicleCount, makes }: FilterSidebarProp
         href="/motors/credit"
         className="block w-full bg-gray-900 text-white text-sm font-semibold tracking-wider uppercase px-4 py-3.5 rounded text-center hover:bg-gray-700 transition-colors"
       >
-        Apply for Credit
+        Get Pre-Qualified
       </Link>
     </div>
   )

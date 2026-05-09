@@ -24,6 +24,21 @@ export interface Vehicle {
   updated_at: string
 }
 
+export interface MotorsLead {
+  id: string
+  submittedAt: string
+  name: string
+  phone: string
+  email: string
+  vehicleInterest?: string
+  creditRange: string
+  monthlyIncome: string
+  employmentStatus: string
+  message?: string
+  status: 'new' | 'contacted' | 'approved' | 'closed' | 'dead'
+  source: 'credit-form'
+}
+
 export interface InventoryFilters {
   make?: string
   model?: string

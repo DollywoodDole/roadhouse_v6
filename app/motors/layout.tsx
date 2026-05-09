@@ -75,7 +75,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
               href="/motors/credit"
               className="text-white text-base font-medium tracking-wide uppercase px-4 py-2.5 rounded hover:bg-white/5 transition-colors"
             >
-              Apply for Credit
+              Get Pre-Qualified
             </Link>
           </nav>
 
