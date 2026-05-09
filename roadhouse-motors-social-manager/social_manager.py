@@ -137,20 +137,70 @@ Content rules:
 
 # ── Facebook ──────────────────────────────────────────────────────────────────
 
-def post_to_facebook(message: str, link: str, image_url: str | None = None) -> bool:
-    if image_url:
-        # Post as photo with caption — same image[0] logic as the website VehicleCard
+def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
+    if len(image_urls) == 1:
+        # Single photo post with caption
         resp = requests.post(
             f"{FB_GRAPH_URL}/{FB_PAGE_ID}/photos",
             data={
-                "url":          image_url,
+                "url":          image_urls[0],
                 "caption":      message,
                 "access_token": FB_PAGE_TOKEN,
             },
             timeout=30,
         )
+        result = resp.json()
+        if "id" in result:
+            print(f"  Published: https://www.facebook.com/{result['id']}")
+            return True
+        err = result.get("error", {})
+        print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        return False
+
+    elif len(image_urls) > 1:
+        # Multi-photo post: upload each as unpublished, then attach to a single feed post
+        media_ids = []
+        for img_url in image_urls:
+            r = requests.post(
+                f"{FB_GRAPH_URL}/{FB_PAGE_ID}/photos",
+                data={
+                    "url":          img_url,
+                    "published":    "false",
+                    "access_token": FB_PAGE_TOKEN,
+                },
+                timeout=30,
+            )
+            r_json = r.json()
+            if "id" in r_json:
+                media_ids.append(r_json["id"])
+            else:
+                err = r_json.get("error", {})
+                print(f"  Warning: could not upload photo {img_url} [{err.get('code', '?')}]: {err.get('message', r_json)}")
+
+        if not media_ids:
+            print("  Failed: no photos uploaded successfully")
+            return False
+
+        attached = json.dumps([{"media_fbid": mid} for mid in media_ids])
+        resp = requests.post(
+            f"{FB_GRAPH_URL}/{FB_PAGE_ID}/feed",
+            data={
+                "message":        message,
+                "attached_media": attached,
+                "access_token":   FB_PAGE_TOKEN,
+            },
+            timeout=30,
+        )
+        result = resp.json()
+        if "id" in result:
+            print(f"  Published ({len(media_ids)} photos): https://www.facebook.com/{result['id']}")
+            return True
+        err = result.get("error", {})
+        print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        return False
+
     else:
-        # Fallback: text post with link attachment
+        # No images — text post with link attachment
         resp = requests.post(
             f"{FB_GRAPH_URL}/{FB_PAGE_ID}/feed",
             data={
@@ -160,14 +210,13 @@ def post_to_facebook(message: str, link: str, image_url: str | None = None) -> b
             },
             timeout=30,
         )
-    result = resp.json()
-    if "id" in result:
-        post_id = result["id"]
-        print(f"  Published: https://www.facebook.com/{post_id}")
-        return True
-    err = result.get("error", {})
-    print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
-    return False
+        result = resp.json()
+        if "id" in result:
+            print(f"  Published: https://www.facebook.com/{result['id']}")
+            return True
+        err = result.get("error", {})
+        print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        return False
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -217,14 +266,14 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
         url       = v.get("url", "https://motors.roadhouse.capital")
         price     = _fmt_price(v.get("price_cad"))
         km        = _fmt_km(v.get("mileage_km"))
-        images    = [img for img in (v.get("images") or []) if img.startswith("http")]
-        # Skip images[0] — O'Brian's first gallery shot tends to be the branded hero.
-        # images[1] is typically the first clean exterior vehicle photo.
-        image_url = images[1] if len(images) > 1 else (images[0] if images else None)
+        images      = [img for img in (v.get("images") or []) if img.startswith("http")]
+        # Skip images[0] — O'Brian's first gallery shot is the branded hero overlay.
+        # images[1:4] are the clean exterior/interior photos from the same batch (up to 3).
+        post_images = images[1:4] if len(images) > 1 else (images[:1] if images else [])
 
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
-        print(f"  Image: {image_url or 'none'}")
+        print(f"  Images: {len(post_images)} ({', '.join(post_images) or 'none'})")
 
         print("  Generating post...")
         try:
@@ -249,7 +298,7 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
                 "dry_run": True,
             }
         else:
-            success = post_to_facebook(post_text, url, image_url)
+            success = post_to_facebook(post_text, url, post_images)
             newly_posted[vin] = {
                 "title": title,
                 "posted_at": datetime.now(timezone.utc).isoformat() if success else None,
