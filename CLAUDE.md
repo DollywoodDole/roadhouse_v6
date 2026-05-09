@@ -522,6 +522,22 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - Local dry run: `cd roadhouse-motors-social-manager && venv\Scripts\python social_manager.py`
 - Local live run: add `--live` · reset history: add `--reset`
 
+**Lead capture pipeline + credit rebuild (2026-05-09):**
+- `types/inventory.ts` — `MotorsLead` interface added (id, submittedAt, name, phone, email, vehicleInterest, creditRange, monthlyIncome, employmentStatus, message, status, source)
+- KV keys: `motors:leads:{id}` → MotorsLead JSON · `motors:leads:index` → Redis SET of lead IDs
+- `POST /api/motors/leads` — saves lead to KV, sends notification email to `roadhousesyndicate@gmail.com` (Resend). Accepts full credit form body; maps `firstName+lastName` → `name`, `creditRating` → `creditRange`, `annualIncome/12` → `monthlyIncome`, `notes` → `message`. Email failure does NOT block the user — lead is persisted regardless.
+- `GET /api/motors/leads` (Bearer CRON_SECRET) — returns all leads sorted newest-first
+- `PATCH /api/motors/leads/[id]` (Bearer CRON_SECRET) — updates lead status in KV
+- `app/motors/admin/page.tsx` — token-gated server component; access via `?token={CRON_SECRET}` in URL. Shows locked password-input state if token missing/wrong. Fetches leads server-side direct from KV (not via HTTP). `AdminPanel.tsx` is the client component — status dropdown fires PATCH with no page reload.
+- `components/motors/CreditForm.tsx` — now POSTs to `/api/motors/leads` (was `/api/motors/credit`). On success: inline confirmation "Thanks [name] — we'll be in touch within 1 business day." No redirect. `CreditRebuildSection` renders above the white form: 3 gold-accented cards + 4-item accordion ("What Lenders Look At") + co-signer callout, all in dark motors aesthetic.
+- Language swap (all motors routes): "Apply for Credit/Financing" → "Get Pre-Qualified" · "Credit Application" → "Pre-Qualification Form" · updated in layout nav, VDP CTA, FilterSidebar, credit page metadata + OG + Twitter + FAQ JSON-LD
+- `components/motors/PaymentEstimator.tsx` — client component; mounted on every available VDP (between price block and CTA). Standard amortizing formula + $499 doc fee added to principal for realistic estimates. Slider (down payment) + term buttons (36/48/60/72/84mo) + rate tier dropdown (4.99%–19.99%). Live bi-weekly + monthly output. CTA → `/motors/credit?vehicle={vin}`.
+- FAQ JSON-LD on credit page: 4 new entries — bad credit, min score, turnaround time, data privacy
+- `app/motors/credit/page.tsx` — metadata updated to "Get Pre-Qualified | RoadHouse Motors Saskatchewan"
+- OG image on main `roadhouse.capital` — added `rh-hero.jpg` to `openGraph.images` and `twitter.images` in `app/layout.tsx`; added `metadataBase`
+
+**Admin panel access:** `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}` — CRON_SECRET is in Vercel dashboard → Project Settings → Environment Variables.
+
 ---
 
 ## M3 TODO — June 2026 (priority order)
