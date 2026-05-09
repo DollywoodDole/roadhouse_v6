@@ -7,7 +7,7 @@ const BASE = 'https://motors.roadhouse.capital'
 
 function auth(req: NextRequest): boolean {
   const header = req.headers.get('authorization') ?? ''
-  return header === `Bearer ${process.env.CRON_SECRET}`
+  return header === `Bearer ${process.env.CRON_SECRET?.trim()}`
 }
 
 // JSON — clean array for internal ops / Google Sheets / custom tools

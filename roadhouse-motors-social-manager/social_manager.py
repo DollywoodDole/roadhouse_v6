@@ -42,6 +42,50 @@ CLAUDE_MODEL   = "claude-sonnet-4-6"
 
 client = Anthropic(api_key=ANTHROPIC_KEY)
 
+# ── Token health ──────────────────────────────────────────────────────────────
+
+WARN_DAYS = 14  # warn when token expires within this many days
+
+def check_fb_token() -> bool:
+    """
+    Validates FB_PAGE_ACCESS_TOKEN via /debug_token.
+    - Exits (returns False) if token is invalid or expired.
+    - Prints a warning if token expires within WARN_DAYS days.
+    - Returns True if token is healthy.
+    """
+    if not FB_PAGE_TOKEN:
+        print("ERROR: FB_PAGE_ACCESS_TOKEN not set.")
+        return False
+
+    resp = requests.get(
+        f"{FB_GRAPH_URL}/debug_token",
+        params={"input_token": FB_PAGE_TOKEN, "access_token": FB_PAGE_TOKEN},
+        timeout=15,
+    )
+    data = resp.json().get("data", {})
+
+    if not data.get("is_valid", False):
+        error = data.get("error", {})
+        print(f"ERROR: FB token is invalid or expired — {error.get('message', data)}")
+        print("       Refresh FB_PAGE_ACCESS_TOKEN in GitHub Secrets before the next run.")
+        return False
+
+    expires_at = data.get("expires_at", 0)
+    if expires_at:
+        from datetime import datetime, timezone
+        expires_dt = datetime.fromtimestamp(expires_at, tz=timezone.utc)
+        days_left  = (expires_dt - datetime.now(timezone.utc)).days
+        if days_left <= WARN_DAYS:
+            print(f"WARNING: FB token expires in {days_left} day(s) ({expires_dt.strftime('%Y-%m-%d')}).")
+            print("         Refresh FB_PAGE_ACCESS_TOKEN in GitHub Secrets soon.")
+        else:
+            print(f"  FB token valid — expires {expires_dt.strftime('%Y-%m-%d')} ({days_left} days)")
+    else:
+        print("  FB token valid (no expiry date — likely a non-expiring token)")
+
+    return True
+
+
 # ── Inventory ─────────────────────────────────────────────────────────────────
 
 def fetch_inventory() -> list[dict]:
@@ -233,10 +277,11 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
     if not ANTHROPIC_KEY:
         print("ERROR: ANTHROPIC_API_KEY not set in .env")
         return
-    if not dry_run and not FB_PAGE_TOKEN:
-        print("ERROR: FB_PAGE_ACCESS_TOKEN not set in .env — required for live posting")
-        print("       See .env.example for instructions on getting your token.")
-        return
+    if not dry_run:
+        print("Checking FB token...")
+        if not check_fb_token():
+            return
+        print()
 
     # Fetch inventory
     print("Fetching inventory...")

@@ -55,24 +55,6 @@
   },
   "5N1AZ2BS4RC109055": {
     "title": "2024 Nissan Murano SV",
-    "posted_at": "2026-05-09T15:52:57.228848+00:00",
-    "dry_run": false,
-    "success": true
-  },
-  "KL79MRSL3RB143997": {
-    "title": "2024 Chevrolet TrailBlazer LT",
-    "posted_at": "2026-05-09T15:53:09.543277+00:00",
-    "dry_run": false,
-    "success": true
-  },
-  "5UX53GP03S9Y43537": {
-    "title": "2025 BMW X3 30 xDrive",
-    "posted_at": "2026-05-09T15:53:23.241211+00:00",
-    "dry_run": false,
-    "success": true
-  },
-  "5N1AZ2BS4RC109055": {
-    "title": "2024 Nissan Murano SV",
     "posted_at": "2026-05-09T15:53:42.066334+00:00",
     "dry_run": false,
     "success": true
@@ -88,5 +70,10 @@
     "posted_at": "2026-05-09T15:53:57.132976+00:00",
     "dry_run": false,
     "success": true
+  },
+  "1G1ZD5ST5RF200309": {
+    "title": "2024 Chevrolet Malibu 1LT",
+    "posted_at": null,
+    "dry_run": true
   }
 }

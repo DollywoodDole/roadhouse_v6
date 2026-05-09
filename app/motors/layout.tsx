@@ -5,11 +5,11 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   metadataBase: new URL('https://motors.roadhouse.capital'),
   title: 'RoadHouse Motors',
-  description: "RoadHouse Motors. Browse our certified pre-owned and new vehicle inventory. Saskatchewan delivery available.",
+  description: "RoadHouse Motors. Browse our used vehicle inventory. Saskatchewan delivery available.",
   keywords: ['used trucks Saskatchewan', 'used SUVs Saskatchewan', 'certified pre-owned vehicles', 'used cars for sale Saskatchewan', 'bad credit car loans Saskatchewan', 'buy here pay here Saskatchewan', 'RoadHouse Motors', 'used vehicle dealer Saskatchewan'],
   openGraph: {
     title: 'RoadHouse Motors',
-    description: 'Browse our certified pre-owned and new vehicle inventory. Saskatchewan delivery available.',
+    description: 'Browse our used vehicle inventory. Saskatchewan delivery available.',
     url: 'https://motors.roadhouse.capital',
     siteName: 'RoadHouse Motors',
     type: 'website',
