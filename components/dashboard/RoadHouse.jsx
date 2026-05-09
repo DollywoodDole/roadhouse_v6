@@ -72,10 +72,10 @@ function ProfileXPBar({ value, max, color, height = 4, showLabel = false }) {
     <div>
       {showLabel && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-          <span style={{ fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace" }}>
+          <span style={{ fontSize: 11, color: '#5a5550', letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace" }}>
             {value.toLocaleString()} XP
           </span>
-          <span style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
+          <span style={{ fontSize: 11, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
             {max.toLocaleString()} XP
           </span>
         </div>
@@ -98,8 +98,8 @@ function ProfileStatBar({ label, value, color }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ fontSize: 9, letterSpacing: '0.18em', color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>{label}</span>
-        <span style={{ fontSize: 9, color: color || '#ede8dc', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>{value}</span>
+        <span style={{ fontSize: 11, letterSpacing: '0.18em', color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>{label}</span>
+        <span style={{ fontSize: 11, color: color || '#ede8dc', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>{value}</span>
       </div>
       <ProfileXPBar value={value} max={100} color={color} height={2} />
     </div>
@@ -160,7 +160,7 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
           <div style={{
             position: 'absolute', bottom: -4, right: -4,
             background: '#111110', border: '1px solid var(--accent)',
-            padding: '1px 5px', fontSize: 8, letterSpacing: '0.1em',
+            padding: '1px 5px', fontSize: 10, letterSpacing: '0.1em',
             color: 'var(--accent)', fontFamily: "'Space Mono', monospace",
           }}>
             LVL 1
@@ -177,7 +177,7 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
               {profile?.alias ?? tierName}
             </div>
             <span style={{
-              fontSize: 9, letterSpacing: '0.18em',
+              fontSize: 11, letterSpacing: '0.18em',
               fontFamily: "'Space Mono', monospace", fontWeight: 700,
               padding: '3px 8px',
               border: '1px solid var(--accent)',
@@ -197,7 +197,7 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
           <div style={{ marginBottom: 8 }}>
             <ProfileXPBar value={xp} max={xpNext} showLabel />
           </div>
-          <div style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.12em' }}>
+          <div style={{ fontSize: 11, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.12em' }}>
             {(xpNext - xp).toLocaleString()} XP TO NEXT LEVEL
           </div>
         </div>
@@ -215,10 +215,10 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
           }}>
             {signal}
           </div>
-          <div style={{ fontSize: 8, letterSpacing: '0.2em', color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 4 }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 4 }}>
             SIGNAL
           </div>
-          <div style={{ fontSize: 8, color: '#4b7c50', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: '#4b7c50', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
             ▲ +12 TODAY
           </div>
         </div>
@@ -231,15 +231,15 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
           borderRadius: 2,
         }}>
           <div style={{
-            fontSize: 24, fontFamily: "'Space Mono', monospace", fontWeight: 700,
-            color: '#ede8dc', lineHeight: 1,
+            fontSize: 24, fontFamily: "'DM Mono', monospace", fontWeight: 500,
+            fontVariantNumeric: 'tabular-nums', color: '#ede8dc', lineHeight: 1,
           }}>
             {balance.toLocaleString()}
           </div>
-          <div style={{ fontSize: 8, letterSpacing: '0.2em', color: 'var(--accent)', fontFamily: "'Space Mono', monospace", marginTop: 4 }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: 'var(--accent)', fontFamily: "'Space Mono', monospace", marginTop: 4 }}>
             $ROAD
           </div>
-          <div style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
             ACCRUING
           </div>
         </div>
@@ -263,7 +263,7 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
             style={{
               display: 'inline-block',
               fontFamily: "'Space Mono', monospace",
-              fontSize: 9, letterSpacing: '0.18em', fontWeight: 700,
+              fontSize: 11, letterSpacing: '0.18em', fontWeight: 700,
               color: 'var(--accent)', textDecoration: 'none',
               border: '1px solid rgba(232,200,74,0.3)',
               padding: '8px 14px', borderRadius: 2,
@@ -274,7 +274,7 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
           >
             UPGRADE TO {TIER_DISPLAY[nextTier] ?? nextTier.toUpperCase()} →
           </a>
-          <span style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
+          <span style={{ fontSize: 10, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
             {(nextBalance - balance).toLocaleString()} $ROAD needed
           </span>
         </div>
@@ -347,15 +347,15 @@ function DailyMissions() {
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '0.06em', color: '#ede8dc', lineHeight: 1 }}>
             DAILY OPERATIONS
           </div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', marginTop: 3 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: '#5a5550', letterSpacing: '0.15em', marginTop: 3 }}>
             {completed}/{missions.length} COMPLETE
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: 'var(--accent)', fontWeight: 700 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontVariantNumeric: 'tabular-nums', color: 'var(--accent)', fontWeight: 500 }}>
             +{xpEarned} XP
           </div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, color: '#5a5550', letterSpacing: '0.1em', marginTop: 2 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: '#5a5550', letterSpacing: '0.1em', marginTop: 2 }}>
             EARNED TODAY
           </div>
         </div>
@@ -418,7 +418,7 @@ function DailyMissions() {
                 </div>
                 <div style={{
                   fontFamily: "'Syne', sans-serif",
-                  fontSize: 8, color: catColor,
+                  fontSize: 10, color: catColor,
                   letterSpacing: '0.2em', fontWeight: 700,
                   marginTop: 2,
                 }}>
@@ -442,10 +442,10 @@ function DailyMissions() {
 
       {/* Footer — TODO: M3 — reset timer from KV TTL, streak from road:{customerId}.streak */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid #1e1e1c' }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, color: '#5a5550', letterSpacing: '0.15em' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: '#5a5550', letterSpacing: '0.15em' }}>
           RESETS IN 14:22:07
         </div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, color: '#4b7c50', letterSpacing: '0.15em', fontWeight: 700 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: '#4b7c50', letterSpacing: '0.15em', fontWeight: 700 }}>
           ▲ 4-DAY STREAK ACTIVE
         </div>
       </div>
@@ -457,7 +457,7 @@ function Unlocks() {
   return (
     <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
       {/* Header */}
-      <div style={{ fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+      <div style={{ fontSize: 11, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
         Access &amp; Unlocks
       </div>
 
@@ -489,10 +489,10 @@ function Unlocks() {
                   {u.label}
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ fontSize: 8, letterSpacing: '0.15em', color: color, border: `1px solid ${color}`, borderRadius: 2, padding: '1px 5px', fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ fontSize: 10, letterSpacing: '0.15em', color: color, border: `1px solid ${color}`, borderRadius: 2, padding: '1px 5px', fontFamily: "'Space Mono', monospace" }}>
                     {u.type}
                   </span>
-                  <span style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>{u.date}</span>
+                  <span style={{ fontSize: 11, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>{u.date}</span>
                 </div>
               </div>
 
@@ -500,13 +500,13 @@ function Unlocks() {
               <div style={{ flexShrink: 0, position: 'relative', zIndex: 1 }}>
                 {u.locked ? (
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 8, color: 'var(--accent2)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.15em' }}>🔒 REQUIRES</div>
-                    <div style={{ fontSize: 9, color: 'var(--accent2)', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>{u.req}</div>
+                    <div style={{ fontSize: 10, color: 'var(--accent2)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.15em' }}>🔒 REQUIRES</div>
+                    <div style={{ fontSize: 11, color: 'var(--accent2)', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>{u.req}</div>
                   </div>
                 ) : (
                   <a
                     href={u.href}
-                    style={{ display: 'inline-block', padding: '6px 14px', fontSize: 9, letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace", fontWeight: 700, border: `1px solid ${color}`, color: color, background: 'transparent', borderRadius: 1, textDecoration: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
+                    style={{ display: 'inline-block', padding: '6px 14px', fontSize: 11, letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace", fontWeight: 700, border: `1px solid ${color}`, color: color, background: 'transparent', borderRadius: 1, textDecoration: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${color}18` }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   >
@@ -522,12 +522,12 @@ function Unlocks() {
       {/* Upgrade callout */}
       <div style={{ marginTop: 14, padding: '12px 14px', border: '1px solid rgba(232,200,74,0.2)', background: 'rgba(232,200,74,0.04)', borderRadius: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 9, color: 'var(--accent)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.15em', fontWeight: 700 }}>UNLOCK PARTNER TIER</div>
-          <div style={{ fontSize: 9, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>Mediterranean Trip + Whistler unlocked at Partner</div>
+          <div style={{ fontSize: 11, color: 'var(--accent)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.15em', fontWeight: 700 }}>UNLOCK PARTNER TIER</div>
+          <div style={{ fontSize: 11, color: '#5a5550', fontFamily: "'Space Mono', monospace", marginTop: 2 }}>Mediterranean Trip + Whistler unlocked at Partner</div>
         </div>
         <a
           href="/#membership"
-          style={{ padding: '6px 14px', fontSize: 9, letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace", fontWeight: 700, border: '1px solid var(--accent)', color: 'var(--accent)', background: 'transparent', borderRadius: 1, textDecoration: 'none', cursor: 'pointer' }}
+          style={{ padding: '6px 14px', fontSize: 11, letterSpacing: '0.15em', fontFamily: "'Space Mono', monospace", fontWeight: 700, border: '1px solid var(--accent)', color: 'var(--accent)', background: 'transparent', borderRadius: 1, textDecoration: 'none', cursor: 'pointer' }}
         >
           HOW →
         </a>
@@ -554,7 +554,7 @@ function Tracks() {
   return (
     <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
       {/* Header */}
-      <div style={{ fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+      <div style={{ fontSize: 11, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
         Tracks &amp; Pathways
       </div>
 
@@ -569,7 +569,7 @@ function Tracks() {
               border: `1px solid ${active === t.id ? t.color : '#1e1e1c'}`,
               background: active === t.id ? `${t.color}18` : 'transparent',
               color: t.locked ? '#5a5550' : (active === t.id ? t.color : '#5a5550'),
-              fontSize: 9, letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace", fontWeight: 700,
+              fontSize: 11, letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace", fontWeight: 700,
               cursor: t.locked ? 'not-allowed' : 'pointer',
               borderRadius: 1, transition: 'all 0.15s',
               opacity: t.locked ? 0.5 : 1,
@@ -620,11 +620,11 @@ function Tracks() {
                   <span style={{ fontSize: 11, fontFamily: "'Space Mono', monospace", color: isActive ? t.color : '#ede8dc', fontWeight: 700, letterSpacing: '0.1em' }}>
                     {t.label}
                   </span>
-                  <span style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ fontSize: 10, color: '#5a5550', fontFamily: "'Space Mono', monospace" }}>
                     LVL {t.level}
                   </span>
                   {t.locked && (
-                    <span style={{ fontSize: 8, letterSpacing: '0.15em', color: 'var(--accent2)', border: '1px solid var(--accent2)', borderRadius: 2, padding: '1px 5px', fontFamily: "'Space Mono', monospace" }}>
+                    <span style={{ fontSize: 10, letterSpacing: '0.15em', color: 'var(--accent2)', border: '1px solid var(--accent2)', borderRadius: 2, padding: '1px 5px', fontFamily: "'Space Mono', monospace" }}>
                       LOCKED · PARTNER+
                     </span>
                   )}
@@ -637,10 +637,10 @@ function Tracks() {
 
               {/* XP + members */}
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: '#5a5550', fontWeight: 700 }}>
+                <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", fontVariantNumeric: 'tabular-nums', color: '#5a5550', fontWeight: 500 }}>
                   {t.xp.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 8, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.1em' }}>
+                <div style={{ fontSize: 10, color: '#5a5550', fontFamily: "'Space Mono', monospace", letterSpacing: '0.1em' }}>
                   XP · {t.members} ACTIVE
                 </div>
               </div>
@@ -1701,7 +1701,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
        * Grain overlay is inherited from body.grain in globals.css — not re-declared.
        */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
         .rh-dash {
           --bg:      #0a0a08;
@@ -1727,7 +1727,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
         .rh-tab-btn {
           padding: 0.9rem 1.4rem;
           font-family: 'Space Mono', monospace;
-          font-size: 0.7rem;
+          font-size: 0.75rem;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: #8a7d6a;
@@ -1770,14 +1770,14 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
           margin: 0 0 0.5rem 0;
         }
         .rh-body {
-          font-size: 0.75rem;
+          font-size: 0.8rem;
           line-height: 1.8;
           color: #8a7d6a;
           margin: 0.5rem 0 0 0;
         }
         .rh-label {
           font-family: 'Space Mono', monospace;
-          font-size: 0.65rem;
+          font-size: 0.7rem;
           letter-spacing: 0.2em;
           text-transform: uppercase;
           color: #8a7d6a;
@@ -1817,14 +1817,15 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
 
         /* Stats */
         .rh-stat-value {
-          font-family: 'Syne', sans-serif;
-          font-weight: 700;
-          font-size: 1.1rem;
+          font-family: 'DM Mono', monospace;
+          font-weight: 500;
+          font-size: 1.2rem;
+          font-variant-numeric: tabular-nums;
           color: #e2d9c8;
           margin-bottom: 0.25rem;
         }
         .rh-stat-note {
-          font-size: 0.68rem;
+          font-size: 0.72rem;
           color: #4a4238;
           line-height: 1.5;
         }
@@ -1877,13 +1878,13 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
         .rh-table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           margin-top: 0.75rem;
         }
         .rh-table th {
           text-align: left;
           padding: 0.5rem 0.75rem;
-          font-size: 0.6rem;
+          font-size: 0.65rem;
           letter-spacing: 0.2em;
           text-transform: uppercase;
           color: #4a4238;
@@ -1906,12 +1907,12 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
         }
         .rh-stack-item { display: flex; gap: 1rem; align-items: baseline; }
         .rh-stack-name {
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           font-weight: 700;
           min-width: 180px;
           flex-shrink: 0;
         }
-        .rh-stack-role { font-size: 0.68rem; color: #4a4238; }
+        .rh-stack-role { font-size: 0.72rem; color: #4a4238; }
 
         /* Research grid */
         .rh-research-grid {
