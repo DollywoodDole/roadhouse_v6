@@ -75,5 +75,23 @@
     "title": "2024 Chevrolet Malibu 1LT",
     "posted_at": null,
     "dry_run": true
+  },
+  "1FMCU9GN8RUA72301": {
+    "title": "2024 Ford Escape Active AWD",
+    "posted_at": "2026-05-10T15:55:31.465899+00:00",
+    "dry_run": false,
+    "success": true
+  },
+  "1C4HJXDN7JW135036": {
+    "title": "2018 Jeep Wrangler Unlimited Sport",
+    "posted_at": "2026-05-10T15:55:47.379584+00:00",
+    "dry_run": false,
+    "success": true
+  },
+  "WDD3F4HB5KJ075742": {
+    "title": "2019 Mercedes-Benz A-Class A 250 4MATIC Hatch",
+    "posted_at": "2026-05-10T15:56:00.212101+00:00",
+    "dry_run": false,
+    "success": true
   }
 }
