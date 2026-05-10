@@ -93,7 +93,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
               href="/motors/credit"
               className="bg-white text-black text-sm font-semibold tracking-wider uppercase px-5 py-3 rounded hover:bg-white/90 transition-colors whitespace-nowrap"
             >
-              Get Pre-Approved
+              Get Pre-Qualified
             </Link>
           </div>
         </div>
