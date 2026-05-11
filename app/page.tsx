@@ -14,7 +14,6 @@ import Sponsorships from '@/components/sections/Sponsorships'
 import Guilds from '@/components/sections/Guilds'
 import Roadmap from '@/components/sections/Roadmap'
 import Branches from '@/components/sections/Branches'
-import CoconutCowboy from '@/components/sections/CoconutCowboy'
 import OpportunitiesAndContact from '@/components/sections/OpportunitiesAndContact'
 import RoadToken from '@/components/sections/RoadToken'
 import FoundingMint from '@/components/sections/FoundingMint'
@@ -49,11 +48,11 @@ export default async function Home() {
         )}
         <Hero />
         <SectionDivider />
-        <KickStream />
+        <Branches showcaseVehicles={showcaseVehicles} />
         <SectionDivider />
         <Merch />
         <SectionDivider />
-        <Branches showcaseVehicles={showcaseVehicles} />
+        <KickStream />
         <SectionDivider />
         <CommunityFeed />
         <SectionDivider />
@@ -74,8 +73,6 @@ export default async function Home() {
         <FoundingMint />
         <SectionDivider />
         <Roadmap />
-        <SectionDivider />
-        <CoconutCowboy />
         <SectionDivider />
         <OpportunitiesAndContact />
 
