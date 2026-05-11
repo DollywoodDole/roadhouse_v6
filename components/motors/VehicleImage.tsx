@@ -18,7 +18,10 @@ interface VehicleImageProps {
 
 export default function VehicleImage({ src, alt, fill, className, sizes, priority, width, height }: VehicleImageProps) {
   const [imgSrc, setImgSrc] = useState(src)
-  const isSvg = imgSrc.endsWith('.svg')
+  // Bypass Next.js optimization for external CDN URLs — the optimizer fails at
+  // large sizes (detail page ~60vw), triggering onError → coming-soon fallback.
+  // Local /public/ assets are still optimized normally.
+  const unoptimized = imgSrc.startsWith('http') || imgSrc.endsWith('.svg')
 
   return (
     <Image
@@ -30,7 +33,7 @@ export default function VehicleImage({ src, alt, fill, className, sizes, priorit
       className={className}
       sizes={sizes}
       priority={priority}
-      unoptimized={isSvg}
+      unoptimized={unoptimized}
       onError={() => { if (imgSrc !== FALLBACK) setImgSrc(FALLBACK) }}
     />
   )
