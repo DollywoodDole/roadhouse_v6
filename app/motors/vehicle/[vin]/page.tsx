@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
-import VehicleImage from '@/components/motors/VehicleImage'
+import VehicleGallery from '@/components/motors/VehicleGallery'
 import PaymentEstimator from '@/components/motors/PaymentEstimator'
 import { getVehicleByVin } from '@/lib/motors/storage'
 import { SEED_DEALER_ID } from '@/lib/motors/seed'
-import { clsx } from 'clsx'
 import type { Vehicle } from '@/types/inventory'
 
 interface PageProps {
@@ -113,12 +111,6 @@ function vehicleJsonLd(v: Vehicle) {
   }
 }
 
-const STATUS_STYLE = {
-  available: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-  pending:   'bg-amber-500/20  text-amber-400  border border-amber-500/30',
-  sold:      'bg-red-500/20    text-red-400    border border-red-500/30',
-}
-
 function SpecRow({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-start justify-between py-3 border-b border-white/[0.06]">
@@ -170,44 +162,11 @@ export default async function VehicleDetailPage({ params }: PageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Left — images + specs */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Primary image */}
-            <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-[#1A1A1A]">
-              <VehicleImage
-                src={vehicle.images[0] ?? '/motors/rh-coming-soon.svg'}
-                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-              <div className="absolute bottom-4 left-4 opacity-25">
-                <Image src="/motors/rh-logo.png" alt="RoadHouse" width={96} height={33} className="object-contain" unoptimized />
-              </div>
-              <span className={clsx(
-                'absolute top-4 right-4 text-xs font-semibold tracking-widest uppercase px-3 py-1.5 rounded-full backdrop-blur-sm',
-                STATUS_STYLE[vehicle.status]
-              )}>
-                {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-              </span>
-            </div>
-
-            {/* Additional images */}
-            {vehicle.images.length > 1 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {vehicle.images.slice(1, 8).map((src, i) => (
-                  <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#1A1A1A]">
-                    <VehicleImage
-                      src={src}
-                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — photo ${i + 2}`}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-300"
-                      sizes="25vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <VehicleGallery
+              images={vehicle.images.length > 0 ? vehicle.images : ['/motors/rh-coming-soon.svg']}
+              alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              status={vehicle.status}
+            />
 
             {/* Spec table */}
             <div className="bg-[#111111] border border-white/10 rounded-xl px-5 py-2">
