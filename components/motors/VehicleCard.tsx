@@ -46,6 +46,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
       className="group bg-[#111111] border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-colors"
     >
       {/* Image */}
+      <Link href={`/motors/vehicle/${vehicle.vin}`} tabIndex={-1} aria-hidden>
       <div className="relative aspect-[16/10] overflow-hidden bg-[#1A1A1A]">
         <VehicleImage
           src={vehicle.images[0] ?? '/motors/rh-coming-soon.svg'}
@@ -78,6 +79,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
           {badge.label}
         </span>
       </div>
+      </Link>
 
       {/* Content */}
       <div className="p-3 md:p-5 space-y-2 md:space-y-3">
