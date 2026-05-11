@@ -11,12 +11,10 @@ import Events from '@/components/sections/Events'
 import Adventures from '@/components/sections/Adventures'
 import Compound from '@/components/sections/Compound'
 import Sponsorships from '@/components/sections/Sponsorships'
-import Guilds from '@/components/sections/Guilds'
+import EcosystemDAO from '@/components/sections/EcosystemDAO'
 import Roadmap from '@/components/sections/Roadmap'
 import Branches from '@/components/sections/Branches'
 import OpportunitiesAndContact from '@/components/sections/OpportunitiesAndContact'
-import RoadToken from '@/components/sections/RoadToken'
-import FoundingMint from '@/components/sections/FoundingMint'
 import SectionDivider from '@/components/ui/SectionDivider'
 
 export default async function Home() {
@@ -66,11 +64,7 @@ export default async function Home() {
         <SectionDivider />
         <Sponsorships />
         <SectionDivider />
-        <Guilds />
-        <SectionDivider />
-        <RoadToken />
-        <SectionDivider />
-        <FoundingMint />
+        <EcosystemDAO />
         <SectionDivider />
         <Roadmap />
         <SectionDivider />
