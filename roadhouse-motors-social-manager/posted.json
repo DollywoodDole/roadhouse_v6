@@ -111,5 +111,23 @@
     "posted_at": null,
     "dry_run": false,
     "success": false
+  },
+  "WDDZF4KB4HA148076": {
+    "title": "2017 Mercedes-Benz E-Class 4dr Sdn E 300 4MATIC",
+    "posted_at": "2026-05-11T19:41:51.750948+00:00",
+    "dry_run": false,
+    "success": true
+  },
+  "1FMDE7BH1SLA58212": {
+    "title": "2025 Ford Bronco Big Bend 4 Door 4x4",
+    "posted_at": "2026-05-11T19:42:06.648916+00:00",
+    "dry_run": false,
+    "success": true
+  },
+  "1FMSK8DH3RGA22401": {
+    "title": "2024 Ford Explorer XLT 4WD",
+    "posted_at": "2026-05-11T19:42:19.083076+00:00",
+    "dry_run": false,
+    "success": true
   }
 }
