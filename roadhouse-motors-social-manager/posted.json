@@ -93,5 +93,23 @@
     "posted_at": "2026-05-10T15:56:00.212101+00:00",
     "dry_run": false,
     "success": true
+  },
+  "WAUPFAF24MN084728": {
+    "title": "2021 Audi S7 Sportback 2.9 TFSI",
+    "posted_at": null,
+    "dry_run": false,
+    "success": false
+  },
+  "2C4RC1FG1NR191921": {
+    "title": "2022 Chrysler Pacifica Touring",
+    "posted_at": null,
+    "dry_run": false,
+    "success": false
+  },
+  "2C4RC1BG4PR572087": {
+    "title": "2023 Chrysler Pacifica Touring L",
+    "posted_at": null,
+    "dry_run": false,
+    "success": false
   }
 }
