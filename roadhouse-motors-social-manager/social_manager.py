@@ -264,7 +264,7 @@ def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
+def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> bool:
     print(f"\nRoadHouse Motors Social Manager")
     print(f"Mode : {'DRY RUN — preview only' if dry_run else 'LIVE — posting to Facebook'}")
     print(f"Time : {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -273,14 +273,14 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
     # Guard
     if not CRON_SECRET:
         print("ERROR: CRON_SECRET not set in .env")
-        return
+        return False
     if not ANTHROPIC_KEY:
         print("ERROR: ANTHROPIC_API_KEY not set in .env")
-        return
+        return False
     if not dry_run:
         print("Checking FB token...")
         if not check_fb_token():
-            return
+            return False
         print()
 
     # Fetch inventory
@@ -289,7 +289,7 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
         vehicles = fetch_inventory()
     except Exception as e:
         print(f"ERROR: Could not fetch feed — {e}")
-        return
+        return False
     print(f"  {len(vehicles)} vehicles in feed")
 
     posted = load_posted()
@@ -358,9 +358,14 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> None:
     if dry_run:
         print(f"Dry run complete. {len(newly_posted)} post(s) previewed and logged to posted.json.")
         print("Run with --live when ready to publish.")
+        return True
     else:
         ok = sum(1 for r in newly_posted.values() if r.get("success"))
         print(f"Done. {ok}/{len(picks)} post(s) published to Facebook.")
+        if ok == 0:
+            print("ERROR: All posts failed — check FB token and page permissions.")
+            return False
+        return True
 
 
 if __name__ == "__main__":
@@ -390,4 +395,5 @@ if __name__ == "__main__":
         else:
             print("posted.json not found — nothing to clear.\n")
 
-    run(dry_run=not args.live, limit=args.limit)
+    success = run(dry_run=not args.live, limit=args.limit)
+    sys.exit(0 if success else 1)
