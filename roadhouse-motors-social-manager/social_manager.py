@@ -1,14 +1,16 @@
 """
-RoadHouse Motors — Facebook Social Manager
-------------------------------------------
+RoadHouse Motors — Social Manager (Facebook + Instagram)
+---------------------------------------------------------
 Pulls live inventory from the feed API, generates posts with Claude,
-and publishes to the RoadHouse Motors Facebook Page.
+and publishes to the RoadHouse Motors Facebook Page and Instagram account.
 
 Usage:
   python social_manager.py              # dry run (preview only)
-  python social_manager.py --live       # post to Facebook
-  python social_manager.py --limit 1   # post fewer vehicles
-  python social_manager.py --reset     # clear posted.json and start fresh
+  python social_manager.py --live       # post to Facebook + Instagram
+  python social_manager.py --limit 1    # post fewer vehicles
+  python social_manager.py --reset      # clear posted.json and start fresh
+  python social_manager.py --backfill --live   # post IG-only for previously FB-posted vehicles
+  python social_manager.py --backfill --limit 10   # preview backfill (dry run)
 """
 
 import os
@@ -31,34 +33,30 @@ load_dotenv()
 # ── Config ────────────────────────────────────────────────────────────────────
 
 FEED_URL       = "https://motors.roadhouse.capital/api/motors/feed?format=json"
-FB_GRAPH_URL   = "https://graph.facebook.com/v20.0"
+GRAPH_URL      = "https://graph.facebook.com/v20.0"
 FB_PAGE_ID     = os.getenv("FB_PAGE_ID", "1047748735096733")
 FB_PAGE_TOKEN  = os.getenv("FB_PAGE_ACCESS_TOKEN", "")
+IG_USER_ID     = os.getenv("IG_USER_ID", "")
 CRON_SECRET    = os.getenv("CRON_SECRET", "")
 ANTHROPIC_KEY  = os.getenv("ANTHROPIC_API_KEY", "")
 POSTED_FILE    = Path(__file__).parent / "posted.json"
 POSTS_PER_RUN  = 3
+BACKFILL_LIMIT = 10   # default IG-only backfill per run (IG cap: 25/day)
 CLAUDE_MODEL   = "claude-sonnet-4-6"
 
 client = Anthropic(api_key=ANTHROPIC_KEY)
 
 # ── Token health ──────────────────────────────────────────────────────────────
 
-WARN_DAYS = 14  # warn when token expires within this many days
+WARN_DAYS = 14
 
 def check_fb_token() -> bool:
-    """
-    Validates FB_PAGE_ACCESS_TOKEN via /debug_token.
-    - Exits (returns False) if token is invalid or expired.
-    - Prints a warning if token expires within WARN_DAYS days.
-    - Returns True if token is healthy.
-    """
     if not FB_PAGE_TOKEN:
         print("ERROR: FB_PAGE_ACCESS_TOKEN not set.")
         return False
 
     resp = requests.get(
-        f"{FB_GRAPH_URL}/debug_token",
+        f"{GRAPH_URL}/debug_token",
         params={"input_token": FB_PAGE_TOKEN, "access_token": FB_PAGE_TOKEN},
         timeout=15,
     )
@@ -72,7 +70,6 @@ def check_fb_token() -> bool:
 
     expires_at = data.get("expires_at", 0)
     if expires_at:
-        from datetime import datetime, timezone
         expires_dt = datetime.fromtimestamp(expires_at, tz=timezone.utc)
         days_left  = (expires_dt - datetime.now(timezone.utc)).days
         if days_left <= WARN_DAYS:
@@ -109,7 +106,7 @@ def save_posted(posted: dict) -> None:
 
 
 def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
-    """Available only, not yet posted, has real CDN images, newest first."""
+    """Available, not yet posted anywhere, has real CDN images, newest first."""
     candidates = [
         v for v in vehicles
         if v.get("status") == "available"
@@ -119,6 +116,33 @@ def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
     candidates.sort(key=lambda v: v.get("updated_at", ""), reverse=True)
     return candidates[:limit]
 
+
+def pick_ig_backfill(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
+    """
+    Vehicles already FB-posted (in posted.json) but not yet on IG.
+    Oldest FB post first so we backfill chronologically.
+    """
+    vin_map = {v["vin"]: v for v in vehicles if v.get("vin")}
+    candidates = []
+    for vin, entry in posted.items():
+        if entry.get("ig_posted_at"):
+            continue                       # already on IG
+        if not entry.get("success", entry.get("fb_success", True)):
+            continue                       # FB post itself failed
+        if vin not in vin_map:
+            continue                       # no longer in inventory feed
+        vehicle = vin_map[vin]
+        if vehicle.get("status") != "available":
+            continue
+        images = [img for img in (vehicle.get("images") or []) if img.startswith("http")]
+        if not images:
+            continue
+        candidates.append((entry.get("posted_at", entry.get("fb_posted_at", "")), vehicle))
+
+    candidates.sort(key=lambda x: x[0] or "")   # chronological order, None-safe
+    return [v for _, v in candidates[:limit]]
+
+
 # ── Post generation ───────────────────────────────────────────────────────────
 
 def _fmt_price(val) -> str:
@@ -126,6 +150,16 @@ def _fmt_price(val) -> str:
 
 def _fmt_km(val) -> str:
     return f"{int(val):,} km" if isinstance(val, (int, float)) else str(val)
+
+def _ig_hashtags(vehicle: dict) -> str:
+    make  = vehicle.get("make", "").replace(" ", "").replace("-", "")
+    model = vehicle.get("model", "").replace(" ", "").replace("-", "")
+    tags  = ["#Saskatchewan", "#UsedVehicles", "#RoadHouseMotors", "#SaskatchewanCars"]
+    if make:
+        tags.append(f"#{make}")
+    if model and model.lower() != make.lower():
+        tags.append(f"#{model}")
+    return "\n\n" + " ".join(tags)
 
 
 def generate_post(vehicle: dict) -> str:
@@ -152,7 +186,7 @@ Vehicle:
 
 Brand voice: Direct. Unfiltered. High-standard. No filler, no hype, no urgency tactics. "Where Standards Matter."
 
-Write ONE Facebook post. Rules:
+Write ONE social media post (used for both Facebook and Instagram). Rules:
 
 FCAA / Saskatchewan dealer compliance (non-negotiable):
 - Advertised price must be presented as-is with no financing or payment breakdown unless fully disclosed — do not mention monthly payments, interest rates, or financing terms
@@ -179,13 +213,13 @@ Content rules:
     )
     return message.content[0].text.strip()
 
+
 # ── Facebook ──────────────────────────────────────────────────────────────────
 
 def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
     if len(image_urls) == 1:
-        # Single photo post with caption
         resp = requests.post(
-            f"{FB_GRAPH_URL}/{FB_PAGE_ID}/photos",
+            f"{GRAPH_URL}/{FB_PAGE_ID}/photos",
             data={
                 "url":          image_urls[0],
                 "caption":      message,
@@ -195,18 +229,17 @@ def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
         )
         result = resp.json()
         if "id" in result:
-            print(f"  Published: https://www.facebook.com/{result['id']}")
+            print(f"  FB:  Published: https://www.facebook.com/{result['id']}")
             return True
         err = result.get("error", {})
-        print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        print(f"  FB:  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
         return False
 
     elif len(image_urls) > 1:
-        # Multi-photo post: upload each as unpublished, then attach to a single feed post
         media_ids = []
         for img_url in image_urls:
             r = requests.post(
-                f"{FB_GRAPH_URL}/{FB_PAGE_ID}/photos",
+                f"{GRAPH_URL}/{FB_PAGE_ID}/photos",
                 data={
                     "url":          img_url,
                     "published":    "false",
@@ -219,15 +252,15 @@ def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
                 media_ids.append(r_json["id"])
             else:
                 err = r_json.get("error", {})
-                print(f"  Warning: could not upload photo {img_url} [{err.get('code', '?')}]: {err.get('message', r_json)}")
+                print(f"  FB:  Warning: could not upload photo [{err.get('code', '?')}]: {err.get('message', r_json)}")
 
         if not media_ids:
-            print("  Failed: no photos uploaded successfully")
+            print("  FB:  Failed: no photos uploaded successfully")
             return False
 
         attached = json.dumps([{"media_fbid": mid} for mid in media_ids])
         resp = requests.post(
-            f"{FB_GRAPH_URL}/{FB_PAGE_ID}/feed",
+            f"{GRAPH_URL}/{FB_PAGE_ID}/feed",
             data={
                 "message":        message,
                 "attached_media": attached,
@@ -237,16 +270,15 @@ def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
         )
         result = resp.json()
         if "id" in result:
-            print(f"  Published ({len(media_ids)} photos): https://www.facebook.com/{result['id']}")
+            print(f"  FB:  Published ({len(media_ids)} photos): https://www.facebook.com/{result['id']}")
             return True
         err = result.get("error", {})
-        print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        print(f"  FB:  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
         return False
 
     else:
-        # No images — text post with link attachment
         resp = requests.post(
-            f"{FB_GRAPH_URL}/{FB_PAGE_ID}/feed",
+            f"{GRAPH_URL}/{FB_PAGE_ID}/feed",
             data={
                 "message":      message,
                 "link":         link,
@@ -256,21 +288,130 @@ def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
         )
         result = resp.json()
         if "id" in result:
-            print(f"  Published: https://www.facebook.com/{result['id']}")
+            print(f"  FB:  Published: https://www.facebook.com/{result['id']}")
             return True
         err = result.get("error", {})
-        print(f"  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        print(f"  FB:  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
         return False
+
+
+# ── Instagram ─────────────────────────────────────────────────────────────────
+
+def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
+    """
+    Publish to Instagram Business via Graph API.
+    Requires IG_USER_ID env var and FB_PAGE_ACCESS_TOKEN with:
+      instagram_basic + instagram_content_publish scopes.
+    """
+    if not IG_USER_ID:
+        print("  IG:  Skipped — IG_USER_ID not set")
+        return False
+
+    images = image_urls[:10]  # IG carousel max is 10
+
+    if len(images) == 1:
+        # Single image container
+        r = requests.post(
+            f"{GRAPH_URL}/{IG_USER_ID}/media",
+            data={
+                "image_url":    images[0],
+                "caption":      caption,
+                "access_token": FB_PAGE_TOKEN,
+            },
+            timeout=30,
+        )
+        result = r.json()
+        if "id" not in result:
+            err = result.get("error", {})
+            print(f"  IG:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
+            return False
+        creation_id = result["id"]
+
+    elif len(images) > 1:
+        # Carousel: upload each item, then create carousel container
+        item_ids = []
+        for img_url in images:
+            r = requests.post(
+                f"{GRAPH_URL}/{IG_USER_ID}/media",
+                data={
+                    "image_url":        img_url,
+                    "is_carousel_item": "true",
+                    "access_token":     FB_PAGE_TOKEN,
+                },
+                timeout=30,
+            )
+            rj = r.json()
+            if "id" in rj:
+                item_ids.append(rj["id"])
+            else:
+                err = rj.get("error", {})
+                print(f"  IG:  Warning: carousel item failed [{err.get('code','?')}]: {err.get('message', rj)}")
+
+        if not item_ids:
+            print("  IG:  Failed — no carousel items uploaded")
+            return False
+
+        r = requests.post(
+            f"{GRAPH_URL}/{IG_USER_ID}/media",
+            data={
+                "media_type":   "CAROUSEL",
+                "children":     ",".join(item_ids),
+                "caption":      caption,
+                "access_token": FB_PAGE_TOKEN,
+            },
+            timeout=30,
+        )
+        result = r.json()
+        if "id" not in result:
+            err = result.get("error", {})
+            print(f"  IG:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
+            return False
+        creation_id = result["id"]
+
+    else:
+        print("  IG:  Skipped — no images")
+        return False
+
+    # Publish the container
+    r = requests.post(
+        f"{GRAPH_URL}/{IG_USER_ID}/media_publish",
+        data={
+            "creation_id":  creation_id,
+            "access_token": FB_PAGE_TOKEN,
+        },
+        timeout=30,
+    )
+    result = r.json()
+    if "id" in result:
+        print(f"  IG:  Published ({len(images)} photo{'s' if len(images) > 1 else ''}): post id {result['id']}")
+        return True
+    err = result.get("error", {})
+    print(f"  IG:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
+    return False
+
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> bool:
+def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False) -> bool:
+    platforms = []
+    if not backfill:
+        platforms.append("Facebook")
+    if IG_USER_ID or backfill:
+        platforms.append("Instagram")
+    platform_str = " + ".join(platforms) if platforms else "Facebook + Instagram"
+
+    if backfill:
+        mode_label = f"BACKFILL — IG-only for previously FB-posted vehicles ({'dry run' if dry_run else 'live'})"
+    elif dry_run:
+        mode_label = "DRY RUN — preview only"
+    else:
+        mode_label = f"LIVE — posting to {platform_str}"
+
     print(f"\nRoadHouse Motors Social Manager")
-    print(f"Mode : {'DRY RUN — preview only' if dry_run else 'LIVE — posting to Facebook'}")
+    print(f"Mode : {mode_label}")
     print(f"Time : {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print()
 
-    # Guard
     if not CRON_SECRET:
         print("ERROR: CRON_SECRET not set in .env")
         return False
@@ -281,9 +422,15 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> bool:
         print("Checking FB token...")
         if not check_fb_token():
             return False
+        if IG_USER_ID:
+            print(f"  IG user ID: {IG_USER_ID}")
+        else:
+            if backfill:
+                print("ERROR: IG_USER_ID not set — required for backfill")
+                return False
+            print("  IG_USER_ID not set — Instagram will be skipped")
         print()
 
-    # Fetch inventory
     print("Fetching inventory...")
     try:
         vehicles = fetch_inventory()
@@ -293,39 +440,49 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> bool:
     print(f"  {len(vehicles)} vehicles in feed")
 
     posted = load_posted()
-    picks  = pick_vehicles(vehicles, posted, limit)
+
+    if backfill:
+        picks = pick_ig_backfill(vehicles, posted, limit)
+        action_label = "IG backfill"
+    else:
+        picks = pick_vehicles(vehicles, posted, limit)
+        action_label = "new post"
 
     if not picks:
-        print("  Nothing new to post — all available inventory already in posted.json.")
-        print("  Run with --reset to clear history and start fresh.")
-        return
+        if backfill:
+            print("  Nothing to backfill — all FB-posted vehicles are already on Instagram.")
+        else:
+            print("  Nothing new to post — all available inventory already in posted.json.")
+            print("  Run with --reset to clear history and start fresh.")
+        return True
 
-    print(f"  {len(picks)} selected\n")
+    print(f"  {len(picks)} selected ({action_label})\n")
 
-    # Generate and post
     newly_posted: dict = {}
 
     for i, v in enumerate(picks, 1):
-        vin       = v["vin"]
-        title     = f"{v.get('year')} {v.get('make')} {v.get('model')} {v.get('trim', '')}".strip()
-        url       = v.get("url", "https://motors.roadhouse.capital")
-        price     = _fmt_price(v.get("price_cad"))
-        km        = _fmt_km(v.get("mileage_km"))
+        vin   = v["vin"]
+        title = f"{v.get('year')} {v.get('make')} {v.get('model')} {v.get('trim', '')}".strip()
+        url   = v.get("url", "https://motors.roadhouse.capital")
+        price = _fmt_price(v.get("price_cad"))
+        km    = _fmt_km(v.get("mileage_km"))
+
         images      = [img for img in (v.get("images") or []) if img.startswith("http")]
-        # Skip images[0] — O'Brian's first gallery shot is the branded hero overlay.
-        # images[1:4] are the clean exterior/interior photos from the same batch (up to 3).
-        post_images = images[1:4] if len(images) > 1 else (images[:1] if images else [])
+        raw_images  = images[1:4] if len(images) > 1 else (images[:1] if images else [])
+        post_images = [raw_images[1], raw_images[0]] + raw_images[2:] if len(raw_images) >= 2 else raw_images
 
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
         print(f"  Images: {len(post_images)} ({', '.join(post_images) or 'none'})")
-
         print("  Generating post...")
+
         try:
             post_text = generate_post(v)
         except Exception as e:
             print(f"  ERROR: Claude generation failed — {e}\n")
             continue
+
+        ig_caption = post_text + _ig_hashtags(v)
 
         print()
         print("  --- POST PREVIEW " + "-" * 40)
@@ -333,59 +490,78 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN) -> bool:
             print(f"  | {line}")
         print(f"  |")
         print(f"  | [link: {url}]")
+        if IG_USER_ID or backfill:
+            print(f"  | [IG caption appends: {_ig_hashtags(v).strip()}]")
         print("  " + "-" * 57)
         print()
 
+        existing = posted.get(vin, {"title": title})
+
         if dry_run:
             newly_posted[vin] = {
+                **existing,
                 "title": title,
-                "posted_at": None,
                 "dry_run": True,
             }
-        else:
-            success = post_to_facebook(post_text, url, post_images)
+        elif backfill:
+            ig_ok = post_to_instagram(ig_caption, post_images)
             newly_posted[vin] = {
-                "title": title,
-                "posted_at": datetime.now(timezone.utc).isoformat() if success else None,
-                "dry_run": False,
-                "success": success,
+                **existing,
+                "ig_posted_at": datetime.now(timezone.utc).isoformat() if ig_ok else None,
+                "ig_success":   ig_ok,
             }
+        else:
+            fb_ok = post_to_facebook(post_text, url, post_images)
+            ig_ok = post_to_instagram(ig_caption, post_images) if (IG_USER_ID and post_images) else None
 
-    # Persist
+            entry = {
+                **existing,
+                "title":        title,
+                "posted_at":    datetime.now(timezone.utc).isoformat() if fb_ok else None,
+                "dry_run":      False,
+                "success":      fb_ok,
+            }
+            if ig_ok is not None:
+                entry["ig_posted_at"] = datetime.now(timezone.utc).isoformat() if ig_ok else None
+                entry["ig_success"]   = ig_ok
+            newly_posted[vin] = entry
+
+        print()
+
     posted.update(newly_posted)
     save_posted(posted)
 
     if dry_run:
-        print(f"Dry run complete. {len(newly_posted)} post(s) previewed and logged to posted.json.")
+        print(f"Dry run complete. {len(newly_posted)} post(s) previewed.")
         print("Run with --live when ready to publish.")
         return True
-    else:
-        ok = sum(1 for r in newly_posted.values() if r.get("success"))
-        print(f"Done. {ok}/{len(picks)} post(s) published to Facebook.")
+    elif backfill:
+        ok = sum(1 for r in newly_posted.values() if r.get("ig_success"))
+        print(f"Backfill done. {ok}/{len(picks)} post(s) published to Instagram.")
         if ok == 0:
-            print("ERROR: All posts failed — check FB token and page permissions.")
+            print("ERROR: All IG posts failed — check IG_USER_ID and token scopes.")
+            return False
+        return True
+    else:
+        fb_ok = sum(1 for r in newly_posted.values() if r.get("success"))
+        ig_ok = sum(1 for r in newly_posted.values() if r.get("ig_success"))
+        print(f"Done. {fb_ok}/{len(picks)} post(s) published to Facebook.", end="")
+        if IG_USER_ID:
+            print(f"  {ig_ok}/{len(picks)} published to Instagram.")
+        else:
+            print()
+        if fb_ok == 0:
+            print("ERROR: All FB posts failed — check FB token and page permissions.")
             return False
         return True
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="RoadHouse Motors Facebook Social Manager")
-    parser.add_argument(
-        "--live",
-        action="store_true",
-        help="Publish posts to Facebook (default is dry run)",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=POSTS_PER_RUN,
-        help=f"Max posts per run (default: {POSTS_PER_RUN})",
-    )
-    parser.add_argument(
-        "--reset",
-        action="store_true",
-        help="Clear posted.json history and start fresh",
-    )
+    parser = argparse.ArgumentParser(description="RoadHouse Motors Social Manager (Facebook + Instagram)")
+    parser.add_argument("--live",     action="store_true", help="Publish posts (default is dry run)")
+    parser.add_argument("--limit",    type=int, default=None, help=f"Max posts per run")
+    parser.add_argument("--reset",    action="store_true", help="Clear posted.json history and start fresh")
+    parser.add_argument("--backfill", action="store_true", help="Post IG-only for previously FB-posted vehicles")
     args = parser.parse_args()
 
     if args.reset:
@@ -395,5 +571,8 @@ if __name__ == "__main__":
         else:
             print("posted.json not found — nothing to clear.\n")
 
-    success = run(dry_run=not args.live, limit=args.limit)
+    default_limit = BACKFILL_LIMIT if args.backfill else POSTS_PER_RUN
+    limit = args.limit if args.limit is not None else default_limit
+
+    success = run(dry_run=not args.live, limit=limit, backfill=args.backfill)
     sys.exit(0 if success else 1)
