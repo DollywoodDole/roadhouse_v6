@@ -17,6 +17,7 @@ import os
 import sys
 import io
 import json
+import time
 import argparse
 import requests
 from datetime import datetime, timezone
@@ -33,7 +34,7 @@ load_dotenv()
 # ── Config ────────────────────────────────────────────────────────────────────
 
 FEED_URL       = "https://motors.roadhouse.capital/api/motors/feed?format=json"
-GRAPH_URL      = "https://graph.facebook.com/v20.0"
+GRAPH_URL      = "https://graph.facebook.com/v25.0"
 FB_PAGE_ID     = os.getenv("FB_PAGE_ID", "1047748735096733")
 FB_PAGE_TOKEN  = os.getenv("FB_PAGE_ACCESS_TOKEN", "")
 IG_USER_ID     = os.getenv("IG_USER_ID", "")
@@ -295,6 +296,28 @@ def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
         return False
 
 
+# ── Instagram helpers ─────────────────────────────────────────────────────────
+
+def _wait_for_ig_container(container_id: str, timeout: int = 60) -> bool:
+    """Poll IG media container until FINISHED or timeout. Returns True if ready."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        r = requests.get(
+            f"{GRAPH_URL}/{container_id}",
+            params={"fields": "status_code", "access_token": FB_PAGE_TOKEN},
+            timeout=15,
+        )
+        status = r.json().get("status_code", "")
+        if status == "FINISHED":
+            return True
+        if status in ("ERROR", "EXPIRED"):
+            print(f"  IG:  Container {container_id} status: {status}")
+            return False
+        time.sleep(4)
+    print(f"  IG:  Container {container_id} timed out waiting for FINISHED")
+    return False
+
+
 # ── Instagram ─────────────────────────────────────────────────────────────────
 
 def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
@@ -326,9 +349,12 @@ def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
             print(f"  IG:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
             return False
         creation_id = result["id"]
+        if not _wait_for_ig_container(creation_id):
+            print("  IG:  Failed — single image container not ready")
+            return False
 
     elif len(images) > 1:
-        # Carousel: upload each item, then create carousel container
+        # Carousel: upload each item, poll until ready, then create carousel container
         item_ids = []
         for img_url in images:
             r = requests.post(
@@ -349,6 +375,12 @@ def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
 
         if not item_ids:
             print("  IG:  Failed — no carousel items uploaded")
+            return False
+
+        # Wait for all item containers to finish processing
+        item_ids = [cid for cid in item_ids if _wait_for_ig_container(cid)]
+        if not item_ids:
+            print("  IG:  Failed — no carousel items reached FINISHED state")
             return False
 
         r = requests.post(
