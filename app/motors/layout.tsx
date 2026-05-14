@@ -115,6 +115,10 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
           />
           <p className="text-white/45 text-sm text-center sm:text-right">
             &copy; {new Date().getFullYear()} RoadHouse Motors &nbsp;&middot;&nbsp; Dealer Licence DL331386 &nbsp;&middot;&nbsp; Saskatchewan, Canada
+            &nbsp;&middot;&nbsp;{' '}
+            <Link href="/motors/privacy" className="hover:text-white/70 transition-colors underline underline-offset-2">
+              Privacy Policy
+            </Link>
           </p>
         </div>
       </footer>
