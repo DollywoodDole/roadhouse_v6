@@ -255,5 +255,29 @@
     "success": false,
     "ig_posted_at": null,
     "ig_success": false
+  },
+  "KMHRC8A39MU095254": {
+    "title": "2021 Hyundai Venue Preferred",
+    "posted_at": "2026-05-14T21:36:05.107368+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
+  },
+  "ZACNJDB17PPP45345": {
+    "title": "2023 Jeep Renegade North",
+    "posted_at": "2026-05-14T21:36:28.495246+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
+  },
+  "3N1CP5CV6RL517674": {
+    "title": "2024 Nissan Kicks SV",
+    "posted_at": "2026-05-14T21:36:54.718155+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
   }
 }
