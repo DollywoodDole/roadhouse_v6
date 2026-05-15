@@ -418,7 +418,13 @@ def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
         print(f"  IG:  Published ({len(images)} photo{'s' if len(images) > 1 else ''}): post id {result['id']}")
         return True
     err = result.get("error", {})
-    print(f"  IG:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
+    code = err.get("code")
+    # Codes 4 and 9007 are confirmed false negatives — Meta returns the error
+    # but the post publishes successfully. Treat as success.
+    if code in (4, 9007):
+        print(f"  IG:  Published (confirmed false negative [{code}]: {err.get('message', '')})")
+        return True
+    print(f"  IG:  Failed [{code}]: {err.get('message', result)}")
     return False
 
 

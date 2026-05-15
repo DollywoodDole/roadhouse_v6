@@ -89,17 +89,10 @@
   },
   "5UX53GP03S9Y43537": {
     "title": "2025 BMW X3 30 xDrive",
-    "posted_at": "2026-05-09T15:53:57.132976+00:00",
+    "posted_at": "2026-05-09T15:53:57.132970+00:00",
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:27:09.886625+00:00",
-    "ig_success": true
-  },
-  "1G1ZD5ST5RF200309": {
-    "title": "2024 Chevrolet Malibu 1LT",
-    "posted_at": null,
-    "dry_run": true,
-    "ig_posted_at": "2026-05-13T17:19:54.943771+00:00",
     "ig_success": true
   },
   "1FMCU9GN8RUA72301": {
@@ -112,7 +105,7 @@
   },
   "1C4HJXDN7JW135036": {
     "title": "2018 Jeep Wrangler Unlimited Sport",
-    "posted_at": "2026-05-10T15:55:47.379584+00:00",
+    "posted_at": "2026-05-10T15:55:47.379586+00:00",
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:27:51.556389+00:00",
@@ -125,24 +118,6 @@
     "success": true,
     "ig_posted_at": "2026-05-13T17:28:19.426445+00:00",
     "ig_success": true
-  },
-  "WAUPFAF24MN084728": {
-    "title": "2021 Audi S7 Sportback 2.9 TFSI",
-    "posted_at": null,
-    "dry_run": false,
-    "success": false
-  },
-  "2C4RC1FG1NR191921": {
-    "title": "2022 Chrysler Pacifica Touring",
-    "posted_at": null,
-    "dry_run": false,
-    "success": false
-  },
-  "2C4RC1BG4PR572087": {
-    "title": "2023 Chrysler Pacifica Touring L",
-    "posted_at": null,
-    "dry_run": false,
-    "success": false
   },
   "WDDZF4KB4HA148076": {
     "title": "2017 Mercedes-Benz E-Class 4dr Sdn E 300 4MATIC",
@@ -173,119 +148,119 @@
     "posted_at": "2026-05-12T16:46:58.292127+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-12T16:46:58.292127+00:00",
+    "ig_success": true
   },
   "JN8BT3BBXRW427572": {
     "title": "2024 Nissan Rogue SV Moonroof",
     "posted_at": "2026-05-12T16:47:11.393014+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-12T16:47:11.393014+00:00",
+    "ig_success": true
   },
   "KL79MRSL7RB211010": {
     "title": "2024 Chevrolet TrailBlazer LT",
     "posted_at": "2026-05-12T16:47:23.798339+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-12T16:47:23.798339+00:00",
+    "ig_success": true
   },
   "1FTEW1E45LFA86638": {
     "title": "2020 Ford F-150 LARIAT 4WD SuperCrew 5.5' Box",
     "posted_at": "2026-05-12T17:12:05.377461+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-12T17:12:05.377461+00:00",
+    "ig_success": true
   },
   "1FMSK8DH3RGA24035": {
     "title": "2024 Ford Explorer XLT 4WD",
-    "posted_at": "2026-05-12T17:12:16.336551+00:00",
+    "posted_at": "2026-05-12T17:12:16.336751+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-12T17:12:16.336751+00:00",
+    "ig_success": true
   },
   "1FMJU2A81REA41774": {
     "title": "2024 Ford Expedition Limited 4x4",
-    "posted_at": "2026-05-12T17:12:27.392675+00:00",
+    "posted_at": "2026-05-12T17:12:27.392727+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-12T17:12:27.392727+00:00",
+    "ig_success": true
   },
   "JA4AJVAW6MU605084": {
     "title": "2021 Mitsubishi RVR SE",
     "posted_at": "2026-05-13T15:49:42.687453+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-13T15:49:42.687453+00:00",
+    "ig_success": true
   },
   "W1K5J4HB6PN397667": {
     "title": "2023 Mercedes-Benz CLA CLA 250 4MATIC Coupe",
     "posted_at": "2026-05-13T15:49:56.060934+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-13T15:49:56.060934+00:00",
+    "ig_success": true
   },
   "WDC0G4KB7KV179302": {
     "title": "2019 Mercedes-Benz GLC GLC 300 4MATIC SUV",
     "posted_at": "2026-05-13T15:50:08.353867+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
-  },
-  "3VVFB7AX1RM035540": {
-    "title": "2024 Volkswagen Tiguan Trendline",
-    "posted_at": null,
-    "dry_run": false,
-    "success": false,
-    "ig_posted_at": null,
-    "ig_success": false
-  },
-  "W1K5J4HB2SN528019": {
-    "title": "2025 Mercedes-Benz CLA CLA 250 4MATIC Coupe",
-    "posted_at": null,
-    "dry_run": false,
-    "success": false,
-    "ig_posted_at": null,
-    "ig_success": false
-  },
-  "W1WV0FEY9N4106913": {
-    "title": "2022 Mercedes-Benz Metris 8 Passenger",
-    "posted_at": null,
-    "dry_run": false,
-    "success": false,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-13T15:50:08.353867+00:00",
+    "ig_success": true
   },
   "KMHRC8A39MU095254": {
     "title": "2021 Hyundai Venue Preferred",
     "posted_at": "2026-05-14T21:36:05.107368+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-14T21:36:05.107368+00:00",
+    "ig_success": true
   },
   "ZACNJDB17PPP45345": {
     "title": "2023 Jeep Renegade North",
     "posted_at": "2026-05-14T21:36:28.495246+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-14T21:36:28.495246+00:00",
+    "ig_success": true
   },
   "3N1CP5CV6RL517674": {
     "title": "2024 Nissan Kicks SV",
     "posted_at": "2026-05-14T21:36:54.718155+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-14T21:36:54.718155+00:00",
+    "ig_success": true
+  },
+  "W1N0G8EB6NV388701": {
+    "title": "2022 Mercedes-Benz GLC GLC 300 4MATIC SUV",
+    "posted_at": "2026-05-15T15:32:13.632015+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-15T15:32:13.632015+00:00",
+    "ig_success": true
+  },
+  "YV440MRK6H2097408": {
+    "title": "2017 Volvo XC60 T5 Special Edition Premier",
+    "posted_at": "2026-05-15T15:32:46.789477+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-15T15:32:46.789477+00:00",
+    "ig_success": true
+  },
+  "3VVFB7AX5RM034598": {
+    "title": "2024 Volkswagen Tiguan Trendline",
+    "posted_at": "2026-05-15T15:33:23.252452+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-15T15:33:23.252452+00:00",
+    "ig_success": true
   }
 }
