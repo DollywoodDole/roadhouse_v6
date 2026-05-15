@@ -262,5 +262,29 @@
     "success": true,
     "ig_posted_at": "2026-05-15T15:33:23.252452+00:00",
     "ig_success": true
+  },
+  "1G1ZD5ST5RF200309": {
+    "title": "2024 Chevrolet Malibu 1LT",
+    "posted_at": "2026-05-15T18:15:59.492816+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-15T18:15:59.492816+00:00",
+    "ig_success": true
+  },
+  "WAUPFAF24MN084728": {
+    "title": "2021 Audi S7 Sportback 2.9 TFSI",
+    "posted_at": "2026-05-15T18:16:34.267573+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-15T18:16:34.267573+00:00",
+    "ig_success": true
+  },
+  "2C4RC1FG1NR191921": {
+    "title": "2022 Chrysler Pacifica Touring",
+    "posted_at": "2026-05-15T18:17:09.098111+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-15T18:17:09.098111+00:00",
+    "ig_success": true
   }
 }
