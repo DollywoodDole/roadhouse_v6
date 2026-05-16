@@ -239,6 +239,14 @@
     "ig_posted_at": "2026-05-14T21:36:54.718155+00:00",
     "ig_success": true
   },
+  "1FMCU9GN1RUA60362": {
+    "title": "2024 Ford Escape Active AWD",
+    "posted_at": "2026-05-15T16:53:11.652079+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
+  },
   "W1N0G8EB6NV388701": {
     "title": "2022 Mercedes-Benz GLC GLC 300 4MATIC SUV",
     "posted_at": "2026-05-15T15:32:13.632015+00:00",
@@ -285,6 +293,54 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-15T18:17:09.098111+00:00",
+    "ig_success": true
+  },
+  "2C4RC1BG4PR572087": {
+    "title": "2023 Chrysler Pacifica Touring L",
+    "posted_at": "2026-05-16T15:59:41.649165+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-16T15:59:41.649165+00:00",
+    "ig_success": true
+  },
+  "3VVFB7AX1RM035540": {
+    "title": "2024 Volkswagen Tiguan Trendline",
+    "posted_at": "2026-05-16T16:00:13.365927+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-16T16:00:13.365927+00:00",
+    "ig_success": true
+  },
+  "W1K5J4HB2SN528019": {
+    "title": "2025 Mercedes-Benz CLA CLA 250 4MATIC Coupe",
+    "posted_at": "2026-05-16T16:00:43.361488+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-16T16:00:43.361488+00:00",
+    "ig_success": true
+  },
+  "W1WV0FEY9N4106913": {
+    "title": "2022 Mercedes-Benz Metris 8 Passenger",
+    "posted_at": "2026-05-16T16:08:30.238602+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-16T16:08:30.238602+00:00",
+    "ig_success": true
+  },
+  "3KPF54AD4ME384754": {
+    "title": "2021 Kia Forte EX",
+    "posted_at": "2026-05-16T16:09:04.934332+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-16T16:09:04.934332+00:00",
+    "ig_success": true
+  },
+  "2C3CDXMG7PH599474": {
+    "title": "2023 Dodge Charger GT",
+    "posted_at": "2026-05-16T16:09:38.776603+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-16T16:09:38.776603+00:00",
     "ig_success": true
   }
 }
