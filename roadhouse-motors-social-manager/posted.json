@@ -342,5 +342,29 @@
     "success": true,
     "ig_posted_at": "2026-05-16T16:09:38.776603+00:00",
     "ig_success": true
+  },
+  "1G1ZD5ST7RF171783": {
+    "title": "2024 Chevrolet Malibu 1LT",
+    "posted_at": "2026-05-17T16:00:05.223285+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-17T16:00:05.223302+00:00",
+    "ig_success": true
+  },
+  "1FTFW1E86PFC07027": {
+    "title": "2023 Ford F-150 XLT 4WD SuperCrew 6.5' Box",
+    "posted_at": "2026-05-17T16:00:51.981144+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-17T16:00:51.981159+00:00",
+    "ig_success": true
+  },
+  "3GNAXUEG1PS207116": {
+    "title": "2023 Chevrolet Equinox LT",
+    "posted_at": "2026-05-17T16:01:29.317536+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-17T16:01:29.317549+00:00",
+    "ig_success": true
   }
 }
