@@ -366,5 +366,29 @@
     "success": true,
     "ig_posted_at": "2026-05-17T16:01:29.317549+00:00",
     "ig_success": true
+  },
+  "2C4RDGEG5LR199843": {
+    "title": "2020 Dodge Grand Caravan GT",
+    "posted_at": null,
+    "dry_run": false,
+    "success": false,
+    "ig_posted_at": "2026-05-18T17:30:29.649979+00:00",
+    "ig_success": true
+  },
+  "KMHLM4AG1MU127483": {
+    "title": "2021 Hyundai Elantra Preferred",
+    "posted_at": null,
+    "dry_run": false,
+    "success": false,
+    "ig_posted_at": "2026-05-18T17:31:09.610895+00:00",
+    "ig_success": true
+  },
+  "1FTFW1E84PKD54163": {
+    "title": "2023 Ford F-150 XLT 4WD SuperCrew 6.5' Box",
+    "posted_at": "2026-05-18T17:31:44.496560+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-18T17:31:44.496577+00:00",
+    "ig_success": true
   }
 }
