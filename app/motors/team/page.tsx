@@ -64,6 +64,7 @@ export default function TeamPage() {
                 className="object-cover object-top"
                 sizes="(max-width: 1024px) 100vw, 384px"
                 priority
+                unoptimized
               />
             </div>
           </div>
