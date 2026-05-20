@@ -62,7 +62,7 @@ export default function TeamPage() {
                 alt={member.name}
                 fill
                 className="object-cover object-top"
-                sizes="(max-width: 1024px) 384px, 280px"
+                sizes="(max-width: 1024px) 100vw, 384px"
                 priority
               />
             </div>
