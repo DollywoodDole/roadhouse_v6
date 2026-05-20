@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://motors.roadhouse.capital'),
@@ -52,24 +53,50 @@ const organization = {
   ],
 }
 
-const autoDealer = {
-  '@context': 'https://schema.org',
-  '@type': 'AutoDealer',
-  name: 'RoadHouse Motors',
-  url: 'https://motors.roadhouse.capital',
-  telephone: '+13063818222',
-  description: 'Certified pre-owned trucks, SUVs, and cars for sale in Saskatchewan. Bad credit, no credit, bankruptcy welcome. Saskatchewan delivery available.',
-  priceRange: '$5,900 – $96,900 CAD',
-  image: 'https://motors.roadhouse.capital/motors/rh-motors-header.jpg',
-  areaServed: { '@type': 'AdministrativeArea', name: 'Saskatchewan', containedInPlace: { '@type': 'Country', name: 'Canada' } },
-  address: { '@type': 'PostalAddress', addressRegion: 'SK', addressCountry: 'CA' },
-  licence: 'DL331386',
+function buildAutoDealer() {
+  const base: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'AutoDealer',
+    name: 'RoadHouse Motors',
+    url: 'https://motors.roadhouse.capital',
+    telephone: '+13063818222',
+    description:
+      'Certified pre-owned trucks, SUVs, and cars for sale in Saskatchewan. Bad credit, no credit, bankruptcy welcome. Saskatchewan delivery available.',
+    priceRange: '$5,900 – $96,900 CAD',
+    image: 'https://motors.roadhouse.capital/motors/rh-motors-header.jpg',
+    areaServed: {
+      '@type': 'AdministrativeArea',
+      name: 'Saskatchewan',
+      containedInPlace: { '@type': 'Country', name: 'Canada' },
+    },
+    address: { '@type': 'PostalAddress', addressRegion: 'SK', addressCountry: 'CA' },
+    licence: 'DL331386',
+  }
+
+  // Conditionally add AggregateRating + Review schema once REVIEWS_ENABLED (≥ 3 real reviews)
+  if (REVIEWS_ENABLED) {
+    const avg = REVIEWS.reduce((sum, r) => sum + r.rating, 0) / REVIEWS.length
+    base.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: Math.round(avg * 10) / 10,
+      reviewCount: REVIEWS.length,
+    }
+    base.review = REVIEWS.slice(0, 5).map((r) => ({
+      '@type': 'Review',
+      author: { '@type': 'Person', name: r.authorName },
+      reviewRating: { '@type': 'Rating', ratingValue: r.rating },
+      reviewBody: r.body,
+      datePublished: r.reviewDate,
+    }))
+  }
+
+  return base
 }
 
 export default function MotorsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-roboto flex flex-col">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(autoDealer) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildAutoDealer()) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }} />
 
       {/* Sticky top nav */}

@@ -6,6 +6,8 @@ import StickyCallBar from '@/components/motors/StickyCallBar'
 import VehicleLeadForm from '@/components/motors/VehicleLeadForm'
 import { getVehicleByVin, DEALER_ID } from '@/lib/motors/storage'
 import type { Vehicle } from '@/types/inventory'
+import ReviewCarousel from '@/components/motors/ReviewCarousel'
+import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
 
 interface PageProps {
   params: Promise<{ vin: string }>
@@ -292,6 +294,16 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                   Interested in this vehicle?
                 </h2>
                 <VehicleLeadForm vehicleInterest={vehicleInterest} vin={vin} />
+              </div>
+            )}
+
+            {/* Review carousel — gated; invisible until REVIEWS_ENABLED (≥ 3 real reviews) */}
+            {REVIEWS_ENABLED && (
+              <div className="bg-[#111111] border border-white/10 rounded-xl p-5">
+                <h2 className="text-white/50 text-xs font-semibold tracking-widest uppercase mb-5">
+                  What Customers Say
+                </h2>
+                <ReviewCarousel reviews={REVIEWS} />
               </div>
             )}
 

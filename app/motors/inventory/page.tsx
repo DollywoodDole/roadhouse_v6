@@ -5,6 +5,8 @@ import InventoryGrid from '@/components/motors/InventoryGrid'
 import FilterSidebar from '@/components/motors/FilterSidebar'
 import HeroSection from '@/components/motors/HeroSection'
 import type { InventoryFilters, VehicleStatus } from '@/types/inventory'
+import ReviewCarousel from '@/components/motors/ReviewCarousel'
+import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
 
 const BASE = 'https://motors.roadhouse.capital'
 const OG_IMAGE = { url: `${BASE}/motors/rh-motors-header.jpg`, width: 2560, height: 1440 }
@@ -126,6 +128,14 @@ export default async function InventoryPage({ searchParams }: PageProps) {
       {/* Inventory — overlaps the hero's bottom fade and slides up over it on scroll */}
       <div className="relative z-10 bg-[#0A0A0A] -mt-14 md:-mt-32 pb-16">
         <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8">
+
+          {/* Review carousel — gated; invisible until REVIEWS_ENABLED (≥ 3 real reviews) */}
+          {REVIEWS_ENABLED && (
+            <div className="mb-10">
+              <ReviewCarousel reviews={REVIEWS} />
+            </div>
+          )}
+
           <div className="flex flex-col md:flex-row gap-4 md:gap-10">
 
             <Suspense fallback={null}>
