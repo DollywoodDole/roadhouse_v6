@@ -265,7 +265,7 @@ proxy.ts rewrites `motors.*` → `/motors/*`; all `/motors` paths are FULLY_PUBL
 - `POST /api/motors/leads` — full credit form → KV + Resend to roadhousesyndicate@gmail.com
 - `GET /api/motors/leads` (CRON_SECRET) — all leads sorted newest-first
 - `PATCH /api/motors/leads/[id]` (CRON_SECRET) — update lead status
-- `POST /api/motors/lead` — lightweight 3-field VDP form (name, phone, vehicleInterest) → Resend to howdy@coconutcowboy.ca; 60s KV rate limit per phone; no CRON_SECRET required
+- `POST /api/motors/lead` — lightweight 3-field VDP form (name, phone, vehicleInterest) → Resend to roadhousesyndicate@gmail.com; 60s KV rate limit per phone; no CRON_SECRET required
 - KV keys: `motors:leads:{id}` · `motors:leads:index` · `lead:phone:{phone}` (60s TTL)
 
 ### Components

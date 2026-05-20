@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
 const RESEND_API = 'https://api.resend.com/emails'
-const TO_EMAIL   = 'howdy@coconutcowboy.ca'
+const TO_EMAIL   = 'roadhousesyndicate@gmail.com'
 
 function getRedis(): Redis {
   const url   = process.env.KV_REST_API_URL

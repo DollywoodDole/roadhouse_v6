@@ -98,7 +98,7 @@ export default async function UsedPage() {
             Register for early access before they hit the lot.
           </p>
           <a
-            href="mailto:howdy@coconutcowboy.ca?subject=Off-Lease%20Waitlist%20%E2%80%94%20RoadHouse%20Motors"
+            href="mailto:roadhousesyndicate@gmail.com?subject=Off-Lease%20Waitlist%20%E2%80%94%20RoadHouse%20Motors"
             className="inline-block bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
           >
             Join the Waitlist
