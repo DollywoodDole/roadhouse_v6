@@ -134,14 +134,15 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 /app/motors/
   layout.tsx              ← isolated layout; OG/Twitter metadata; AutoDealer + Organization JSON-LD; phone (306) 381-8222; footer DL331386
   page.tsx                ← redirect → /motors/inventory
-  /inventory/page.tsx     ← server component; KV inventory; filter via search params; ItemList JSON-LD
-  /vehicle/[vin]/page.tsx ← VDP; spec table; PaymentEstimator; VehicleLeadForm; StickyCallBar
+  /inventory/page.tsx     ← server component; KV inventory; extended filters + sort; ActiveFilterChips; ItemList JSON-LD
+  /vehicle/[vin]/page.tsx ← VDP; spec table; PaymentEstimator; VehicleLeadForm; StickyCallBar; ReviewCarousel (gated)
                              if vehicle null → SoldVehiclePage (noindex) instead of hard 404
   /used/page.tsx          ← SEO hub "Used Vehicles Saskatchewan"; off-lease callout; city links; ItemList JSON-LD
   /[city]/page.tsx        ← geo pages: saskatoon · regina · prince-albert · moose-jaw
                              generateStaticParams; per-city metadata + LocalBusiness JSON-LD
   /credit/page.tsx        ← pre-qualification form → /api/motors/leads → KV + Resend
   /admin/page.tsx         ← lead admin panel; ?token={CRON_SECRET} gated
+  /team/page.tsx          ← Meet the Team; featured 2-col hero (photo + bio + pull quote); future-proof team grid
 
 /components/motors/
   VehicleCard.tsx         ← framer-motion entrance; rh-logo watermark; status badge; CAD price; images[0] as card photo
@@ -150,15 +151,23 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
   VehicleLeadForm.tsx     ← 3-field form (name, phone, hidden vehicleInterest); POST /api/motors/lead
   StickyCallBar.tsx       ← fixed bottom bar; <a href="tel:+13063818222"> for mobile click-to-call
   InventoryGrid.tsx       ← 1/2/3 responsive grid; empty state
-  FilterSidebar.tsx       ← client component; make/model/year/price/status filters → URL params; debounced search
+  FilterSidebar.tsx       ← client component; make/model/year/price/status/body_type/fuel_type/transmission/km
+                             range/sort filters → URL params; chip groups; dual-range slider; debounced; mobile drawer
+  ActiveFilterChips.tsx   ← client component; reads URL params; chip strip above grid; per-chip remove; Clear all
   HeroSection.tsx         ← make-aware H1; inventory banner
   PaymentEstimator.tsx    ← amortizing payment calc; down payment slider; term + rate dropdowns
   CreditForm.tsx          ← full pre-qualification form; reads ?vehicle= param
+  ReviewCarousel.tsx      ← client component; auto-advance 7s; swipe; prev/next + dots; 5-star SVG; partial-neighbor
+                             peek md+; prefers-reduced-motion; returns null when REVIEWS_ENABLED=false
 
 /lib/motors/
   storage.ts              ← Upstash Redis CRUD: seedInventory, getInventory, getVehicleByVin, getInventoryCount,
                              getIndexedVins, removeVehicle; exports DEALER_ID='obrians'
   scraper.ts              ← Scrapes obrians.ca Webflow CMS; fetchInventorySlugs(), parseListing(), scrapeObriansInventory()
+  team.ts                 ← TeamMember interface + TEAM data array; add members here to populate /motors/team
+  reviews.ts              ← Review interface; REVIEWS=[] (empty until real reviews); REVIEWS_ENABLED=REVIEWS.length>=3
+  normalize.ts            ← normalizeBodyStyle() + normalizeTransmission() — maps raw Webflow values to filter categories
+                             drivetrain NOT available in Vehicle schema — not scraped from obrians.ca
 
 /types/inventory.ts       ← Vehicle · InventoryFilters · MotorsLead interfaces
 
@@ -209,6 +218,9 @@ motors:index:obrians             → Redis SET of VINs (index for efficient bulk
 - Watermark: `/public/motors/rh-logo.png` — 30% opacity on cards
 - Placeholder: `/public/motors/rh-coming-soon.svg`
 - No local vehicle photos — all images served from Webflow CDN; `rh-coming-soon.svg` is the fallback
+- Team photo: `/public/motors/team/dalton.png` — Dalton Ellscheid founder photo; rendered unoptimized
+
+**Image rule (motors):** All `next/image` usage in motors must include `unoptimized` prop — optimizer causes rendering failures on this subdomain. Applies to local assets and CDN images alike.
 
 ---
 

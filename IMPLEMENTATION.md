@@ -245,15 +245,17 @@ proxy.ts rewrites `motors.*` → `/motors/*`; all `/motors` paths are FULLY_PUBL
 ### Pages
 | Route | Purpose |
 |---|---|
-| `/motors/inventory` | Main inventory grid; FilterSidebar; dynamic metadata by make |
-| `/motors/vehicle/[vin]` | VDP; spec table; PaymentEstimator; VehicleLeadForm; StickyCallBar |
+| `/motors/inventory` | Main inventory grid; extended filters + sort; ActiveFilterChips; dynamic metadata by make |
+| `/motors/vehicle/[vin]` | VDP; spec table; PaymentEstimator; VehicleLeadForm; StickyCallBar; ReviewCarousel (gated) |
 | `/motors/credit` | Pre-qualification form → `/api/motors/leads` → KV + Resend |
 | `/motors/used` | SEO hub — "Used Vehicles Saskatchewan"; off-lease callout; city links |
 | `/motors/[city]` | City geo pages (Saskatoon, Regina, Prince Albert, Moose Jaw) |
 | `/motors/admin` | Lead admin panel; `?token={CRON_SECRET}` gated |
+| `/motors/team` | Meet the Team; founder hero layout; pull quote; tel+email CTAs |
 
 ### SEO (shipped May 2026)
 - AutoDealer + Organization JSON-LD in layout; Car + BreadcrumbList on VDP
+- AggregateRating + Review JSON-LD in AutoDealer schema — conditional on `REVIEWS_ENABLED` (≥3 reviews)
 - ItemList JSON-LD on inventory, /used, and city pages
 - `app/motors/robots.txt/route.ts` — plain text robots.txt
 - `app/motors/sitemap.ts` — real `lastModified`; per-make URLs; city + /used entries
@@ -272,12 +274,23 @@ proxy.ts rewrites `motors.*` → `/motors/*`; all `/motors` paths are FULLY_PUBL
 - `VehicleCard.tsx` — framer-motion; rh-logo watermark; status badge; CAD price
 - `VehicleGallery.tsx` — image gallery for VDP
 - `VehicleImage.tsx` — client component; CDN images unoptimized; onError → rh-coming-soon.svg
-- `FilterSidebar.tsx` — make/model/year/price/status filters → URL params; debounced search
+- `FilterSidebar.tsx` — make/model/year/price/status/body_type/fuel_type/transmission/km range/sort → URL params; chip groups; dual-range slider; mobile drawer with count badge
+- `ActiveFilterChips.tsx` — chip strip above inventory grid; per-chip X remove; Clear all (preserves sort)
+- `ReviewCarousel.tsx` — 5-star carousel; auto-advance 7s; swipe; returns null when REVIEWS_ENABLED=false
 - `PaymentEstimator.tsx` — amortizing payment calc; down payment slider; term + rate dropdowns
 - `StickyCallBar.tsx` — fixed bottom bar; tel: link for mobile click-to-call
 - `VehicleLeadForm.tsx` — 3-field form (name, phone, hidden vehicleInterest); POST /api/motors/lead
 - `CreditForm.tsx` — full pre-qualification form; reads `?vehicle=` param
 - `HeroSection.tsx` — make-aware H1; inventory banner
+
+### Reviews
+- `lib/motors/reviews.ts` — `REVIEWS: Review[] = []` (empty); `REVIEWS_ENABLED = REVIEWS.length >= 3`
+- Section is completely invisible until 3+ real reviews are added to the array
+- TODO comment in file: swap static array for Google Business Profile API once GBP is set up
+
+### Team
+- `lib/motors/team.ts` — `TEAM: TeamMember[]`; add members here; featured=true → hero layout
+- `public/motors/team/dalton.png` — Dalton Ellscheid founder photo (PNG, use `unoptimized` in Image)
 
 ### Social Manager
 - `roadhouse-motors-social-manager/` — standalone Python tool; NOT part of Next.js
