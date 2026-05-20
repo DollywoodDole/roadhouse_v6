@@ -30,6 +30,28 @@ export const metadata: Metadata = {
   },
 }
 
+const organization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'RoadHouse Motors',
+  url: 'https://motors.roadhouse.capital',
+  logo: 'https://motors.roadhouse.capital/motors/rh-logo.png',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+1-306-381-8222',
+    contactType: 'sales',
+    areaServed: 'CA-SK',
+    availableLanguage: 'English',
+  },
+  areaServed: {
+    '@type': 'State',
+    name: 'Saskatchewan',
+  },
+  sameAs: [
+    'https://www.facebook.com/profile.php?id=1047748735096733',
+  ],
+}
+
 const autoDealer = {
   '@context': 'https://schema.org',
   '@type': 'AutoDealer',
@@ -48,6 +70,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-roboto flex flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(autoDealer) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }} />
 
       {/* Sticky top nav */}
       <header className="sticky top-0 z-50 bg-[#0A0A0A]/95 backdrop-blur border-b border-white/[0.08]">
