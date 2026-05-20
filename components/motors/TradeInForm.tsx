@@ -497,8 +497,7 @@ export default function TradeInForm() {
       </form>
 
       {/* Mobile sticky submit — mirrors StickyCallBar pattern */}
-      {status !== 'success' && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0A0A0A]/95 backdrop-blur border-t border-white/[0.08] px-4 py-3 space-y-1.5">
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0A0A0A]/95 backdrop-blur border-t border-white/[0.08] px-4 py-3 space-y-1.5">
           <button
             type="submit"
             form={FORM_ID}
@@ -511,7 +510,6 @@ export default function TradeInForm() {
             No obligation. Response within 24 hours.
           </p>
         </div>
-      )}
     </>
   )
 }
