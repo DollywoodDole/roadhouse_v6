@@ -3,8 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import VehicleGallery from '@/components/motors/VehicleGallery'
 import PaymentEstimator from '@/components/motors/PaymentEstimator'
-import { getVehicleByVin } from '@/lib/motors/storage'
-import { SEED_DEALER_ID } from '@/lib/motors/seed'
+import { getVehicleByVin, DEALER_ID } from '@/lib/motors/storage'
 import type { Vehicle } from '@/types/inventory'
 
 interface PageProps {
@@ -18,7 +17,7 @@ const fmt = (n: number) =>
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { vin } = await params
-  const vehicle = await getVehicleByVin(SEED_DEALER_ID, vin)
+  const vehicle = await getVehicleByVin(DEALER_ID, vin)
 
   if (!vehicle) return { title: 'Vehicle Not Found | RoadHouse Motors' }
 
@@ -122,7 +121,7 @@ function SpecRow({ label, value }: { label: string; value: string | number }) {
 
 export default async function VehicleDetailPage({ params }: PageProps) {
   const { vin }   = await params
-  const vehicle   = await getVehicleByVin(SEED_DEALER_ID, vin)
+  const vehicle   = await getVehicleByVin(DEALER_ID, vin)
 
   if (!vehicle) notFound()
 

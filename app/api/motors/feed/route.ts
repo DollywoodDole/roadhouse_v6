@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getInventory } from '@/lib/motors/storage'
-import { SEED_DEALER_ID } from '@/lib/motors/seed'
+import { getInventory, DEALER_ID } from '@/lib/motors/storage'
 import type { Vehicle } from '@/types/inventory'
 
 const BASE = 'https://motors.roadhouse.capital'
@@ -119,7 +118,7 @@ export async function GET(req: NextRequest) {
   const statusParam = req.nextUrl.searchParams.get('status')
 
   const filters = statusParam ? { status: statusParam as Vehicle['status'] } : {}
-  const vehicles = await getInventory(SEED_DEALER_ID, filters)
+  const vehicles = await getInventory(DEALER_ID, filters)
 
   if (format === 'xml') return toXml(vehicles)
   return toJson(vehicles)

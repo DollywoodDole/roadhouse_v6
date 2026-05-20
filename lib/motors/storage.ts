@@ -1,6 +1,8 @@
 import { Redis } from '@upstash/redis'
 import type { Vehicle, InventoryFilters } from '@/types/inventory'
 
+export const DEALER_ID = 'obrians'
+
 function getRedis(): Redis {
   const url   = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { getInventory, getInventoryCount, seedInventory } from '@/lib/motors/storage'
-import { SEED_VEHICLES, SEED_DEALER_ID } from '@/lib/motors/seed'
+import { getInventory, getInventoryCount, DEALER_ID } from '@/lib/motors/storage'
 import InventoryGrid from '@/components/motors/InventoryGrid'
 import FilterSidebar from '@/components/motors/FilterSidebar'
 import HeroSection from '@/components/motors/HeroSection'
@@ -102,13 +101,10 @@ function itemListJsonLd(vehicles: Awaited<ReturnType<typeof getInventory>>, make
 export default async function InventoryPage({ searchParams }: PageProps) {
   const sp = await searchParams
 
-  const count = await getInventoryCount(SEED_DEALER_ID)
-  if (count === 0) await seedInventory(SEED_VEHICLES)
-
   const filters = parseFilters(sp)
   const [vehicles, allVehicles] = await Promise.all([
-    getInventory(SEED_DEALER_ID, filters),
-    getInventory(SEED_DEALER_ID),
+    getInventory(DEALER_ID, filters),
+    getInventory(DEALER_ID),
   ])
 
   const makes = [...new Set(

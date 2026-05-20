@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server'
-import { seedInventory, getInventoryCount } from '@/lib/motors/storage'
-import { SEED_VEHICLES, SEED_DEALER_ID } from '@/lib/motors/seed'
 
-export async function POST(req: Request) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET?.trim()}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  await seedInventory(SEED_VEHICLES)
-
-  return NextResponse.json({
-    ok: true,
-    dealer_id: SEED_DEALER_ID,
-    seeded: SEED_VEHICLES.length,
-  })
+export async function POST() {
+  return NextResponse.json(
+    { message: 'Manual seed deprecated. Use /api/motors/sync to trigger scraper.' },
+    { status: 410 }
+  )
 }
 
 export async function GET() {
-  const count = await getInventoryCount(SEED_DEALER_ID)
-  return NextResponse.json({ dealer_id: SEED_DEALER_ID, count })
+  return NextResponse.json(
+    { message: 'Manual seed deprecated. Use /api/motors/sync to trigger scraper.' },
+    { status: 410 }
+  )
 }

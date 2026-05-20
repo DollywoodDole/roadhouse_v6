@@ -1,13 +1,12 @@
 import type { MetadataRoute } from 'next'
-import { getInventory } from '@/lib/motors/storage'
-import { SEED_DEALER_ID } from '@/lib/motors/seed'
+import { getInventory, DEALER_ID } from '@/lib/motors/storage'
 
 const BASE = 'https://motors.roadhouse.capital'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let vehicles: { vin: string; make: string; status: string; updated_at: string }[] = []
   try {
-    vehicles = await getInventory(SEED_DEALER_ID)
+    vehicles = await getInventory(DEALER_ID)
   } catch {
     // KV unavailable at build time — sitemap will only include static pages
   }
