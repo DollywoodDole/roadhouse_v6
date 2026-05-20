@@ -17,7 +17,7 @@ export const TEAM: TeamMember[] = [
     title: 'Founder — RoadHouse Motors',
     featured: true,
     order: 1,
-    photoUrl: '/motors/team/dalton.jpg',
+    photoUrl: '/motors/team/dalton.png',
     pullQuote: "I'd rather lose a sale than push someone into something that won't carry them.",
     bio: `I grew up on Saskatchewan roads. Gravel in spring, ice in November, that long stretch of highway between everywhere and nowhere where your vehicle becomes the most important thing you own. Out here, a truck isn't a status object — it's a tool, a shelter, and sometimes the only thing standing between you and a hard night.
 
