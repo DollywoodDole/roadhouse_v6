@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { getInventory, getInventoryCount, DEALER_ID } from '@/lib/motors/storage'
+import { getInventory, DEALER_ID } from '@/lib/motors/storage'
 import InventoryGrid from '@/components/motors/InventoryGrid'
 import FilterSidebar from '@/components/motors/FilterSidebar'
+import ActiveFilterChips from '@/components/motors/ActiveFilterChips'
 import HeroSection from '@/components/motors/HeroSection'
-import type { InventoryFilters, VehicleStatus } from '@/types/inventory'
+import type { InventoryFilters, Vehicle, VehicleStatus } from '@/types/inventory'
 import ReviewCarousel from '@/components/motors/ReviewCarousel'
 import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
+import { normalizeBodyStyle, normalizeTransmission } from '@/lib/motors/normalize'
 
 const BASE = 'https://motors.roadhouse.capital'
 const OG_IMAGE = { url: `${BASE}/motors/rh-motors-header.jpg`, width: 2560, height: 1440 }
@@ -35,7 +37,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
   return {
     title: 'Used Vehicles for Sale in Saskatchewan | RoadHouse Motors',
-    description: 'Browse certified pre-owned trucks, SUVs, and cars at RoadHouse Motors. Competitive pricing, Saskatchewan delivery available. Dealer Licence DL331386.',
+    description:
+      'Browse certified pre-owned trucks, SUVs, and cars at RoadHouse Motors. Competitive pricing, Saskatchewan delivery available. Dealer Licence DL331386.',
     alternates: { canonical: `${BASE}/inventory` },
     openGraph: {
       title: 'Used Vehicles for Sale in Saskatchewan | RoadHouse Motors',
@@ -52,7 +55,74 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   }
 }
 
-function parseFilters(sp: Record<string, string | string[] | undefined>): InventoryFilters {
+// ── Sort + additional filter application ─────────────────────────────────────
+
+function applySortAndFilters(
+  vehicles: Vehicle[],
+  sp: Record<string, string | string[] | undefined>
+): Vehicle[] {
+  let result = [...vehicles]
+
+  // Additional filters not handled by getInventory (avoids modifying storage.ts)
+  const yearMax = typeof sp['year_max'] === 'string' ? parseInt(sp['year_max'], 10) : null
+  if (yearMax) result = result.filter((v) => v.year <= yearMax)
+
+  const bodyType = typeof sp['body_type'] === 'string' ? sp['body_type'] : null
+  if (bodyType) result = result.filter((v) => normalizeBodyStyle(v.body_style) === bodyType)
+
+  const fuelType = typeof sp['fuel_type'] === 'string' ? sp['fuel_type'] : null
+  if (fuelType) result = result.filter((v) => v.fuel_type === fuelType)
+
+  const transmission = typeof sp['transmission'] === 'string' ? sp['transmission'] : null
+  if (transmission) result = result.filter((v) => normalizeTransmission(v.transmission) === transmission)
+
+  const kmMin = typeof sp['km_min'] === 'string' ? parseInt(sp['km_min'], 10) : null
+  if (kmMin) result = result.filter((v) => v.mileage >= kmMin)
+
+  const kmMax = typeof sp['km_max'] === 'string' ? parseInt(sp['km_max'], 10) : null
+  if (kmMax) result = result.filter((v) => v.mileage <= kmMax)
+
+  // Sort
+  const sort = typeof sp['sort'] === 'string' ? sp['sort'] : 'newest'
+  switch (sort) {
+    case 'price_asc':  result.sort((a, b) => a.price - b.price); break
+    case 'price_desc': result.sort((a, b) => b.price - a.price); break
+    case 'year_desc':  result.sort((a, b) => b.year - a.year); break
+    case 'year_asc':   result.sort((a, b) => a.year - b.year); break
+    case 'km_asc':     result.sort((a, b) => a.mileage - b.mileage); break
+    default:           result.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+  }
+
+  return result
+}
+
+// ── JSON-LD ───────────────────────────────────────────────────────────────────
+
+function itemListJsonLd(vehicles: Vehicle[], make: string | null) {
+  const available = vehicles.filter((v) => v.status === 'available').slice(0, 20)
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: make
+      ? `Used ${make} Vehicles for Sale in Saskatchewan`
+      : 'Used Vehicles for Sale in Saskatchewan',
+    numberOfItems: available.length,
+    itemListElement: available.map((v, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Car',
+        name: `${v.year} ${v.make} ${v.model} ${v.trim}`,
+        url: `${BASE}/vehicle/${v.vin}`,
+        offers: { '@type': 'Offer', price: v.price, priceCurrency: 'CAD' },
+      },
+    })),
+  }
+}
+
+// ── Filter parser (existing fields for getInventory) ─────────────────────────
+
+function parseBaseFilters(sp: Record<string, string | string[] | undefined>): InventoryFilters {
   const filters: InventoryFilters = {}
 
   const search = sp['search']
@@ -80,40 +150,43 @@ function parseFilters(sp: Record<string, string | string[] | undefined>): Invent
   return filters
 }
 
-function itemListJsonLd(vehicles: Awaited<ReturnType<typeof getInventory>>, make: string | null) {
-  const available = vehicles.filter(v => v.status === 'available').slice(0, 20)
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: make ? `Used ${make} Vehicles for Sale in Saskatchewan` : 'Used Vehicles for Sale in Saskatchewan',
-    numberOfItems: available.length,
-    itemListElement: available.map((v, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      item: {
-        '@type': 'Car',
-        name: `${v.year} ${v.make} ${v.model} ${v.trim}`,
-        url: `${BASE}/vehicle/${v.vin}`,
-        offers: { '@type': 'Offer', price: v.price, priceCurrency: 'CAD' },
-      },
-    })),
-  }
-}
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function InventoryPage({ searchParams }: PageProps) {
   const sp = await searchParams
 
-  const filters = parseFilters(sp)
-  const [vehicles, allVehicles] = await Promise.all([
-    getInventory(DEALER_ID, filters),
+  const baseFilters = parseBaseFilters(sp)
+  const activeMake = typeof sp['make'] === 'string' && sp['make'] ? sp['make'] : null
+
+  // Fetch base-filtered vehicles + full inventory for option derivation
+  const [baseFiltered, allVehicles] = await Promise.all([
+    getInventory(DEALER_ID, baseFilters),
     getInventory(DEALER_ID),
   ])
 
-  const makes = [...new Set(
-    allVehicles.filter(v => v.status !== 'sold').map(v => v.make)
+  // Apply new filters (body_type, fuel_type, transmission, km range, year_max) + sort
+  const vehicles = applySortAndFilters(baseFiltered, sp)
+
+  // Derive available options from non-sold inventory
+  const available = allVehicles.filter((v) => v.status !== 'sold')
+
+  const makes = [...new Set(available.map((v) => v.make))].sort()
+
+  const bodyStyles = [...new Set(
+    available.map((v) => normalizeBodyStyle(v.body_style)).filter((b) => b !== 'Other')
   )].sort()
 
-  const activeMake = typeof sp['make'] === 'string' && sp['make'] ? sp['make'] : null
+  const fuelTypes = [...new Set(available.map((v) => v.fuel_type))].sort()
+
+  const transmissions = [...new Set(available.map((v) => normalizeTransmission(v.transmission)))].sort()
+
+  const mileageMax = Math.max(...available.map((v) => v.mileage), 200000)
+
+  // Options present in the current filtered result set (for greying-out impossible choices)
+  const filteredAvail = vehicles.filter((v) => v.status !== 'sold')
+  const availableBodyStyles = [...new Set(filteredAvail.map((v) => normalizeBodyStyle(v.body_style)))]
+  const availableFuelTypes  = [...new Set(filteredAvail.map((v) => v.fuel_type))]
+  const availableTransmissions = [...new Set(filteredAvail.map((v) => normalizeTransmission(v.transmission)))]
 
   return (
     <div>
@@ -139,10 +212,25 @@ export default async function InventoryPage({ searchParams }: PageProps) {
           <div className="flex flex-col md:flex-row gap-4 md:gap-10">
 
             <Suspense fallback={null}>
-              <FilterSidebar vehicleCount={vehicles.length} makes={makes} />
+              <FilterSidebar
+                vehicleCount={vehicles.length}
+                makes={makes}
+                bodyStyles={bodyStyles}
+                fuelTypes={fuelTypes}
+                transmissions={transmissions}
+                mileageMax={mileageMax}
+                availableBodyStyles={availableBodyStyles}
+                availableFuelTypes={availableFuelTypes}
+                availableTransmissions={availableTransmissions}
+              />
             </Suspense>
 
             <div className="flex-1 min-w-0">
+              {/* Active filter chip strip + count — reads from URL client-side */}
+              <Suspense fallback={null}>
+                <ActiveFilterChips count={vehicles.length} />
+              </Suspense>
+
               <InventoryGrid vehicles={vehicles} />
             </div>
 
