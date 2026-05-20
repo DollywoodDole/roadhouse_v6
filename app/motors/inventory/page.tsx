@@ -8,6 +8,7 @@ import HeroSection from '@/components/motors/HeroSection'
 import type { InventoryFilters, Vehicle, VehicleStatus } from '@/types/inventory'
 import ReviewCarousel from '@/components/motors/ReviewCarousel'
 import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
+import TradeInBanner from '@/components/motors/TradeInBanner'
 import { normalizeBodyStyle, normalizeTransmission } from '@/lib/motors/normalize'
 
 const BASE = 'https://motors.roadhouse.capital'
@@ -226,6 +227,9 @@ export default async function InventoryPage({ searchParams }: PageProps) {
             </Suspense>
 
             <div className="flex-1 min-w-0">
+              {/* Trade-in banner — dismissible */}
+              <TradeInBanner />
+
               {/* Active filter chip strip + count — reads from URL client-side */}
               <Suspense fallback={null}>
                 <ActiveFilterChips count={vehicles.length} />

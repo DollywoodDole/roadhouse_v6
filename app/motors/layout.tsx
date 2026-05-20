@@ -128,6 +128,12 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
               Get Pre-Qualified
             </Link>
             <Link
+              href="/motors/trade-in"
+              className="text-white text-base font-medium tracking-wide uppercase px-4 py-2.5 rounded hover:bg-white/5 transition-colors"
+            >
+              Sell or Trade
+            </Link>
+            <Link
               href="/motors/team"
               className="text-white text-base font-medium tracking-wide uppercase px-4 py-2.5 rounded hover:bg-white/5 transition-colors"
             >

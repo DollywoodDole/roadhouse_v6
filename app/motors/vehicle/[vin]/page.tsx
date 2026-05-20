@@ -297,6 +297,22 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               </div>
             )}
 
+            {/* Trade-in CTA */}
+            {vehicle.status !== 'sold' && (
+              <Link
+                href="/motors/trade-in"
+                className="flex items-center justify-between bg-white/[0.02] border border-white/[0.08] rounded-xl px-5 py-4 hover:border-white/15 transition-colors group"
+              >
+                <div>
+                  <p className="text-white/65 text-sm font-medium group-hover:text-white/85 transition-colors">
+                    Trading in? Get yours appraised first
+                  </p>
+                  <p className="text-white/30 text-xs mt-0.5">Real appraisal in 24 hours · No obligation</p>
+                </div>
+                <span className="text-white/25 group-hover:text-white/55 transition-colors ml-4" aria-hidden>→</span>
+              </Link>
+            )}
+
             {/* Review carousel — gated; invisible until REVIEWS_ENABLED (≥ 3 real reviews) */}
             {REVIEWS_ENABLED && (
               <div className="bg-[#111111] border border-white/10 rounded-xl p-5">
