@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { TEAM } from '@/lib/motors/team'
 
@@ -33,25 +34,6 @@ export const metadata: Metadata = {
   },
 }
 
-// ─── Photo placeholder ────────────────────────────────────────────────────────
-// Using a CSS block for now. When a real photo is available:
-// 1. Drop the image at the path in TeamMember.photoUrl
-// 2. Replace <PhotoPlaceholder> below with <Image src={member.photoUrl} ... />
-// ─────────────────────────────────────────────────────────────────────────────
-function PhotoPlaceholder({ name }: { name: string }) {
-  return (
-    <div className="aspect-[4/5] w-full bg-[#111111] border border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3">
-      <div className="w-16 h-16 rounded-full bg-white/[0.06] flex items-center justify-center">
-        <svg className="w-8 h-8 text-white/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-        </svg>
-      </div>
-      <p className="text-white/20 text-xs" aria-label={`Photo of ${name} coming soon`}>
-        Photo coming soon
-      </p>
-    </div>
-  )
-}
 
 export default function TeamPage() {
   const featured = TEAM.filter((m) => m.featured).sort((a, b) => a.order - b.order)
@@ -74,7 +56,16 @@ export default function TeamPage() {
         >
           {/* Photo — left on desktop, top on mobile */}
           <div className="lg:col-span-2 max-w-sm w-full mx-auto lg:mx-0">
-            <PhotoPlaceholder name={member.name} />
+            <div className="aspect-[4/5] w-full relative overflow-hidden rounded-2xl">
+              <Image
+                src={member.photoUrl}
+                alt={member.name}
+                fill
+                className="object-cover object-top"
+                sizes="(max-width: 1024px) 384px, 280px"
+                priority
+              />
+            </div>
           </div>
 
           {/* Bio — right on desktop */}
