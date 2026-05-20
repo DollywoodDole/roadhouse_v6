@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import VehicleGallery from '@/components/motors/VehicleGallery'
 import PaymentEstimator from '@/components/motors/PaymentEstimator'
+import StickyCallBar from '@/components/motors/StickyCallBar'
+import VehicleLeadForm from '@/components/motors/VehicleLeadForm'
 import { getVehicleByVin, DEALER_ID } from '@/lib/motors/storage'
 import type { Vehicle } from '@/types/inventory'
 
@@ -19,7 +20,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { vin } = await params
   const vehicle = await getVehicleByVin(DEALER_ID, vin)
 
-  if (!vehicle) return { title: 'Vehicle Not Found | RoadHouse Motors' }
+  if (!vehicle) {
+    return {
+      title: 'Vehicle Sold | RoadHouse Motors Saskatchewan',
+      description: 'This vehicle has sold. Browse current used vehicle inventory in Saskatchewan at RoadHouse Motors.',
+      robots: 'noindex',
+    }
+  }
 
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim} for Sale | RoadHouse Motors SK`
   const description =
@@ -119,16 +126,48 @@ function SpecRow({ label, value }: { label: string; value: string | number }) {
   )
 }
 
+function SoldVehiclePage() {
+  return (
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <p className="text-white/30 text-xs font-semibold tracking-widest uppercase mb-4">Vehicle Status</p>
+      <h1 className="text-white text-3xl font-bold mb-4">
+        This vehicle has sold — but we have more.
+      </h1>
+      <p className="text-white/60 text-base leading-relaxed mb-10">
+        Saskatchewan&rsquo;s inventory moves fast. Browse current available vehicles below,
+        or call us directly at{' '}
+        <a href="tel:+13063818222" className="text-white hover:underline underline-offset-2">
+          (306) 381-8222
+        </a>.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Link
+          href="/motors/inventory"
+          className="inline-flex items-center justify-center bg-white text-black font-semibold text-base px-8 py-3.5 rounded-xl hover:bg-white/90 transition-colors"
+        >
+          Browse Available Inventory
+        </Link>
+      </div>
+      <p className="text-white/25 text-xs mt-10">
+        DL#331386 | Prices exclude taxes &amp; licensing.
+      </p>
+    </div>
+  )
+}
+
 export default async function VehicleDetailPage({ params }: PageProps) {
   const { vin }   = await params
   const vehicle   = await getVehicleByVin(DEALER_ID, vin)
 
-  if (!vehicle) notFound()
+  if (!vehicle) {
+    return <SoldVehiclePage />
+  }
 
   const formattedPrice    = fmt(vehicle.price)
   const formattedMsrp     = vehicle.msrp ? fmt(vehicle.msrp) : null
   const formattedMileage  = `${new Intl.NumberFormat('en-CA').format(vehicle.mileage)} km`
   const creditHref        = `/motors/credit?vehicle=${encodeURIComponent(`${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`)}`
+  const vehicleInterest   = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
 
   return (
     <>
@@ -141,7 +180,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(vehicle)) }}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 space-y-10">
         {/* Back */}
         <div className="flex items-center gap-4 flex-wrap">
           <Link
@@ -246,6 +285,16 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               Dealer Licence DL331386 · Saskatchewan, Canada
             </p>
 
+            {/* Lead Form */}
+            {vehicle.status !== 'sold' && (
+              <div className="bg-[#111111] border border-white/10 rounded-xl p-5">
+                <h2 className="text-white/50 text-xs font-semibold tracking-widest uppercase mb-4">
+                  Interested in this vehicle?
+                </h2>
+                <VehicleLeadForm vehicleInterest={vehicleInterest} vin={vin} />
+              </div>
+            )}
+
             {/* Features */}
             {vehicle.features.length > 0 && (
               <div className="bg-[#111111] border border-white/10 rounded-xl p-5">
@@ -274,6 +323,8 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      <StickyCallBar />
     </>
   )
 }
