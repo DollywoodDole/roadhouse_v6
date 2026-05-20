@@ -32,6 +32,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.75,
     }))
 
+  const cityUrls: MetadataRoute.Sitemap = [
+    'saskatoon', 'regina', 'prince-albert', 'moose-jaw',
+  ].map((city) => ({
+    url: `${BASE}/${city}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
   return [
     {
       url: `${BASE}/inventory`,
@@ -40,11 +49,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
+      url: `${BASE}/used`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${BASE}/credit`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    ...cityUrls,
     ...makeUrls,
     ...vehicleUrls,
   ]
