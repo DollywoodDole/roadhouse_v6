@@ -132,29 +132,50 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 
 ```
 /app/motors/
-  layout.tsx              ← isolated layout; OG/Twitter metadata (rh-motors-header.jpg); phone (306) 381-8222; footer DL331386
+  layout.tsx              ← isolated layout; OG/Twitter metadata; AutoDealer + Organization JSON-LD; phone (306) 381-8222; footer DL331386
   page.tsx                ← redirect → /motors/inventory
-  /inventory/page.tsx     ← server component; auto-seeds KV on first load; filter via search params
-  /vehicle/[vin]/page.tsx ← detail page; spec table, feature badges, Request Info CTA shell
+  /inventory/page.tsx     ← server component; KV inventory; filter via search params; ItemList JSON-LD
+  /vehicle/[vin]/page.tsx ← VDP; spec table; PaymentEstimator; VehicleLeadForm; StickyCallBar
+                             if vehicle null → SoldVehiclePage (noindex) instead of hard 404
+  /used/page.tsx          ← SEO hub "Used Vehicles Saskatchewan"; off-lease callout; city links; ItemList JSON-LD
+  /[city]/page.tsx        ← geo pages: saskatoon · regina · prince-albert · moose-jaw
+                             generateStaticParams; per-city metadata + LocalBusiness JSON-LD
+  /credit/page.tsx        ← pre-qualification form → /api/motors/leads → KV + Resend
+  /admin/page.tsx         ← lead admin panel; ?token={CRON_SECRET} gated
 
 /components/motors/
   VehicleCard.tsx         ← framer-motion entrance; rh-logo watermark; status badge; CAD price; images[0] as card photo
+  VehicleGallery.tsx      ← image gallery for VDP
+  VehicleImage.tsx        ← client component; CDN images unoptimized; onError → rh-coming-soon.svg fallback
+  VehicleLeadForm.tsx     ← 3-field form (name, phone, hidden vehicleInterest); POST /api/motors/lead
+  StickyCallBar.tsx       ← fixed bottom bar; <a href="tel:+13063818222"> for mobile click-to-call
   InventoryGrid.tsx       ← 1/2/3 responsive grid; empty state
-  FilterBar.tsx           ← client component; make/year/price/status filters → URL search params
+  FilterSidebar.tsx       ← client component; make/model/year/price/status filters → URL params; debounced search
+  HeroSection.tsx         ← make-aware H1; inventory banner
+  PaymentEstimator.tsx    ← amortizing payment calc; down payment slider; term + rate dropdowns
+  CreditForm.tsx          ← full pre-qualification form; reads ?vehicle= param
 
 /lib/motors/
-  seed.ts                 ← 12 manually curated O'Brian's vehicles with local photos (fallback only; KV is source of truth)
   storage.ts              ← Upstash Redis CRUD: seedInventory, getInventory, getVehicleByVin, getInventoryCount,
-                             getIndexedVins, removeVehicle
+                             getIndexedVins, removeVehicle; exports DEALER_ID='obrians'
   scraper.ts              ← Scrapes obrians.ca Webflow CMS; fetchInventorySlugs(), parseListing(), scrapeObriansInventory()
 
-/types/inventory.ts       ← Vehicle interface + InventoryFilters interface
+/types/inventory.ts       ← Vehicle · InventoryFilters · MotorsLead interfaces
 
 /app/api/motors/seed/
-  route.ts                ← POST (Bearer CRON_SECRET) seed from seed.ts; GET returns count
+  route.ts                ← returns 410 Gone (deprecated — scraper is source of truth)
 /app/api/motors/sync/
   route.ts                ← POST (Bearer CRON_SECRET) full O'Brian's scrape+sync; GET returns count
                              maxDuration=300; runs via Vercel cron daily at 9am CST
+/app/api/motors/lead/
+  route.ts                ← POST (public); name+phone+vehicleInterest → Resend to roadhousesyndicate@gmail.com
+                             60s KV rate limit per phone (lead:phone:{phone} TTL key)
+/app/api/motors/leads/
+  route.ts                ← POST (public) full credit form → KV + Resend; GET (CRON_SECRET) all leads
+/app/api/motors/leads/[id]/
+  route.ts                ← PATCH (CRON_SECRET) update lead status
+/app/api/motors/feed/
+  route.ts                ← GET (Bearer CRON_SECRET) JSON + AAMVA XML export
 ```
 
 **Motors KV key pattern:**
@@ -169,7 +190,7 @@ motors:index:obrians             → Redis SET of VINs (index for efficient bulk
 - Fetches each listing page; parses `#listing-info` div attributes for price/mileage/specs, `featureString` JS var for features, Webflow CDN images (skip first 2: branded overlay + feature icon collage)
 - Skips `formPrice=1000` (O'Brian's sentinel for "contact for price")
 - Upserts valid vehicles; removes VINs from KV that are sold OR became unparseable since last run
-- Current inventory: ~131 priced vehicles, $5,900–$96,900, no manual work required
+- Current inventory: ~116 priced vehicles, $5,900–$96,900, no manual work required
 - To trigger manually: `POST /api/motors/sync` with `Authorization: Bearer {CRON_SECRET}`
 
 **CRON_SECRET note:** Vercel validates this at build time when crons are in vercel.json — it must have NO trailing whitespace. Fixed via `~/.local/bin/vercel env rm/add`. If re-setting, use `printf` not `echo` to avoid adding a newline.
@@ -187,7 +208,7 @@ motors:index:obrians             → Redis SET of VINs (index for efficient bulk
 - OG/Twitter image: `/public/motors/rh-motors-header.jpg` (2560×1440 JPEG rendered from SVG)
 - Watermark: `/public/motors/rh-logo.png` — 30% opacity on cards
 - Placeholder: `/public/motors/rh-coming-soon.svg`
-- Local vehicle photos: `/public/motors/*.jpeg` (12 manually sourced from O'Brian's CDN, 4th/clean listing photo)
+- No local vehicle photos — all images served from Webflow CDN; `rh-coming-soon.svg` is the fallback
 
 ---
 
@@ -470,13 +491,13 @@ Ops layer bootstrapped: `roadhouse-ops/` standalone toolchain — Google Sheets 
 
 ## MOTORS — 2026-05-06
 
-RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live with ~131 real O'Brian's vehicles synced from obrians.ca. Daily automated sync at 9am CST via Vercel cron — no CSV, no manual updates.
+RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live with ~116 real O'Brian's vehicles synced from obrians.ca. Daily automated sync at 9am CST via Vercel cron — no CSV, no manual updates.
 
 **Infrastructure (2026-04-24):**
 - Inventory banner: Canva AI SVG header (cropped 16/7.2 aspect ratio, 10% top+bottom)
 - OG/Twitter card image: JPEG rendered at 2560×1440 from SVG (SVG not supported by Twitter/X)
 - Phone number (306) 381-8222, dealer licence DL331386 in footer
-- 12 manually curated O'Brian's listings with real photos (local JPEG assets)
+- All vehicle photos served from Webflow CDN; local JPEG assets deleted (scraper is source of truth)
 - `lib/motors/scraper.ts` — scrapes Webflow CMS JetBoost data + individual listing pages (8 concurrent)
 - `app/api/motors/sync/route.ts` — CRON_SECRET-authenticated sync endpoint (maxDuration=300)
 - Vercel cron `0 15 * * *` wired; CRON_SECRET cleaned in Vercel (trailing `\n` removed via `~/.local/bin/vercel env rm/add`)
