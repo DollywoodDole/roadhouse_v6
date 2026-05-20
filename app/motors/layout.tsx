@@ -100,6 +100,12 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
             >
               Get Pre-Qualified
             </Link>
+            <Link
+              href="/motors/team"
+              className="text-white text-base font-medium tracking-wide uppercase px-4 py-2.5 rounded hover:bg-white/5 transition-colors"
+            >
+              About
+            </Link>
           </nav>
 
           <div className="flex items-center gap-3">

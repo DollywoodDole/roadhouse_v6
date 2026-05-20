@@ -137,6 +137,18 @@ export default async function InventoryPage({ searchParams }: PageProps) {
             </div>
 
           </div>
+
+          {/* Meet the founder — tasteful single-line link card */}
+          <div className="mt-14 border-t border-white/[0.06] pt-8">
+            <a
+              href="/motors/team"
+              className="group inline-flex items-center gap-2 text-white/35 hover:text-white/65 text-sm transition-colors"
+            >
+              Built and curated by Dalton Ellscheid — Saskatchewan-born, frontier-bred.
+              <span className="text-white/20 group-hover:text-white/45 transition-colors" aria-hidden>→</span>
+            </a>
+          </div>
+
         </div>
       </div>
 
