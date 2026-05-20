@@ -61,7 +61,7 @@ export default function TeamPage() {
                 src={member.photoUrl}
                 alt={member.name}
                 fill
-                className="object-cover object-top"
+                className="object-cover object-center"
                 sizes="(max-width: 1024px) 100vw, 384px"
                 priority
                 unoptimized
