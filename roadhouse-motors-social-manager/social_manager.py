@@ -107,7 +107,10 @@ def save_posted(posted: dict) -> None:
 
 
 def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
-    """Available, not yet posted anywhere, has real CDN images, newest first."""
+    """
+    Available, not yet posted, has real CDN images — diversified by make+model so
+    the same model never appears twice in one run.
+    """
     candidates = [
         v for v in vehicles
         if v.get("status") == "available"
@@ -115,7 +118,18 @@ def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
         and any(img.startswith("http") for img in (v.get("images") or []))
     ]
     candidates.sort(key=lambda v: v.get("updated_at", ""), reverse=True)
-    return candidates[:limit]
+
+    picks: list[dict] = []
+    seen_models: set[str] = set()
+    for v in candidates:
+        key = f"{v.get('make', '').lower()}:{v.get('model', '').lower()}"
+        if key in seen_models:
+            continue
+        seen_models.add(key)
+        picks.append(v)
+        if len(picks) >= limit:
+            break
+    return picks
 
 
 def pick_ig_backfill(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:

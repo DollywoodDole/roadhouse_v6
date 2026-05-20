@@ -414,5 +414,53 @@
     "success": true,
     "ig_posted_at": "2026-05-20T15:42:37.728026+00:00",
     "ig_success": true
+  },
+  "JA4AJVAW9RU607175": {
+    "title": "2024 Mitsubishi RVR SE AWC",
+    "posted_at": "2026-05-20T21:43:56.479465+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-20T21:43:56.479465+00:00",
+    "ig_success": true
+  },
+  "JA4AJVAW6RU607425": {
+    "title": "2024 Mitsubishi RVR GT AWC",
+    "posted_at": null,
+    "dry_run": false,
+    "success": false,
+    "ig_posted_at": "2026-05-20T21:44:57.147344+00:00",
+    "ig_success": true
+  },
+  "2GCUKDED4S1125704": {
+    "title": "2025 Chevrolet Silverado 1500 LT",
+    "posted_at": "2026-05-20T21:46:00.591441+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-20T21:46:00.591441+00:00",
+    "ig_success": true
+  },
+  "JA4J4VA84PZ614169": {
+    "title": "2023 Mitsubishi Outlander GT S-AWC",
+    "posted_at": "2026-05-20T21:49:20.643127+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-20T21:49:20.643127+00:00",
+    "ig_success": true
+  },
+  "1N4BL4BW4SN354947": {
+    "title": "2025 Nissan Altima S",
+    "posted_at": "2026-05-20T21:50:20.001415+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-20T21:50:20.001415+00:00",
+    "ig_success": true
+  },
+  "JF1VA1A62K8823826": {
+    "title": "2019 Subaru WRX CVT",
+    "posted_at": "2026-05-20T21:51:09.606179+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-20T21:51:09.606179+00:00",
+    "ig_success": true
   }
 }
