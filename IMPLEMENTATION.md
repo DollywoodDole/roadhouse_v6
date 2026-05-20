@@ -1,5 +1,5 @@
 # RoadHouse v6 — Implementation State
-> Last updated: 2026-04-01 · M2 complete · M3 active
+> Last updated: 2026-05-20 · M2 complete · M3 active · Motors live
 
 ---
 
@@ -11,6 +11,7 @@
 | M2 — Web3 Architecture | ✅ Complete | Wallet auth, KV economy, dashboard, docs |
 | M3 — Adventure NFTs + DAO | 🟢 Active | Steward verification keystone not yet shipped |
 | M4 — Claude Agent Team | ⬜ Planned | Orchestrator + specialists |
+| Motors — Dealer Platform | ✅ Live | motors.roadhouse.capital — ~116 vehicles, daily sync |
 
 ---
 
@@ -223,6 +224,67 @@ RoadHouseDashboard.jsx
 ```
 
 **M3 stubs in RoadHouse.jsx:** XP wiring, missions timer, guild bounties CRUD — all read from KV, routes not yet built.
+
+---
+
+---
+
+## MOTORS (motors.roadhouse.capital)
+
+Live at `motors.roadhouse.capital` — isolated subdomain, zero RoadHouse Capital branding.
+proxy.ts rewrites `motors.*` → `/motors/*`; all `/motors` paths are FULLY_PUBLIC.
+
+### Infrastructure
+- `lib/motors/storage.ts` — Upstash Redis CRUD; `DEALER_ID='obrians'` exported constant
+- `lib/motors/scraper.ts` — Webflow CMS scraper (obrians.ca); 8 concurrent fetches
+- `app/api/motors/sync/route.ts` — POST (Bearer CRON_SECRET); full scrape+sync; maxDuration=300
+- Vercel cron `0 15 * * *` (9am CST) → sync; ~116 priced vehicles; stale KV cleanup on each run
+- `app/api/motors/seed/route.ts` — returns 410 Gone (deprecated; scraper is source of truth)
+- `app/api/motors/feed/route.ts` — GET (Bearer CRON_SECRET); JSON + AAMVA XML export
+
+### Pages
+| Route | Purpose |
+|---|---|
+| `/motors/inventory` | Main inventory grid; FilterSidebar; dynamic metadata by make |
+| `/motors/vehicle/[vin]` | VDP; spec table; PaymentEstimator; VehicleLeadForm; StickyCallBar |
+| `/motors/credit` | Pre-qualification form → `/api/motors/leads` → KV + Resend |
+| `/motors/used` | SEO hub — "Used Vehicles Saskatchewan"; off-lease callout; city links |
+| `/motors/[city]` | City geo pages (Saskatoon, Regina, Prince Albert, Moose Jaw) |
+| `/motors/admin` | Lead admin panel; `?token={CRON_SECRET}` gated |
+
+### SEO (shipped May 2026)
+- AutoDealer + Organization JSON-LD in layout; Car + BreadcrumbList on VDP
+- ItemList JSON-LD on inventory, /used, and city pages
+- `app/motors/robots.txt/route.ts` — plain text robots.txt
+- `app/motors/sitemap.ts` — real `lastModified`; per-make URLs; city + /used entries
+- `generateMetadata` on all pages; Twitter card + OG image throughout
+- Sold VDP: noindex + graceful "this vehicle has sold" page instead of hard 404
+- VehicleImage.tsx: CDN images with `onError` fallback to rh-coming-soon.svg
+
+### Lead Pipeline
+- `POST /api/motors/leads` — full credit form → KV + Resend to roadhousesyndicate@gmail.com
+- `GET /api/motors/leads` (CRON_SECRET) — all leads sorted newest-first
+- `PATCH /api/motors/leads/[id]` (CRON_SECRET) — update lead status
+- `POST /api/motors/lead` — lightweight 3-field VDP form (name, phone, vehicleInterest) → Resend to howdy@coconutcowboy.ca; 60s KV rate limit per phone; no CRON_SECRET required
+- KV keys: `motors:leads:{id}` · `motors:leads:index` · `lead:phone:{phone}` (60s TTL)
+
+### Components
+- `VehicleCard.tsx` — framer-motion; rh-logo watermark; status badge; CAD price
+- `VehicleGallery.tsx` — image gallery for VDP
+- `VehicleImage.tsx` — client component; CDN images unoptimized; onError → rh-coming-soon.svg
+- `FilterSidebar.tsx` — make/model/year/price/status filters → URL params; debounced search
+- `PaymentEstimator.tsx` — amortizing payment calc; down payment slider; term + rate dropdowns
+- `StickyCallBar.tsx` — fixed bottom bar; tel: link for mobile click-to-call
+- `VehicleLeadForm.tsx` — 3-field form (name, phone, hidden vehicleInterest); POST /api/motors/lead
+- `CreditForm.tsx` — full pre-qualification form; reads `?vehicle=` param
+- `HeroSection.tsx` — make-aware H1; inventory banner
+
+### Social Manager
+- `roadhouse-motors-social-manager/` — standalone Python tool; NOT part of Next.js
+- 3 posts/day (FB + IG); Claude claude-sonnet-4-6 copy generation; FCAA compliant
+- GitHub Actions workflow (`.github/workflows/motors-social.yml`) — daily 9am CST, no PC required
+- `posted.json` committed back after each run — deduplication across days
+- Meta App ID: `915612138190380` · FB Page ID: `1047748735096733` · IG: @roadhousemotorsyxe
 
 ---
 
