@@ -28,6 +28,9 @@ export const metadata: Metadata = {
     description: 'Browse our certified pre-owned and new vehicle inventory.',
     images: ['https://motors.roadhouse.capital/motors/rh-motors-header.jpg'],
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_MOTORS_TOKEN ?? '',
+  },
 }
 
 const organization = {
