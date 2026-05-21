@@ -230,83 +230,51 @@ def publish_fb_reel(
     page_token: str,
 ) -> tuple[bool, str | None]:
     """
-    Upload to FB Reels via the three-phase resumable upload protocol.
+    Upload a video to the FB Page via standard multipart POST to /{page_id}/videos.
+    9:16 aspect ratio + short duration = FB treats it as a Reel in the feed.
     Returns (success, video_id).
     """
-    file_size = video_path.stat().st_size
-
-    # Phase 1 — start upload session
-    r = requests.post(
-        f"{GRAPH_URL}/{page_id}/video_reels",
-        data={"upload_phase": "start", "access_token": page_token},
-        timeout=30,
-    )
-    result = r.json()
-    upload_url = result.get("upload_url")
-    video_id   = result.get("video_id")
-    if not upload_url or not video_id:
-        err = result.get("error", {})
-        print(f"  REEL FB: Start failed [{err.get('code','?')}]: {err.get('message', result)}")
-        return False, None
-    print(f"  REEL FB: Upload session started (video_id={video_id})")
-
-    # Phase 2 — binary transfer
-    # Read into bytes so requests sets Content-Length automatically (required by rupload)
     video_bytes = video_path.read_bytes()
-    r = requests.put(
-        upload_url,
-        data=video_bytes,
-        headers={
-            "Authorization":  f"OAuth {page_token}",
-            "offset":         "0",
-            "file_size":      str(file_size),
-            "Content-Length": str(file_size),
-            "Content-Type":   "application/octet-stream",
-        },
-        timeout=180,
-    )
-    if r.status_code not in (200, 204):
-        print(f"  REEL FB: Transfer failed — HTTP {r.status_code}: {r.text[:1000]}")
-        return False, None
-    print("  REEL FB: Transfer complete")
+    print(f"  REEL FB: Uploading {len(video_bytes) // 1024:,} KB to /{page_id}/videos...")
 
-    # Phase 3 — finish and publish
     r = requests.post(
-        f"{GRAPH_URL}/{page_id}/video_reels",
+        f"{GRAPH_URL}/{page_id}/videos",
+        files={"source": ("reel.mp4", video_bytes, "video/mp4")},
         data={
-            "upload_phase": "finish",
-            "video_id":     video_id,
-            "video_state":  "PUBLISHED",
             "description":  caption,
+            "published":    "true",
             "access_token": page_token,
         },
-        timeout=30,
+        timeout=300,
     )
     result = r.json()
-    if result.get("success"):
+    video_id = result.get("id")
+    if video_id:
         print(f"  REEL FB: Published — video_id={video_id}")
         return True, video_id
     err = result.get("error", {})
-    print(f"  REEL FB: Finish failed [{err.get('code','?')}]: {err.get('message', result)}")
+    print(f"  REEL FB: Failed [{err.get('code','?')}]: {err.get('message', result)}")
     return False, None
 
 
 def _get_fb_video_source_url(video_id: str, page_token: str) -> str | None:
     """
     Poll FB Graph for the CDN source URL of a published video.
-    Used to pass the video to IG without a separate CDN.
+    Videos need processing time before the source URL is available.
     """
-    for attempt in range(6):
+    for attempt in range(8):
         r = requests.get(
             f"{GRAPH_URL}/{video_id}",
-            params={"fields": "source", "access_token": page_token},
+            params={"fields": "source,status", "access_token": page_token},
             timeout=15,
         )
         data = r.json()
-        if "source" in data:
+        if "source" in data and data["source"]:
             return data["source"]
-        wait = 5 * (attempt + 1)
-        print(f"  REEL FB→IG: source URL not ready — retrying in {wait}s")
+        status = data.get("status", {})
+        processing = status.get("video_status", "")
+        wait = 10 * (attempt + 1)
+        print(f"  REEL FB→IG: video not ready ({processing}) — retrying in {wait}s")
         time.sleep(wait)
     print(f"  REEL FB→IG: Could not retrieve source URL for video_id={video_id}")
     return None
