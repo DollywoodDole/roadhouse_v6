@@ -56,7 +56,7 @@ CLAUDE_MODEL   = "claude-opus-4-6"
 ENABLE_REELS   = os.getenv("ENABLE_REELS", "false").lower() == "true"
 
 # Image caps per platform
-FB_IMAGE_CAP = 20   # FB multi-photo post
+FB_IMAGE_CAP = 10   # FB attached_media API reliable limit (technically 20, but hits errors above 10)
 IG_IMAGE_CAP = 10   # IG carousel hard limit
 
 client = Anthropic(api_key=ANTHROPIC_KEY)
@@ -374,7 +374,11 @@ def _upload_photo_binary(img_bytes: bytes) -> str | None:
         data={"published": "false", "access_token": FB_PAGE_TOKEN},
         timeout=60,
     )
-    result = r.json()
+    try:
+        result = r.json()
+    except Exception:
+        print(f"  IMG: Upload failed — non-JSON response (HTTP {r.status_code}): {r.text[:200]}")
+        return None
     photo_id = result.get("id")
     if not photo_id:
         err = result.get("error", {})
