@@ -1,16 +1,18 @@
 """
 RoadHouse Motors — Social Manager (Facebook + Instagram)
 ---------------------------------------------------------
-Pulls live inventory from the feed API, generates posts with Claude,
-and publishes to the RoadHouse Motors Facebook Page and Instagram account.
+Pulls live inventory from the feed API, generates platform-differentiated
+captions with Claude, runs FCAA compliance lint, and publishes to the
+RoadHouse Motors Facebook Page and Instagram Business account.
 
 Usage:
-  python social_manager.py              # dry run (preview only)
-  python social_manager.py --live       # post to Facebook + Instagram
-  python social_manager.py --limit 1    # post fewer vehicles
-  python social_manager.py --reset      # clear posted.json and start fresh
-  python social_manager.py --backfill --live   # post IG-only for previously FB-posted vehicles
-  python social_manager.py --backfill --limit 10   # preview backfill (dry run)
+  python social_manager.py                    # dry run (preview only)
+  python social_manager.py --live             # post to Facebook + Instagram
+  python social_manager.py --limit 2          # post fewer vehicles
+  python social_manager.py --reset            # clear posted.json and start fresh
+  python social_manager.py --backfill --live  # post IG-only for previously FB-posted vehicles
+  python social_manager.py --lint-only post.txt   # lint a text file for FCAA violations
+  python social_manager.py --marketplace-only     # Marketplace info (runs via FB feed pull)
 """
 
 import os
@@ -41,11 +43,15 @@ FB_PAGE_TOKEN  = os.getenv("FB_PAGE_ACCESS_TOKEN", "")
 IG_USER_ID     = os.getenv("IG_USER_ID", "")
 CRON_SECRET    = os.getenv("CRON_SECRET", "")
 ANTHROPIC_KEY  = os.getenv("ANTHROPIC_API_KEY", "")
-POSTED_FILE       = Path(__file__).parent / "posted.json"
-VIOLATION_LOG     = Path(__file__).parent / "logs" / "compliance_violations.log"
-POSTS_PER_RUN     = 3
-BACKFILL_LIMIT = 10   # default IG-only backfill per run (IG cap: 25/day)
-CLAUDE_MODEL   = "claude-sonnet-4-6"
+POSTED_FILE    = Path(__file__).parent / "posted.json"
+VIOLATION_LOG  = Path(__file__).parent / "logs" / "compliance_violations.log"
+POSTS_PER_RUN  = 6    # 6/day — well below IG's 25/day cap
+BACKFILL_LIMIT = 15
+CLAUDE_MODEL   = "claude-opus-4-6"
+
+# Image caps per platform
+FB_IMAGE_CAP = 20   # FB multi-photo post
+IG_IMAGE_CAP = 10   # IG carousel hard limit
 
 client = Anthropic(api_key=ANTHROPIC_KEY)
 
@@ -179,86 +185,144 @@ def _ig_hashtags(vehicle: dict) -> str:
     return "\n\n" + " ".join(tags)
 
 
-def generate_post(vehicle: dict) -> str:
+def generate_captions(vehicle: dict) -> dict[str, str]:
+    """
+    One Claude call → {"fb": fb_caption, "ig": ig_caption}.
+
+    FB: 200–320 char body, URL inline, closing line.
+    IG: up to 1,200 char body, no raw URL ("Link in bio"), scroll-stop hook,
+        searchable Saskatchewan keywords, full specs, closing line.
+        Hashtags are appended separately by _ig_hashtags().
+    """
     year  = vehicle.get("year", "")
     make  = vehicle.get("make", "")
     model = vehicle.get("model", "")
     trim  = vehicle.get("trim", "")
     url   = vehicle.get("url", "https://motors.roadhouse.capital")
+    body  = vehicle.get("body_style", "")
+    feats = (vehicle.get("features") or [])[:6]
 
     details = "\n".join(filter(None, [
         f"- {year} {make} {model} {trim}".strip(),
         f"- Price: {_fmt_price(vehicle.get('price_cad'))} CAD",
         f"- Mileage: {_fmt_km(vehicle.get('mileage_km'))}",
         f"- Colour: {vehicle.get('exterior_color', '')}" if vehicle.get("exterior_color") else "",
+        f"- Body style: {body}" if body else "",
         f"- Transmission: {vehicle.get('transmission', '')}" if vehicle.get("transmission") else "",
         f"- Fuel: {vehicle.get('fuel_type', '')}" if vehicle.get("fuel_type") else "",
-        f"- Listing: {url}",
+        f"- Features: {'; '.join(feats[:3])}" if feats else "",
+        f"- Listing URL: {url}",
     ]))
 
     prompt = f"""You are the social media voice for RoadHouse Motors — a Saskatchewan-based used vehicle dealership licensed under the Saskatchewan Motor Dealer Act (DL#331386).
 
-Vehicle:
+Vehicle data:
 {details}
 
 Brand voice: Direct. Unfiltered. High-standard. No filler, no hype, no urgency tactics. "Where Standards Matter."
 
-Write ONE social media post (used for both Facebook and Instagram). Rules:
+FCAA / Saskatchewan dealer compliance (applies to BOTH captions — non-negotiable):
+- Present the advertised price as-is. No monthly payments, interest rates, or financing terms.
+- No superlatives you cannot substantiate: no "best price", "lowest price", "cheapest", "unbeatable".
+- Do not claim the vehicle is certified, inspected, or under warranty unless confirmed in data.
+- Use only the mileage and year from the data above.
+- Saskatchewan delivery is fine to state as a factual service.
+- No urgency language: no "act now", "limited time", "don't miss", "won't last", "going fast".
+- Never mention O'Brian's or any other dealer name.
 
-FCAA / Saskatchewan dealer compliance (non-negotiable):
-- Advertised price must be presented as-is with no financing or payment breakdown unless fully disclosed — do not mention monthly payments, interest rates, or financing terms
-- Do not claim "best price", "lowest price", or any superlative you cannot substantiate
-- Do not imply the vehicle is certified, inspected, or under warranty unless the vehicle data confirms it
-- No misleading mileage or year claims — use only what is in the vehicle data above
-- Saskatchewan delivery is fine to mention as a factual service offering
+Write TWO captions and return ONLY a JSON object with keys "fb" and "ig". No markdown fences, no explanation — raw JSON only.
 
-Content rules:
-- Lead with the vehicle itself, not a hook or gimmick
-- Mention Saskatchewan delivery available
-- Include the listing URL naturally
-- Close the post on its own line with exactly: DL#331386 | (306) 381-8222 | Prices exclude taxes & licensing
-- 200–320 characters for the body (not counting the closing line)
-- 1–2 emojis max, only where natural — none is fine too
-- No exclamation spam. No all-caps. No fake urgency (ACT NOW, LIMITED TIME, Don't miss out)
-- Never mention O'Brian's or any other dealer name
-- Return ONLY the final post text, nothing else"""
+Facebook caption ("fb"):
+- Body: 200–320 characters (not counting the closing line)
+- Lead with the vehicle itself
+- Include the listing URL naturally in the body
+- End the body with Saskatchewan delivery available
+- Final line (mandatory, exact): DL#331386 | (306) 381-8222 | Prices exclude taxes & licensing
+- 1–2 emojis max where natural; none is fine
 
-    message = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=500,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return message.content[0].text.strip()
+Instagram caption ("ig"):
+- Open with a scroll-stop first line that makes someone pause (no fake urgency — lead with what the vehicle is or who it's for)
+- Body: up to 1,200 characters
+- Do NOT include a raw URL — IG does not linkify; write "Link in bio." instead
+- Pack searchable keywords naturally: Saskatchewan, Saskatoon, Regina, used {body if body else "vehicles"}, {year} {make} {model}, full trim name spelled out
+- Include: year, make, model, trim, mileage, colour, transmission, 3–4 standout features
+- Close with: Saskatchewan delivery available. Link in bio.
+- Final line (mandatory, exact): DL#331386 | (306) 381-8222 | Prices exclude taxes & licensing
+- Do NOT add hashtags — they are added separately
 
-
-def _regenerate_compliant(vehicle: dict, violations: list[str], original_text: str) -> str:
-    """
-    Ask Claude to rewrite *original_text* after flagging specific violations.
-    Called at most once per vehicle — if the second attempt also fails lint,
-    the vehicle is skipped.
-    """
-    violation_lines = "\n".join(f"- {v}" for v in violations)
-    prompt = f"""The following social media post for a vehicle listing was rejected by our
-FCAA compliance linter for Saskatchewan dealer advertising rules:
-
---- REJECTED POST ---
-{original_text}
---- END ---
-
-Violations detected:
-{violation_lines}
-
-Rewrite the post removing ALL of the violations above. Keep the same vehicle
-facts, brand voice (direct, unfiltered, high-standard), and mandatory closing
-line. Do not introduce any new financing claims, urgency language, or
-unsubstantiated superlatives. Return ONLY the rewritten post text."""
+Return exactly: {{"fb": "...", "ig": "..."}}"""
 
     message = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=500,
+        max_tokens=700,
         messages=[{"role": "user", "content": prompt}],
     )
-    return message.content[0].text.strip()
+    raw = message.content[0].text.strip()
+
+    # Strip markdown code fences if Claude wraps the JSON
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+
+    try:
+        data = json.loads(raw)
+        return {"fb": str(data["fb"]).strip(), "ig": str(data["ig"]).strip()}
+    except (json.JSONDecodeError, KeyError):
+        # Graceful fallback: use the full response as the FB caption, derive IG from it
+        text = raw.strip()
+        return {"fb": text, "ig": text}
+
+
+def _regenerate_compliant(
+    vehicle: dict,
+    violations_fb: list[str],
+    violations_ig: list[str],
+    fb_caption: str,
+    ig_caption: str,
+) -> dict[str, str]:
+    """
+    Ask Claude to rewrite captions that failed lint, providing specific violations.
+    Called at most once per vehicle — if the second attempt also fails, the vehicle is skipped.
+    """
+    parts = []
+    if violations_fb:
+        vlines = "\n".join(f"  - {v}" for v in violations_fb)
+        parts.append(f"Facebook caption violations:\n{vlines}\n\nFacebook caption (rejected):\n{fb_caption}")
+    if violations_ig:
+        vlines = "\n".join(f"  - {v}" for v in violations_ig)
+        parts.append(f"Instagram caption violations:\n{vlines}\n\nInstagram caption (rejected):\n{ig_caption}")
+
+    prompt = f"""The following vehicle listing captions were rejected by our FCAA compliance linter
+for Saskatchewan dealer advertising rules. Rewrite them removing ALL violations.
+Keep the same vehicle facts, brand voice (direct, unfiltered, high-standard),
+and mandatory closing line. Do not introduce any new financing claims, urgency
+language, or unsubstantiated superlatives.
+
+{chr(10).join(parts)}
+
+Return ONLY a JSON object: {{"fb": "rewritten fb caption", "ig": "rewritten ig caption"}}
+No markdown, no explanation."""
+
+    message = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=700,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = message.content[0].text.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+
+    try:
+        data = json.loads(raw)
+        return {"fb": str(data["fb"]).strip(), "ig": str(data["ig"]).strip()}
+    except (json.JSONDecodeError, KeyError):
+        text = raw.strip()
+        return {"fb": text, "ig": text}
 
 
 def _log_violation(
@@ -294,6 +358,7 @@ def _log_violation(
 # ── Facebook ──────────────────────────────────────────────────────────────────
 
 def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
+    image_urls = image_urls[:FB_IMAGE_CAP]  # hard cap — FB multi-photo limit
     if len(image_urls) == 1:
         resp = requests.post(
             f"{GRAPH_URL}/{FB_PAGE_ID}/photos",
@@ -581,57 +646,73 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         price = _fmt_price(v.get("price_cad"))
         km    = _fmt_km(v.get("mileage_km"))
 
-        images      = [img for img in (v.get("images") or []) if img.startswith("http")]
-        raw_images  = images[1:4] if len(images) > 1 else (images[:1] if images else [])
-        post_images = [raw_images[1], raw_images[0]] + raw_images[2:] if len(raw_images) >= 2 else raw_images
+        # ── Images — separate caps for FB (20) and IG (10) ────────────────────
+        all_images = [img for img in (v.get("images") or []) if img.startswith("http")]
+        # images[0] is the branded dealer overlay — skip it for posts
+        fb_images = all_images[1:1 + FB_IMAGE_CAP]
+        ig_images = all_images[1:1 + IG_IMAGE_CAP]
 
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
-        print(f"  Images: {len(post_images)} ({', '.join(post_images) or 'none'})")
-        print("  Generating post...")
+        print(f"  Images: {len(all_images)} total | FB: {len(fb_images)} | IG: {len(ig_images)}")
+        print("  Generating captions...")
 
         try:
-            post_text = generate_post(v)
+            captions = generate_captions(v)
         except Exception as e:
             print(f"  ERROR: Claude generation failed — {e}\n")
             continue
 
-        # ── Compliance lint ────────────────────────────────────────────────────
-        violations = lint(post_text)
-        if violations:
-            print(f"  COMPLIANCE: {len(violations)} violation(s) on attempt 1 — regenerating...")
-            for viol in violations:
-                print(f"    - {viol}")
+        fb_caption = captions["fb"]
+        ig_caption = captions["ig"] + _ig_hashtags(v)
+
+        # ── Compliance lint — FB and IG independently ──────────────────────────
+        v_fb = lint(fb_caption)
+        v_ig = lint(captions["ig"])  # lint before hashtags (hashtags are always clean)
+
+        if v_fb or v_ig:
+            total = len(v_fb) + len(v_ig)
+            print(f"  COMPLIANCE: {total} violation(s) on attempt 1 — regenerating...")
+            if v_fb:
+                print(f"    FB ({len(v_fb)}):")
+                for viol in v_fb:
+                    print(f"      - {viol}")
+            if v_ig:
+                print(f"    IG ({len(v_ig)}):")
+                for viol in v_ig:
+                    print(f"      - {viol}")
             try:
-                text_2 = _regenerate_compliant(v, violations, post_text)
+                captions2 = _regenerate_compliant(v, v_fb, v_ig, fb_caption, captions["ig"])
             except Exception as e:
                 print(f"  ERROR: Regeneration failed — {e}\n")
-                _log_violation(vin, violations, post_text, None, None, "generation_error")
+                _log_violation(vin, v_fb + v_ig, fb_caption, None, None, "generation_error")
                 continue
 
-            violations_2 = lint(text_2)
-            if violations_2:
+            v_fb2 = lint(captions2["fb"])
+            v_ig2 = lint(captions2["ig"])
+            if v_fb2 or v_ig2:
                 print(f"  COMPLIANCE: Attempt 2 also failed — skipping {vin}")
-                for viol in violations_2:
+                for viol in v_fb2 + v_ig2:
                     print(f"    - {viol}")
-                _log_violation(vin, violations, post_text, violations_2, text_2, "skipped")
+                _log_violation(vin, v_fb + v_ig, fb_caption, v_fb2 + v_ig2, captions2["fb"], "skipped")
                 continue
             else:
                 print("  COMPLIANCE: Clean on attempt 2.")
-                post_text = text_2
+                fb_caption = captions2["fb"]
+                ig_caption = captions2["ig"] + _ig_hashtags(v)
         else:
             print("  COMPLIANCE: Clean.")
 
-        ig_caption = post_text + _ig_hashtags(v)
-
         print()
-        print("  --- POST PREVIEW " + "-" * 40)
-        for line in post_text.splitlines():
+        print("  --- FB CAPTION " + "-" * 42)
+        for line in fb_caption.splitlines():
             print(f"  | {line}")
-        print(f"  |")
-        print(f"  | [link: {url}]")
-        if IG_USER_ID or backfill:
-            print(f"  | [IG caption appends: {_ig_hashtags(v).strip()}]")
+        print(f"  | [images: {len(fb_images)}]")
+        print()
+        print("  --- IG CAPTION " + "-" * 42)
+        for line in ig_caption.splitlines():
+            print(f"  | {line}")
+        print(f"  | [images: {len(ig_images)}]")
         print("  " + "-" * 57)
         print()
 
@@ -640,26 +721,26 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         if dry_run:
             newly_posted[vin] = {
                 **existing,
-                "title": title,
+                "title":   title,
                 "dry_run": True,
             }
         elif backfill:
-            ig_ok = post_to_instagram(ig_caption, post_images)
+            ig_ok = post_to_instagram(ig_caption, ig_images)
             newly_posted[vin] = {
                 **existing,
                 "ig_posted_at": datetime.now(timezone.utc).isoformat() if ig_ok else None,
                 "ig_success":   ig_ok,
             }
         else:
-            fb_ok = post_to_facebook(post_text, url, post_images)
-            ig_ok = post_to_instagram(ig_caption, post_images) if (IG_USER_ID and post_images) else None
+            fb_ok = post_to_facebook(fb_caption, url, fb_images)
+            ig_ok = post_to_instagram(ig_caption, ig_images) if (IG_USER_ID and ig_images) else None
 
             entry = {
                 **existing,
-                "title":        title,
-                "posted_at":    datetime.now(timezone.utc).isoformat() if fb_ok else None,
-                "dry_run":      False,
-                "success":      fb_ok,
+                "title":     title,
+                "posted_at": datetime.now(timezone.utc).isoformat() if fb_ok else None,
+                "dry_run":   False,
+                "success":   fb_ok,
             }
             if ig_ok is not None:
                 entry["ig_posted_at"] = datetime.now(timezone.utc).isoformat() if ig_ok else None
@@ -698,12 +779,19 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RoadHouse Motors Social Manager (Facebook + Instagram)")
-    parser.add_argument("--live",      action="store_true", help="Publish posts (default is dry run)")
-    parser.add_argument("--limit",     type=int, default=None, help="Max posts per run")
-    parser.add_argument("--reset",     action="store_true", help="Clear posted.json history and start fresh")
-    parser.add_argument("--backfill",  action="store_true", help="Post IG-only for previously FB-posted vehicles")
-    parser.add_argument("--lint-only", metavar="FILE", help="Lint a text file for FCAA violations and exit")
+    parser.add_argument("--live",             action="store_true", help="Publish posts (default is dry run)")
+    parser.add_argument("--limit",            type=int, default=None, help="Max posts per run")
+    parser.add_argument("--reset",            action="store_true", help="Clear posted.json history and start fresh")
+    parser.add_argument("--backfill",         action="store_true", help="Post IG-only for previously FB-posted vehicles")
+    parser.add_argument("--feed-only",        action="store_true", help="Run feed posts only (default behavior; explicit flag for clarity)")
+    parser.add_argument("--marketplace-only", action="store_true", help="(v1 no-op) Marketplace runs via FB-side scheduled feed pull")
+    parser.add_argument("--lint-only",        metavar="FILE", help="Lint a text file for FCAA violations and exit")
     args = parser.parse_args()
+
+    if args.marketplace_only:
+        print("Marketplace runs via FB-side scheduled feed pull. See MARKETPLACE_SETUP.md.")
+        print("Feed URL: https://motors.roadhouse.capital/api/motors/feed/catalog")
+        sys.exit(0)
 
     if args.lint_only:
         path = Path(args.lint_only)
