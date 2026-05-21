@@ -255,23 +255,27 @@ def publish_fb_reel(
 
 def _get_fb_video_source_url(video_id: str, page_token: str) -> str | None:
     """
-    Poll FB Graph for the CDN source URL of a published video.
-    Videos need processing time before the source URL is available.
+    Poll FB Graph until the video finishes processing and the source URL is available.
+    FB video processing typically takes 30-120s after upload.
     """
-    for attempt in range(8):
+    # Initial wait — video processing always takes at least 30s
+    print(f"  REEL FB→IG: Waiting 45s for FB video processing...")
+    time.sleep(45)
+
+    for attempt in range(10):
         r = requests.get(
             f"{GRAPH_URL}/{video_id}",
             params={"fields": "source,status", "access_token": page_token},
             timeout=15,
         )
         data = r.json()
-        if "source" in data and data["source"]:
-            return data["source"]
-        status = data.get("status", {})
-        processing = status.get("video_status", "")
-        wait = 10 * (attempt + 1)
-        print(f"  REEL FB→IG: video not ready ({processing}) — retrying in {wait}s")
-        time.sleep(wait)
+        source = data.get("source", "")
+        if source:
+            return source
+        video_status = data.get("status", {}).get("video_status", "unknown")
+        print(f"  REEL FB→IG: status={video_status} — retrying in 20s (attempt {attempt+1}/10)")
+        time.sleep(20)
+
     print(f"  REEL FB→IG: Could not retrieve source URL for video_id={video_id}")
     return None
 
