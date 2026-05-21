@@ -72,15 +72,11 @@ def _build_filter_complex(n_clips: int, total_dur: float, has_audio: bool) -> st
             f"[fg{i}]scale={REEL_W}:{REEL_H}:force_original_aspect_ratio=decrease[scaled{i}]"
         )
         parts.append(f"[blur{i}][scaled{i}]overlay=(W-w)/2:(H-h)/2[over{i}]")
-        # Slow zoom-in (Ken Burns) — 0.15% zoom per frame over CLIP_FRAMES frames
+        # Static clip — trim to CLIP_DURATION at target fps, reset timestamps
         parts.append(
-            f"[over{i}]zoompan="
-            f"z='zoom+0.0015':"
-            f"x='iw/2-(iw/zoom/2)':"
-            f"y='ih/2-(ih/zoom/2)':"
-            f"d={CLIP_FRAMES}:"
-            f"s={REEL_W}x{REEL_H}:"
-            f"fps={REEL_FPS}[v{i}]"
+            f"[over{i}]fps=fps={REEL_FPS},"
+            f"trim=duration={CLIP_DURATION},"
+            f"setpts=PTS-STARTPTS[v{i}]"
         )
 
     # ── Brand outro (solid dark card + text) ────────────────────────────────
