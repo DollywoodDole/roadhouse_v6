@@ -542,18 +542,24 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - One-time setup: run `setupMotorsSheet()` from Apps Script editor; trigger auto-registers
 - Sheet ID: `1g_Q-wXDWkQ0cBYSdZFxWBY6CW6S4u-ZFH0lO_4FfD9s`
 
-**Facebook social manager (2026-05-08):**
+**Facebook + Instagram social manager (2026-05-21):**
 - `roadhouse-motors-social-manager/` — standalone Python tool (NOT part of Next.js app)
-- `social_manager.py` — fetches feed, generates FCAA-compliant posts with `claude-sonnet-4-6`, posts to FB Page
+- `social_manager.py` — fetches feed, generates platform-differentiated captions with `claude-opus-4-6`, watermarks images, posts to FB + IG
 - Runs daily at 9am CST via GitHub Actions (`.github/workflows/motors-social.yml`) — no PC required
-- 3 posts/day · vehicles with CDN images only · uses `images[1]` (skips branded hero shot)
-- `posted.json` committed back to repo after each run — prevents duplicate posts across days
-- FCAA compliance: no financing claims, no superlatives, closing line: `DL#331386 | (306) 381-8222 | Prices exclude taxes & licensing`
+- 6 posts/day · vehicles with CDN images only · skips first 2 images (O'Brian's branded overlay + secondary branded image)
+- `posted.json` committed back to repo after each run — prevents duplicate posts across days; tracks fb/ig/reel success per VIN
+- FCAA compliance linter (`compliance.py`) — scans every caption before publish; regenerates on violation; skips vehicle if second attempt also fails; logs to `logs/compliance_violations.log`
+- Platform-differentiated captions: FB (200-320 char, URL inline), IG (up to 1,200 char, scroll-stop hook, Saskatchewan geo keywords, hashtags, "Link in bio")
+- **RH logo watermark**: every image downloaded → `rh-logo.png` composited bottom-right (18% width, 30% opacity) → binary-uploaded to FB → FB CDN URL used for IG (no separate hosting)
+- **Reels pipeline** (`reels.py`): renders 9:16 MP4 via ffmpeg (static letterboxed clips + xfade transitions + brand outro card); publishes 2 FB Reels/day; `ENABLE_REELS=true` GitHub var to activate; IG Reels stubbed pending Vercel Blob hosting for public video URL
+- **FB Marketplace catalog**: `GET /api/motors/feed/catalog` (Bearer CRON_SECRET) → RFC 4180 CSV; FB pulls hourly; setup in `MARKETPLACE_SETUP.md`
 - Manual trigger: GitHub Actions tab → RoadHouse Motors — Daily Social Post → Run workflow
-- Meta App ID: `915612138190380` · FB Page ID: `1047748735096733`
-- GitHub secrets required: `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN` · `FB_PAGE_ID` (var)
+- Meta App ID: `915612138190380` · FB Page ID: `1047748735096733` · IG User ID: `17841417177506354`
+- GitHub secrets: `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN`
+- GitHub vars: `FB_PAGE_ID` · `IG_USER_ID` · `ENABLE_REELS=true` · `REELS_AUDIO_DIR`
+- CLI flags: `--live` · `--limit N` · `--reset` · `--backfill` · `--reels-only` · `--reels-limit N` · `--feed-only` · `--lint-only FILE`
 - Local dry run: `cd roadhouse-motors-social-manager && venv\Scripts\python social_manager.py`
-- Local live run: add `--live` · reset history: add `--reset`
+- IG Reels TODO: add `PUT /api/motors/reels/upload` → Vercel Blob → return public URL → pass to IG `video_url`
 
 **Lead capture pipeline + credit rebuild (2026-05-09):**
 - `types/inventory.ts` — `MotorsLead` interface added (id, submittedAt, name, phone, email, vehicleInterest, creditRange, monthlyIncome, employmentStatus, message, status, source)
@@ -570,6 +576,16 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - OG image on main `roadhouse.capital` — added `rh-hero.jpg` to `openGraph.images` and `twitter.images` in `app/layout.tsx`; added `metadataBase`
 
 **Admin panel access:** `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}` — CRON_SECRET is in Vercel dashboard → Project Settings → Environment Variables.
+
+**Social manager upgrades (2026-05-21):**
+- `compliance.py` — FCAA linter; 31 tests in `tests/test_compliance.py`; integrated into all publish paths with 2-attempt regeneration before skip
+- Platform-differentiated captions — one Claude call returns `{"fb": ..., "ig": ...}`; FB 200-320 char; IG up to 1,200 char with hashtags
+- `watermark.py` — Pillow watermark pipeline; binary uploads to FB; FB CDN URL reused for IG (no separate CDN needed)
+- Image skip: `images[2:]` not `images[1:]` — safely clears O'Brian's branded overlay in all positions
+- `reels.py` — ffmpeg Reels pipeline: static letterboxed clips (zoompan removed — caused shake), xfade transitions, brand outro card; publishes via `/{page_id}/videos` multipart POST; 2 FB Reels/day; `ENABLE_REELS=true` GitHub var
+- IG Reels blocked: FB CDN URLs (video.xx.fbcdn.net) not accessible to IG servers (error 2207076); needs Vercel Blob upload → public URL → IG `video_url`
+- `app/api/motors/feed/catalog/route.ts` — FB Marketplace Vehicles Catalog CSV; FB pulls hourly; setup in `MARKETPLACE_SETUP.md`
+- `roadhouse-motors-social-manager/posted.json` schema: `posted_at`, `success`, `ig_posted_at`, `ig_success`, `reel_posted_at`, `reel_fb_success`, `reel_ig_success`, `reel_video_url` per VIN
 
 ---
 
