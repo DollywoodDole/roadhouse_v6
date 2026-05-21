@@ -29,6 +29,7 @@ from pathlib import Path
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from compliance import lint
+from watermark import download_and_watermark
 import reels as reels_mod
 
 # Force UTF-8 output on Windows terminals
@@ -360,86 +361,99 @@ def _log_violation(
         f.write("\n".join(lines) + "\n")
 
 
+# ── Image upload helpers ───────────────────────────────────────────────────────
+
+def _upload_photo_binary(img_bytes: bytes) -> str | None:
+    """
+    Upload a watermarked image binary to FB as an unpublished photo.
+    Returns the photo ID on success, None on failure.
+    """
+    r = requests.post(
+        f"{GRAPH_URL}/{FB_PAGE_ID}/photos",
+        files={"source": ("image.jpg", img_bytes, "image/jpeg")},
+        data={"published": "false", "access_token": FB_PAGE_TOKEN},
+        timeout=60,
+    )
+    result = r.json()
+    photo_id = result.get("id")
+    if not photo_id:
+        err = result.get("error", {})
+        print(f"  IMG: Upload failed [{err.get('code','?')}]: {err.get('message', result)}")
+    return photo_id
+
+
+def _get_photo_cdn_url(photo_id: str) -> str | None:
+    """
+    Retrieve the FB CDN source URL for an uploaded photo.
+    This URL is publicly accessible and can be used as IG image_url.
+    """
+    r = requests.get(
+        f"{GRAPH_URL}/{photo_id}",
+        params={"fields": "images", "access_token": FB_PAGE_TOKEN},
+        timeout=15,
+    )
+    imgs = r.json().get("images", [])
+    if imgs:
+        return max(imgs, key=lambda x: x.get("width", 0)).get("source")
+    return None
+
+
+def _prepare_images(image_urls: list[str]) -> list[tuple[str, str | None]]:
+    """
+    For each URL: download → watermark → binary upload to FB → get CDN URL.
+    Returns [(photo_id, cdn_url), ...] for each successfully uploaded image.
+    cdn_url is the FB CDN URL — publicly accessible, suitable for IG image_url.
+    """
+    entries: list[tuple[str, str | None]] = []
+    for url in image_urls:
+        img_bytes = download_and_watermark(url)
+        if not img_bytes:
+            print(f"  IMG: Could not watermark {url[:70]}...")
+            continue
+        photo_id = _upload_photo_binary(img_bytes)
+        if not photo_id:
+            continue
+        cdn_url = _get_photo_cdn_url(photo_id)
+        entries.append((photo_id, cdn_url))
+    return entries
+
+
 # ── Facebook ──────────────────────────────────────────────────────────────────
 
-def post_to_facebook(message: str, link: str, image_urls: list[str]) -> bool:
-    image_urls = image_urls[:FB_IMAGE_CAP]  # hard cap — FB multi-photo limit
-    if len(image_urls) == 1:
-        resp = requests.post(
-            f"{GRAPH_URL}/{FB_PAGE_ID}/photos",
-            data={
-                "url":          image_urls[0],
-                "caption":      message,
-                "access_token": FB_PAGE_TOKEN,
-            },
-            timeout=30,
-        )
-        result = resp.json()
-        if "id" in result:
-            print(f"  FB:  Published: https://www.facebook.com/{result['id']}")
-            return True
-        err = result.get("error", {})
-        print(f"  FB:  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
-        return False
-
-    elif len(image_urls) > 1:
-        media_ids = []
-        for img_url in image_urls:
-            r = requests.post(
-                f"{GRAPH_URL}/{FB_PAGE_ID}/photos",
-                data={
-                    "url":          img_url,
-                    "published":    "false",
-                    "access_token": FB_PAGE_TOKEN,
-                },
-                timeout=30,
-            )
-            r_json = r.json()
-            if "id" in r_json:
-                media_ids.append(r_json["id"])
-            else:
-                err = r_json.get("error", {})
-                print(f"  FB:  Warning: could not upload photo [{err.get('code', '?')}]: {err.get('message', r_json)}")
-
-        if not media_ids:
-            print("  FB:  Failed: no photos uploaded successfully")
-            return False
-
-        attached = json.dumps([{"media_fbid": mid} for mid in media_ids])
+def post_to_facebook(message: str, link: str, photo_ids: list[str]) -> bool:
+    """
+    Publish a feed post using pre-uploaded FB photo IDs.
+    Images are already watermarked and uploaded — this just creates the post.
+    """
+    if not photo_ids:
+        # No images — text/link post
         resp = requests.post(
             f"{GRAPH_URL}/{FB_PAGE_ID}/feed",
-            data={
-                "message":        message,
-                "attached_media": attached,
-                "access_token":   FB_PAGE_TOKEN,
-            },
+            data={"message": message, "link": link, "access_token": FB_PAGE_TOKEN},
             timeout=30,
         )
         result = resp.json()
         if "id" in result:
-            print(f"  FB:  Published ({len(media_ids)} photos): https://www.facebook.com/{result['id']}")
+            print(f"  FB:  Published (text): https://www.facebook.com/{result['id']}")
             return True
         err = result.get("error", {})
-        print(f"  FB:  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
+        print(f"  FB:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
         return False
 
-    else:
-        resp = requests.post(
-            f"{GRAPH_URL}/{FB_PAGE_ID}/feed",
-            data={
-                "message":      message,
-                "link":         link,
-                "access_token": FB_PAGE_TOKEN,
-            },
-            timeout=30,
-        )
-        result = resp.json()
-        if "id" in result:
-            print(f"  FB:  Published: https://www.facebook.com/{result['id']}")
-            return True
-        err = result.get("error", {})
-        print(f"  FB:  Failed [{err.get('code', '?')}]: {err.get('message', result)}")
-        return False
+    attached = json.dumps([{"media_fbid": pid} for pid in photo_ids])
+    resp = requests.post(
+        f"{GRAPH_URL}/{FB_PAGE_ID}/feed",
+        data={"message": message, "attached_media": attached, "access_token": FB_PAGE_TOKEN},
+        timeout=30,
+    )
+    result = resp.json()
+    if "id" in result:
+        n = len(photo_ids)
+        print(f"  FB:  Published ({n} photo{'s' if n > 1 else ''}): https://www.facebook.com/{result['id']}")
+        return True
+    err = result.get("error", {})
+    print(f"  FB:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
+    return False
 
 
 # ── Instagram helpers ─────────────────────────────────────────────────────────
@@ -651,15 +665,16 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         price = _fmt_price(v.get("price_cad"))
         km    = _fmt_km(v.get("mileage_km"))
 
-        # ── Images — separate caps for FB (20) and IG (10) ────────────────────
+        # ── Images — skip first 2 (O'Brian's branded overlay + secondary branded
+        #    image), then apply separate caps for FB (20) and IG (10)  ──────────
         all_images = [img for img in (v.get("images") or []) if img.startswith("http")]
-        # images[0] is the branded dealer overlay — skip it for posts
-        fb_images = all_images[1:1 + FB_IMAGE_CAP]
-        ig_images = all_images[1:1 + IG_IMAGE_CAP]
+        start      = min(2, len(all_images) - 1) if all_images else 0
+        raw_fb_images = all_images[start:start + FB_IMAGE_CAP]
+        raw_ig_images = all_images[start:start + IG_IMAGE_CAP]
 
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
-        print(f"  Images: {len(all_images)} total | FB: {len(fb_images)} | IG: {len(ig_images)}")
+        print(f"  Images: {len(all_images)} total | FB: {len(raw_fb_images)} | IG: {len(raw_ig_images)} (skip={start})")
         print("  Generating captions...")
 
         try:
@@ -708,16 +723,35 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         else:
             print("  COMPLIANCE: Clean.")
 
+        # ── Watermark + upload to FB — get photo IDs (for FB post) and CDN URLs
+        #    (for IG image_url). Skip in dry run — no uploads. ──────────────────
+        photo_ids: list[str]     = []
+        ig_image_urls: list[str] = []
+
+        if not dry_run:
+            if backfill:
+                # Backfill: upload IG images to FB to get watermarked CDN URLs for IG
+                print("  Watermarking + uploading images for IG backfill...")
+                entries = _prepare_images(raw_ig_images)
+                ig_image_urls = [cdn for _, cdn in entries if cdn]
+            else:
+                # Normal: upload FB images → use photo IDs for FB, CDN URLs for IG
+                print("  Watermarking + uploading images...")
+                entries = _prepare_images(raw_fb_images)
+                photo_ids     = [pid for pid, _ in entries]
+                ig_image_urls = [cdn for _, cdn in entries[:IG_IMAGE_CAP] if cdn]
+            print(f"  Upload: {len(photo_ids)} FB photos | {len(ig_image_urls)} IG CDN URLs")
+
         print()
         print("  --- FB CAPTION " + "-" * 42)
         for line in fb_caption.splitlines():
             print(f"  | {line}")
-        print(f"  | [images: {len(fb_images)}]")
+        print(f"  | [photos: {len(photo_ids) if not dry_run else len(raw_fb_images)}]")
         print()
         print("  --- IG CAPTION " + "-" * 42)
         for line in ig_caption.splitlines():
             print(f"  | {line}")
-        print(f"  | [images: {len(ig_images)}]")
+        print(f"  | [images: {len(ig_image_urls) if not dry_run else len(raw_ig_images)}]")
         print("  " + "-" * 57)
         print()
 
@@ -730,15 +764,15 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
                 "dry_run": True,
             }
         elif backfill:
-            ig_ok = post_to_instagram(ig_caption, ig_images)
+            ig_ok = post_to_instagram(ig_caption, ig_image_urls)
             newly_posted[vin] = {
                 **existing,
                 "ig_posted_at": datetime.now(timezone.utc).isoformat() if ig_ok else None,
                 "ig_success":   ig_ok,
             }
         else:
-            fb_ok = post_to_facebook(fb_caption, url, fb_images)
-            ig_ok = post_to_instagram(ig_caption, ig_images) if (IG_USER_ID and ig_images) else None
+            fb_ok = post_to_facebook(fb_caption, url, photo_ids)
+            ig_ok = post_to_instagram(ig_caption, ig_image_urls) if (IG_USER_ID and ig_image_urls) else None
 
             entry = {
                 **existing,

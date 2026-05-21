@@ -251,20 +251,22 @@ def publish_fb_reel(
     print(f"  REEL FB: Upload session started (video_id={video_id})")
 
     # Phase 2 — binary transfer
-    with video_path.open("rb") as fh:
-        r = requests.put(
-            upload_url,
-            data=fh,
-            headers={
-                "Authorization": f"OAuth {page_token}",
-                "offset":        "0",
-                "file_size":     str(file_size),
-                "Content-Type":  "application/octet-stream",
-            },
-            timeout=180,
-        )
+    # Read into bytes so requests sets Content-Length automatically (required by rupload)
+    video_bytes = video_path.read_bytes()
+    r = requests.put(
+        upload_url,
+        data=video_bytes,
+        headers={
+            "Authorization":  f"OAuth {page_token}",
+            "offset":         "0",
+            "file_size":      str(file_size),
+            "Content-Length": str(file_size),
+            "Content-Type":   "application/octet-stream",
+        },
+        timeout=180,
+    )
     if r.status_code not in (200, 204):
-        print(f"  REEL FB: Transfer failed — HTTP {r.status_code}: {r.text[:500]}")
+        print(f"  REEL FB: Transfer failed — HTTP {r.status_code}: {r.text[:1000]}")
         return False, None
     print("  REEL FB: Transfer complete")
 
