@@ -18,7 +18,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
         run: pip install -r roadhouse-motors-social-manager/requirements.txt
 
       - name: Post to Facebook + Instagram
@@ -29,6 +34,8 @@ jobs:
           FB_PAGE_ID:            ${{ vars.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN:  ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           IG_USER_ID:            ${{ vars.IG_USER_ID }}
+          ENABLE_REELS:          ${{ vars.ENABLE_REELS }}
+          REELS_AUDIO_DIR:       ${{ vars.REELS_AUDIO_DIR }}
         run: python social_manager.py --live
 
       - name: Persist posted.json

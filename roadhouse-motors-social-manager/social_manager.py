@@ -11,6 +11,8 @@ Usage:
   python social_manager.py --limit 2          # post fewer vehicles
   python social_manager.py --reset            # clear posted.json and start fresh
   python social_manager.py --backfill --live  # post IG-only for previously FB-posted vehicles
+  python social_manager.py --reels-only       # Reels pipeline only (requires ENABLE_REELS=true)
+  python social_manager.py --reels-limit 1    # limit Reels per run (default 2)
   python social_manager.py --lint-only post.txt   # lint a text file for FCAA violations
   python social_manager.py --marketplace-only     # Marketplace info (runs via FB feed pull)
 """
@@ -27,6 +29,7 @@ from pathlib import Path
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from compliance import lint
+import reels as reels_mod
 
 # Force UTF-8 output on Windows terminals
 if sys.stdout.encoding != 'utf-8':
@@ -47,7 +50,9 @@ POSTED_FILE    = Path(__file__).parent / "posted.json"
 VIOLATION_LOG  = Path(__file__).parent / "logs" / "compliance_violations.log"
 POSTS_PER_RUN  = 6    # 6/day — well below IG's 25/day cap
 BACKFILL_LIMIT = 15
+REELS_PER_RUN  = 2    # default Reels per day
 CLAUDE_MODEL   = "claude-opus-4-6"
+ENABLE_REELS   = os.getenv("ENABLE_REELS", "false").lower() == "true"
 
 # Image caps per platform
 FB_IMAGE_CAP = 20   # FB multi-photo post
@@ -780,10 +785,12 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RoadHouse Motors Social Manager (Facebook + Instagram)")
     parser.add_argument("--live",             action="store_true", help="Publish posts (default is dry run)")
-    parser.add_argument("--limit",            type=int, default=None, help="Max posts per run")
+    parser.add_argument("--limit",            type=int, default=None, help="Max feed posts per run")
     parser.add_argument("--reset",            action="store_true", help="Clear posted.json history and start fresh")
     parser.add_argument("--backfill",         action="store_true", help="Post IG-only for previously FB-posted vehicles")
-    parser.add_argument("--feed-only",        action="store_true", help="Run feed posts only (default behavior; explicit flag for clarity)")
+    parser.add_argument("--feed-only",        action="store_true", help="Run feed posts only (skip Reels even if ENABLE_REELS=true)")
+    parser.add_argument("--reels-only",       action="store_true", help="Reels pipeline only — skip regular feed posts")
+    parser.add_argument("--reels-limit",      type=int, default=None, help=f"Max Reels per run (default {REELS_PER_RUN})")
     parser.add_argument("--marketplace-only", action="store_true", help="(v1 no-op) Marketplace runs via FB-side scheduled feed pull")
     parser.add_argument("--lint-only",        metavar="FILE", help="Lint a text file for FCAA violations and exit")
     args = parser.parse_args()
@@ -813,8 +820,79 @@ if __name__ == "__main__":
         else:
             print("posted.json not found — nothing to clear.\n")
 
+    # ── Reels-only mode ───────────────────────────────────────────────────────
+    if args.reels_only:
+        if not ENABLE_REELS:
+            print("ERROR: ENABLE_REELS is not set to true — Reels pipeline is disabled.")
+            print("       Set ENABLE_REELS=true in your environment to enable.")
+            sys.exit(1)
+        if not CRON_SECRET:
+            print("ERROR: CRON_SECRET not set in .env")
+            sys.exit(1)
+        reels_limit = args.reels_limit if args.reels_limit is not None else REELS_PER_RUN
+        print(f"\nRoadHouse Motors Social Manager — Reels Pipeline")
+        print(f"Mode : {'LIVE' if args.live else 'DRY RUN'}")
+        print(f"Time : {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
+        print("Fetching inventory...")
+        try:
+            vehicles = fetch_inventory()
+        except Exception as e:
+            print(f"ERROR: Could not fetch feed — {e}")
+            sys.exit(1)
+        print(f"  {len(vehicles)} vehicles in feed")
+        posted = load_posted()
+        reel_results = reels_mod.run_reels(
+            vehicles=vehicles,
+            posted=posted,
+            page_id=FB_PAGE_ID,
+            page_token=FB_PAGE_TOKEN,
+            ig_user_id=IG_USER_ID,
+            dry_run=not args.live,
+            limit=reels_limit,
+        )
+        for vin, entry in reel_results.items():
+            posted[vin] = {**posted.get(vin, {}), **entry}
+        save_posted(posted)
+        fb_ok = sum(1 for r in reel_results.values() if r.get("reel_fb_success"))
+        ig_ok = sum(1 for r in reel_results.values() if r.get("reel_ig_success"))
+        n = len(reel_results)
+        if n:
+            print(f"\nReels done. {fb_ok}/{n} published to FB Reels.  {ig_ok}/{n} published to IG Reels.")
+        sys.exit(0 if (not reel_results or fb_ok > 0) else 1)
+
+    # ── Regular feed posts ────────────────────────────────────────────────────
     default_limit = BACKFILL_LIMIT if args.backfill else POSTS_PER_RUN
     limit = args.limit if args.limit is not None else default_limit
 
     success = run(dry_run=not args.live, limit=limit, backfill=args.backfill)
+
+    # ── Reels pipeline (runs after feed posts unless --feed-only) ─────────────
+    if ENABLE_REELS and not args.feed_only and not args.backfill and success:
+        reels_limit = args.reels_limit if args.reels_limit is not None else REELS_PER_RUN
+        print(f"\n{'─' * 60}")
+        print("Reels pipeline enabled (ENABLE_REELS=true)")
+        try:
+            vehicles = fetch_inventory()
+        except Exception as e:
+            print(f"REEL: Could not fetch inventory — {e}")
+            sys.exit(0 if success else 1)
+        posted = load_posted()
+        reel_results = reels_mod.run_reels(
+            vehicles=vehicles,
+            posted=posted,
+            page_id=FB_PAGE_ID,
+            page_token=FB_PAGE_TOKEN,
+            ig_user_id=IG_USER_ID,
+            dry_run=not args.live,
+            limit=reels_limit,
+        )
+        for vin, entry in reel_results.items():
+            posted[vin] = {**posted.get(vin, {}), **entry}
+        save_posted(posted)
+        fb_reel_ok = sum(1 for r in reel_results.values() if r.get("reel_fb_success"))
+        ig_reel_ok = sum(1 for r in reel_results.values() if r.get("reel_ig_success"))
+        n = len(reel_results)
+        if n:
+            print(f"Reels done. {fb_reel_ok}/{n} FB Reels  |  {ig_reel_ok}/{n} IG Reels")
+
     sys.exit(0 if success else 1)
