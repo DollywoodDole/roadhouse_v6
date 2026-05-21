@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from anthropic import Anthropic
 from dotenv import load_dotenv
+from compliance import lint
 
 # Force UTF-8 output on Windows terminals
 if sys.stdout.encoding != 'utf-8':
@@ -40,8 +41,9 @@ FB_PAGE_TOKEN  = os.getenv("FB_PAGE_ACCESS_TOKEN", "")
 IG_USER_ID     = os.getenv("IG_USER_ID", "")
 CRON_SECRET    = os.getenv("CRON_SECRET", "")
 ANTHROPIC_KEY  = os.getenv("ANTHROPIC_API_KEY", "")
-POSTED_FILE    = Path(__file__).parent / "posted.json"
-POSTS_PER_RUN  = 3
+POSTED_FILE       = Path(__file__).parent / "posted.json"
+VIOLATION_LOG     = Path(__file__).parent / "logs" / "compliance_violations.log"
+POSTS_PER_RUN     = 3
 BACKFILL_LIMIT = 10   # default IG-only backfill per run (IG cap: 25/day)
 CLAUDE_MODEL   = "claude-sonnet-4-6"
 
@@ -227,6 +229,66 @@ Content rules:
         messages=[{"role": "user", "content": prompt}],
     )
     return message.content[0].text.strip()
+
+
+def _regenerate_compliant(vehicle: dict, violations: list[str], original_text: str) -> str:
+    """
+    Ask Claude to rewrite *original_text* after flagging specific violations.
+    Called at most once per vehicle — if the second attempt also fails lint,
+    the vehicle is skipped.
+    """
+    violation_lines = "\n".join(f"- {v}" for v in violations)
+    prompt = f"""The following social media post for a vehicle listing was rejected by our
+FCAA compliance linter for Saskatchewan dealer advertising rules:
+
+--- REJECTED POST ---
+{original_text}
+--- END ---
+
+Violations detected:
+{violation_lines}
+
+Rewrite the post removing ALL of the violations above. Keep the same vehicle
+facts, brand voice (direct, unfiltered, high-standard), and mandatory closing
+line. Do not introduce any new financing claims, urgency language, or
+unsubstantiated superlatives. Return ONLY the rewritten post text."""
+
+    message = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=500,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return message.content[0].text.strip()
+
+
+def _log_violation(
+    vin: str,
+    violations_1: list[str],
+    text_1: str,
+    violations_2: list[str] | None,
+    text_2: str | None,
+    action: str,
+) -> None:
+    """Append a structured entry to logs/compliance_violations.log."""
+    ts = datetime.now(timezone.utc).isoformat()
+    lines = [
+        f"[{ts}] VIN={vin} action={action}",
+        "  Attempt 1 violations:",
+    ]
+    for v in violations_1:
+        lines.append(f"    - {v}")
+    lines.append(f"  Attempt 1 text: {text_1!r}")
+    if violations_2 is not None:
+        lines.append("  Attempt 2 violations:")
+        for v in violations_2:
+            lines.append(f"    - {v}")
+    if text_2 is not None:
+        lines.append(f"  Attempt 2 text: {text_2!r}")
+    lines.append("")
+
+    VIOLATION_LOG.parent.mkdir(exist_ok=True)
+    with VIOLATION_LOG.open("a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
 
 
 # ── Facebook ──────────────────────────────────────────────────────────────────
@@ -534,6 +596,32 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
             print(f"  ERROR: Claude generation failed — {e}\n")
             continue
 
+        # ── Compliance lint ────────────────────────────────────────────────────
+        violations = lint(post_text)
+        if violations:
+            print(f"  COMPLIANCE: {len(violations)} violation(s) on attempt 1 — regenerating...")
+            for viol in violations:
+                print(f"    - {viol}")
+            try:
+                text_2 = _regenerate_compliant(v, violations, post_text)
+            except Exception as e:
+                print(f"  ERROR: Regeneration failed — {e}\n")
+                _log_violation(vin, violations, post_text, None, None, "generation_error")
+                continue
+
+            violations_2 = lint(text_2)
+            if violations_2:
+                print(f"  COMPLIANCE: Attempt 2 also failed — skipping {vin}")
+                for viol in violations_2:
+                    print(f"    - {viol}")
+                _log_violation(vin, violations, post_text, violations_2, text_2, "skipped")
+                continue
+            else:
+                print("  COMPLIANCE: Clean on attempt 2.")
+                post_text = text_2
+        else:
+            print("  COMPLIANCE: Clean.")
+
         ig_caption = post_text + _ig_hashtags(v)
 
         print()
@@ -610,11 +698,25 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RoadHouse Motors Social Manager (Facebook + Instagram)")
-    parser.add_argument("--live",     action="store_true", help="Publish posts (default is dry run)")
-    parser.add_argument("--limit",    type=int, default=None, help=f"Max posts per run")
-    parser.add_argument("--reset",    action="store_true", help="Clear posted.json history and start fresh")
-    parser.add_argument("--backfill", action="store_true", help="Post IG-only for previously FB-posted vehicles")
+    parser.add_argument("--live",      action="store_true", help="Publish posts (default is dry run)")
+    parser.add_argument("--limit",     type=int, default=None, help="Max posts per run")
+    parser.add_argument("--reset",     action="store_true", help="Clear posted.json history and start fresh")
+    parser.add_argument("--backfill",  action="store_true", help="Post IG-only for previously FB-posted vehicles")
+    parser.add_argument("--lint-only", metavar="FILE", help="Lint a text file for FCAA violations and exit")
     args = parser.parse_args()
+
+    if args.lint_only:
+        path = Path(args.lint_only)
+        text = path.read_text(encoding="utf-8") if path.exists() else args.lint_only
+        violations = lint(text)
+        if violations:
+            print(f"FCAA violations ({len(violations)}):")
+            for v in violations:
+                print(f"  - {v}")
+            sys.exit(1)
+        else:
+            print("Clean — no FCAA violations detected.")
+            sys.exit(0)
 
     if args.reset:
         if POSTED_FILE.exists():
