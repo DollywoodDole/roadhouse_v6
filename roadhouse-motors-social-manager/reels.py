@@ -463,18 +463,14 @@ def run_reels(
             # Publish FB Reel
             fb_ok, video_id = publish_fb_reel(video_path, caption, page_id, page_token)
 
-            # Publish IG Reel (reuse FB CDN source URL — no separate hosting needed)
+            # IG Reels: requires a publicly accessible video URL.
+            # FB CDN source URLs (video.xx.fbcdn.net) are not accessible to IG's
+            # servers — Meta sandboxes cross-product CDN access (error 2207076).
+            # TODO: upload rendered MP4 to Vercel Blob and pass that URL instead.
             source_url: str | None = None
             ig_ok = False
-            if fb_ok and video_id:
-                if ig_user_id:
-                    source_url = _get_fb_video_source_url(video_id, page_token)
-                    if source_url:
-                        ig_ok = publish_ig_reel(source_url, caption, ig_user_id, page_token)
-                    else:
-                        print("  REEL IG: Skipped — FB source URL unavailable")
-                else:
-                    print("  REEL IG: Skipped — IG_USER_ID not set")
+            if fb_ok and ig_user_id:
+                print("  REEL IG: Skipped — needs public video host (Vercel Blob) for IG")
 
             # Clean up rendered video immediately (tmpdir is just the container)
             try:
