@@ -29,7 +29,6 @@ from pathlib import Path
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from compliance import lint
-from watermark import download_and_watermark
 import reels as reels_mod
 
 # Force UTF-8 output on Windows terminals
@@ -408,6 +407,7 @@ def _prepare_images(image_urls: list[str]) -> list[tuple[str, str | None]]:
     Returns [(photo_id, cdn_url), ...] for each successfully uploaded image.
     cdn_url is the FB CDN URL — publicly accessible, suitable for IG image_url.
     """
+    from watermark import download_and_watermark  # lazy — not needed in dry runs
     entries: list[tuple[str, str | None]] = []
     for url in image_urls:
         img_bytes = download_and_watermark(url)
@@ -884,7 +884,6 @@ if __name__ == "__main__":
             posted=posted,
             page_id=FB_PAGE_ID,
             page_token=FB_PAGE_TOKEN,
-            ig_user_id=IG_USER_ID,
             dry_run=not args.live,
             limit=reels_limit,
         )
@@ -892,10 +891,9 @@ if __name__ == "__main__":
             posted[vin] = {**posted.get(vin, {}), **entry}
         save_posted(posted)
         fb_ok = sum(1 for r in reel_results.values() if r.get("reel_fb_success"))
-        ig_ok = sum(1 for r in reel_results.values() if r.get("reel_ig_success"))
         n = len(reel_results)
         if n:
-            print(f"\nReels done. {fb_ok}/{n} published to FB Reels.  {ig_ok}/{n} published to IG Reels.")
+            print(f"\nReels done. {fb_ok}/{n} published to FB Reels.")
         sys.exit(0 if (not reel_results or fb_ok > 0) else 1)
 
     # ── Regular feed posts ────────────────────────────────────────────────────
@@ -920,7 +918,6 @@ if __name__ == "__main__":
             posted=posted,
             page_id=FB_PAGE_ID,
             page_token=FB_PAGE_TOKEN,
-            ig_user_id=IG_USER_ID,
             dry_run=not args.live,
             limit=reels_limit,
         )
@@ -928,9 +925,8 @@ if __name__ == "__main__":
             posted[vin] = {**posted.get(vin, {}), **entry}
         save_posted(posted)
         fb_reel_ok = sum(1 for r in reel_results.values() if r.get("reel_fb_success"))
-        ig_reel_ok = sum(1 for r in reel_results.values() if r.get("reel_ig_success"))
         n = len(reel_results)
         if n:
-            print(f"Reels done. {fb_reel_ok}/{n} FB Reels  |  {ig_reel_ok}/{n} IG Reels")
+            print(f"Reels done. {fb_reel_ok}/{n} FB Reels")
 
     sys.exit(0 if success else 1)

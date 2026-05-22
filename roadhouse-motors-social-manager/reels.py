@@ -2,14 +2,13 @@
 RoadHouse Motors — Reels Pipeline
 ----------------------------------
 Renders a Ken Burns-style 9:16 MP4 from vehicle images (ffmpeg required)
-and publishes to Facebook Reels and Instagram Reels.
+and publishes to Facebook Reels.
 
 Gated by ENABLE_REELS=true in env. Default off.
 Requires ffmpeg installed on the runner.
 """
 
 import os
-import time
 import shutil
 import subprocess
 import tempfile
@@ -253,105 +252,6 @@ def publish_fb_reel(
     return False, None
 
 
-def _get_fb_video_source_url(video_id: str, page_token: str) -> str | None:
-    """
-    Poll FB Graph until the video finishes processing and the source URL is available.
-    FB video processing typically takes 30-120s after upload.
-    """
-    # Initial wait — video processing always takes at least 30s
-    print(f"  REEL FB→IG: Waiting 45s for FB video processing...")
-    time.sleep(45)
-
-    for attempt in range(10):
-        r = requests.get(
-            f"{GRAPH_URL}/{video_id}",
-            params={"fields": "source,status", "access_token": page_token},
-            timeout=15,
-        )
-        data = r.json()
-        source = data.get("source", "")
-        if source:
-            return source
-        video_status = data.get("status", {}).get("video_status", "unknown")
-        print(f"  REEL FB→IG: status={video_status} — retrying in 20s (attempt {attempt+1}/10)")
-        time.sleep(20)
-
-    print(f"  REEL FB→IG: Could not retrieve source URL for video_id={video_id}")
-    return None
-
-
-# ── Publish: Instagram Reels ──────────────────────────────────────────────────
-
-def publish_ig_reel(
-    video_url: str,
-    caption: str,
-    ig_user_id: str,
-    page_token: str,
-    poll_timeout: int = 180,
-) -> bool:
-    """
-    Publish a Reel to Instagram Business via Graph API.
-    video_url must be publicly accessible (use FB CDN source URL).
-    """
-    # Step 1 — create Reels container
-    r = requests.post(
-        f"{GRAPH_URL}/{ig_user_id}/media",
-        data={
-            "media_type":   "REELS",
-            "video_url":    video_url,
-            "caption":      caption,
-            "access_token": page_token,
-        },
-        timeout=30,
-    )
-    result = r.json()
-    if "id" not in result:
-        err = result.get("error", {})
-        print(f"  REEL IG: Container failed [{err.get('code','?')}]: {err.get('message', result)}")
-        return False
-    container_id = result["id"]
-    print(f"  REEL IG: Container created (id={container_id})")
-
-    # Step 2 — poll until FINISHED
-    deadline = time.time() + poll_timeout
-    while time.time() < deadline:
-        r = requests.get(
-            f"{GRAPH_URL}/{container_id}",
-            params={"fields": "status_code,status", "access_token": page_token},
-            timeout=15,
-        )
-        data   = r.json()
-        status = data.get("status_code", "")
-        if status == "FINISHED":
-            break
-        if status in ("ERROR", "EXPIRED"):
-            print(f"  REEL IG: Container {status} — {data.get('status', '')}")
-            return False
-        time.sleep(8)
-    else:
-        print(f"  REEL IG: Container polling timed out after {poll_timeout}s")
-        return False
-
-    # Step 3 — publish
-    r = requests.post(
-        f"{GRAPH_URL}/{ig_user_id}/media_publish",
-        data={"creation_id": container_id, "access_token": page_token},
-        timeout=30,
-    )
-    result = r.json()
-    if "id" in result:
-        print(f"  REEL IG: Published — post id={result['id']}")
-        return True
-    err  = result.get("error", {})
-    code = err.get("code")
-    if code in (4, 9007):
-        # Known false negatives — Meta returns an error but the post publishes
-        print(f"  REEL IG: Published (confirmed false negative [{code}])")
-        return True
-    print(f"  REEL IG: Failed [{code}]: {err.get('message', result)}")
-    return False
-
-
 # ── Vehicle selection ─────────────────────────────────────────────────────────
 
 def pick_reel_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
@@ -396,15 +296,13 @@ def run_reels(
     posted: dict,
     page_id: str,
     page_token: str,
-    ig_user_id: str,
     dry_run: bool,
     limit: int = 2,
 ) -> dict[str, dict]:
     """
-    Main Reels orchestrator. Renders and publishes one Reel per eligible vehicle.
+    Main Reels orchestrator. Renders and publishes one FB Reel per eligible vehicle.
 
-    Returns {vin: {reel_posted_at, reel_fb_success, reel_ig_success, reel_video_url}}
-    suitable for merging into posted.json.
+    Returns {vin: {reel_posted_at, reel_fb_success}} suitable for merging into posted.json.
     """
     if not ffmpeg_available():
         print("REEL: ffmpeg not found on PATH — Reels pipeline skipped")
@@ -434,8 +332,6 @@ def run_reels(
                 results[vin] = {
                     "reel_posted_at":  None,
                     "reel_fb_success": False,
-                    "reel_ig_success": False,
-                    "reel_video_url":  None,
                     "reel_dry_run":    True,
                 }
                 continue
@@ -448,8 +344,6 @@ def run_reels(
                 results[vin] = {
                     "reel_posted_at":  None,
                     "reel_fb_success": False,
-                    "reel_ig_success": False,
-                    "reel_video_url":  None,
                 }
                 continue
 
@@ -461,16 +355,7 @@ def run_reels(
             )
 
             # Publish FB Reel
-            fb_ok, video_id = publish_fb_reel(video_path, caption, page_id, page_token)
-
-            # IG Reels: requires a publicly accessible video URL.
-            # FB CDN source URLs (video.xx.fbcdn.net) are not accessible to IG's
-            # servers — Meta sandboxes cross-product CDN access (error 2207076).
-            # TODO: upload rendered MP4 to Vercel Blob and pass that URL instead.
-            source_url: str | None = None
-            ig_ok = False
-            if fb_ok and ig_user_id:
-                print("  REEL IG: Skipped — needs public video host (Vercel Blob) for IG")
+            fb_ok, _ = publish_fb_reel(video_path, caption, page_id, page_token)
 
             # Clean up rendered video immediately (tmpdir is just the container)
             try:
@@ -481,8 +366,6 @@ def run_reels(
             results[vin] = {
                 "reel_posted_at":  datetime.now(timezone.utc).isoformat() if fb_ok else None,
                 "reel_fb_success": fb_ok,
-                "reel_ig_success": ig_ok,
-                "reel_video_url":  source_url,
             }
 
     finally:
