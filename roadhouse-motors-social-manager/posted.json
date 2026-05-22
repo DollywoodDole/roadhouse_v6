@@ -13,7 +13,11 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:20:46.369725+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-05-22T17:20:01.822488+00:00",
+    "reel_fb_success": true,
+    "reel_ig_success": false,
+    "reel_video_url": null
   },
   "1FMCU9GN1RUA72365": {
     "title": "2024 Ford Escape Active AWD",
@@ -509,7 +513,11 @@
   },
   "5LMCJ2D95JUL11750": {
     "title": "2018 Lincoln MKC Select",
-    "dry_run": true
+    "dry_run": true,
+    "reel_posted_at": "2026-05-22T17:21:04.992321+00:00",
+    "reel_fb_success": true,
+    "reel_ig_success": false,
+    "reel_video_url": null
   },
   "JA4AJVAW7RU606963": {
     "title": "2024 Mitsubishi RVR GT AWC",
@@ -701,6 +709,54 @@
     "dry_run": false,
     "success": false,
     "ig_posted_at": "2026-05-21T21:19:42.179368+00:00",
+    "ig_success": true
+  },
+  "1FTFW1E88NFB85190": {
+    "title": "2022 Ford F-150 XLT 4WD SuperCrew 5.5' Box",
+    "posted_at": "2026-05-22T17:10:50.383599+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-22T17:10:50.383618+00:00",
+    "ig_success": true
+  },
+  "1VWBA7A31NC005671": {
+    "title": "2022 Volkswagen Passat 2.0T Limited Edition",
+    "posted_at": "2026-05-22T17:12:26.389866+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-22T17:12:26.389882+00:00",
+    "ig_success": true
+  },
+  "4JGFB4FB9RA985194": {
+    "title": "2024 Mercedes-Benz GLE GLE 350 4MATIC SUV",
+    "posted_at": "2026-05-22T17:14:01.499352+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-22T17:14:01.499368+00:00",
+    "ig_success": true
+  },
+  "3VWEX7BUXSM057135": {
+    "title": "2025 Volkswagen Jetta Comfortline",
+    "posted_at": "2026-05-22T17:15:33.347069+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-22T17:15:33.347082+00:00",
+    "ig_success": true
+  },
+  "2GCUKDED7S1122120": {
+    "title": "2025 Chevrolet Silverado 1500 LT",
+    "posted_at": "2026-05-22T17:17:18.875498+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-22T17:17:18.875513+00:00",
+    "ig_success": true
+  },
+  "5TDAAAB58SS092393": {
+    "title": "2025 Toyota Grand Highlander XLE AWD",
+    "posted_at": "2026-05-22T17:18:56.575220+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": "2026-05-22T17:18:56.575236+00:00",
     "ig_success": true
   }
 }
