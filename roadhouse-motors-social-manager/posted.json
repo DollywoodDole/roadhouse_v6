@@ -758,5 +758,29 @@
     "success": true,
     "ig_posted_at": "2026-05-22T17:03:07.861553+00:00",
     "ig_success": true
+  },
+  "2GCUKDED1S1148597": {
+    "title": "2025 Chevrolet Silverado 1500 LT",
+    "posted_at": "2026-05-23T15:44:41.531395+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
+  },
+  "2GC4YTE7XR1228770": {
+    "title": "2024 Chevrolet Silverado 3500HD LT",
+    "posted_at": "2026-05-23T15:56:40.560912+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
+  },
+  "1FTBR3X86SKB08450": {
+    "title": "2025 Ford Transit Cargo Van T-250 148 EL Hi Rf 9070 GVWR RWD",
+    "posted_at": "2026-05-23T16:08:47.111711+00:00",
+    "dry_run": false,
+    "success": true,
+    "ig_posted_at": null,
+    "ig_success": false
   }
 }

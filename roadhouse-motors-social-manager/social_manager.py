@@ -24,6 +24,7 @@ import json
 import time
 import argparse
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from anthropic import Anthropic
@@ -119,7 +120,7 @@ def save_posted(posted: dict) -> None:
     POSTED_FILE.write_text(json.dumps(posted, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
+def pick_vehicles(vehicles: list[dict], posted: dict, limit: int, min_price: int = 0) -> list[dict]:
     """
     Available, not yet posted, has real CDN images — diversified by make+model so
     the same model never appears twice in one run.
@@ -129,6 +130,7 @@ def pick_vehicles(vehicles: list[dict], posted: dict, limit: int) -> list[dict]:
         if v.get("status") == "available"
         and v.get("vin") not in posted
         and any(img.startswith("http") for img in (v.get("images") or []))
+        and (min_price == 0 or (isinstance(v.get("price_cad"), (int, float)) and v.get("price_cad", 0) >= min_price))
     ]
     candidates.sort(key=lambda v: v.get("updated_at", ""), reverse=True)
 
@@ -401,25 +403,38 @@ def _get_photo_cdn_url(photo_id: str) -> str | None:
     return None
 
 
-def _prepare_images(image_urls: list[str]) -> list[tuple[str, str | None]]:
+def _prepare_one_image(url: str) -> tuple[str, str | None] | None:
     """
-    For each URL: download → watermark → binary upload to FB → get CDN URL.
-    Returns [(photo_id, cdn_url), ...] for each successfully uploaded image.
-    cdn_url is the FB CDN URL — publicly accessible, suitable for IG image_url.
+    Download → watermark → binary upload to FB.
+    Returns (photo_id, cdn_url) on success, None on failure.
+    cdn_url is the FB CDN URL (used for backfill IG uploads only — not for normal IG posts).
     """
     from watermark import download_and_watermark  # lazy — not needed in dry runs
-    entries: list[tuple[str, str | None]] = []
-    for url in image_urls:
-        img_bytes = download_and_watermark(url)
-        if not img_bytes:
-            print(f"  IMG: Could not watermark {url[:70]}...")
-            continue
-        photo_id = _upload_photo_binary(img_bytes)
-        if not photo_id:
-            continue
-        cdn_url = _get_photo_cdn_url(photo_id)
-        entries.append((photo_id, cdn_url))
-    return entries
+    img_bytes = download_and_watermark(url)
+    if not img_bytes:
+        print(f"  IMG: Could not watermark {url[:70]}...")
+        return None
+    photo_id = _upload_photo_binary(img_bytes)
+    if not photo_id:
+        return None
+    cdn_url = _get_photo_cdn_url(photo_id)
+    return (photo_id, cdn_url)
+
+
+def _prepare_images(image_urls: list[str], workers: int = 5) -> list[tuple[str, str | None]]:
+    """
+    Parallel watermark + FB upload for a list of image URLs.
+    Returns [(photo_id, cdn_url), ...] in original order, skipping failures.
+    """
+    results: dict[int, tuple[str, str | None]] = {}
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_prepare_one_image, url): i for i, url in enumerate(image_urls)}
+        for future in as_completed(futures):
+            idx = futures[future]
+            result = future.result()
+            if result:
+                results[idx] = result
+    return [results[i] for i in sorted(results)]
 
 
 # ── Facebook ──────────────────────────────────────────────────────────────────
@@ -594,7 +609,7 @@ def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False) -> bool:
+def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False, min_price: int = 0) -> bool:
     platforms = []
     if not backfill:
         platforms.append("Facebook")
@@ -602,12 +617,13 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         platforms.append("Instagram")
     platform_str = " + ".join(platforms) if platforms else "Facebook + Instagram"
 
+    price_label = f" (${min_price:,}+ CAD)" if min_price else ""
     if backfill:
         mode_label = f"BACKFILL — IG-only for previously FB-posted vehicles ({'dry run' if dry_run else 'live'})"
     elif dry_run:
-        mode_label = "DRY RUN — preview only"
+        mode_label = f"DRY RUN — preview only{price_label}"
     else:
-        mode_label = f"LIVE — posting to {platform_str}"
+        mode_label = f"LIVE — posting to {platform_str}{price_label}"
 
     print(f"\nRoadHouse Motors Social Manager")
     print(f"Mode : {mode_label}")
@@ -647,7 +663,7 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         picks = pick_ig_backfill(vehicles, posted, limit)
         action_label = "IG backfill"
     else:
-        picks = pick_vehicles(vehicles, posted, limit)
+        picks = pick_vehicles(vehicles, posted, limit, min_price)
         action_label = "new post"
 
     if not picks:
@@ -734,17 +750,20 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
 
         if not dry_run:
             if backfill:
-                # Backfill: upload IG images to FB to get watermarked CDN URLs for IG
-                print("  Watermarking + uploading images for IG backfill...")
-                entries = _prepare_images(raw_ig_images)
-                ig_image_urls = [cdn for _, cdn in entries if cdn]
+                # Backfill: use Webflow CDN URLs directly — FB CDN URLs are auth-gated
+                # and IG servers can't fetch them (same fix as normal posts)
+                ig_image_urls = raw_ig_images[:IG_IMAGE_CAP]
             else:
-                # Normal: upload FB images → use photo IDs for FB, CDN URLs for IG
-                print("  Watermarking + uploading images...")
+                # Normal: watermark + upload FB images (parallel); pass original Webflow
+                # CDN URLs to IG — FB CDN URLs are auth-gated and IG servers can't fetch them.
+                print("  Watermarking + uploading images (parallel)...")
                 entries = _prepare_images(raw_fb_images)
                 photo_ids     = [pid for pid, _ in entries]
-                ig_image_urls = [cdn for _, cdn in entries[:IG_IMAGE_CAP] if cdn]
-            print(f"  Upload: {len(photo_ids)} FB photos | {len(ig_image_urls)} IG CDN URLs")
+                ig_image_urls = raw_ig_images[:IG_IMAGE_CAP]  # Webflow CDN — publicly accessible
+            if backfill:
+                print(f"  Images: {len(ig_image_urls)} IG (Webflow CDN)")
+            else:
+                print(f"  Upload: {len(photo_ids)} FB photos | {len(ig_image_urls)} IG images")
 
         print()
         print("  --- FB CAPTION " + "-" * 42)
@@ -824,6 +843,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RoadHouse Motors Social Manager (Facebook + Instagram)")
     parser.add_argument("--live",             action="store_true", help="Publish posts (default is dry run)")
     parser.add_argument("--limit",            type=int, default=None, help="Max feed posts per run")
+    parser.add_argument("--luxury",            action="store_true", help="Filter to luxury vehicles ($40k+ CAD)")
+    parser.add_argument("--min-price",         type=int, default=0, dest="min_price", help="Minimum vehicle price CAD (e.g. 40000)")
+    parser.add_argument("--auto-theme",        action="store_true", help="Auto-select theme by day: Sat/Sun → luxury ($40k+), weekdays → no filter")
     parser.add_argument("--reset",            action="store_true", help="Clear posted.json history and start fresh")
     parser.add_argument("--backfill",         action="store_true", help="Post IG-only for previously FB-posted vehicles")
     parser.add_argument("--feed-only",        action="store_true", help="Run feed posts only (skip Reels even if ENABLE_REELS=true)")
@@ -899,8 +921,16 @@ if __name__ == "__main__":
     # ── Regular feed posts ────────────────────────────────────────────────────
     default_limit = BACKFILL_LIMIT if args.backfill else POSTS_PER_RUN
     limit = args.limit if args.limit is not None else default_limit
+    if args.auto_theme:
+        is_weekend = datetime.now().weekday() >= 5  # 5=Sat, 6=Sun
+        auto_min = 40000 if is_weekend else 0
+        day_name = datetime.now().strftime("%A")
+        print(f"Auto-theme: {day_name} → {'luxury ($40k+)' if is_weekend else 'all inventory'}")
+    else:
+        auto_min = 0
+    min_price = 40000 if args.luxury else (auto_min or args.min_price)
 
-    success = run(dry_run=not args.live, limit=limit, backfill=args.backfill)
+    success = run(dry_run=not args.live, limit=limit, backfill=args.backfill, min_price=min_price)
 
     # ── Reels pipeline (runs after feed posts unless --feed-only) ─────────────
     if ENABLE_REELS and not args.feed_only and not args.backfill and success:

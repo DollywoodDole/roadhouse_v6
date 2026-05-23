@@ -36,7 +36,7 @@ jobs:
           IG_USER_ID:            ${{ vars.IG_USER_ID }}
           ENABLE_REELS:          ${{ vars.ENABLE_REELS }}
           REELS_AUDIO_DIR:       ${{ vars.REELS_AUDIO_DIR }}
-        run: python social_manager.py --live
+        run: python social_manager.py --live --auto-theme
 
       - name: Persist posted.json
         run: |
