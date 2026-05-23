@@ -244,8 +244,8 @@
     "posted_at": "2026-05-15T16:53:11.652079+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-23T16:57:12.783710+00:00",
+    "ig_success": true
   },
   "W1N0G8EB6NV388701": {
     "title": "2022 Mercedes-Benz GLC GLC 300 4MATIC SUV",
@@ -505,11 +505,15 @@
     "reel_posted_at": "2026-05-21T20:38:41.862772+00:00",
     "reel_fb_success": true,
     "reel_ig_success": false,
-    "reel_video_url": "https://video-iad6-1.xx.fbcdn.net/o1/v/t2/f2/m366/AQNV7-Wj31dgiYC7u5IZ8O_p8E7OKU-ivIIKh6dAK-jwm4xEoOtmeS_A7w9iY_wV1D5QpB9I5GI30gaTvZc5Vf4xpdSqGbAWRhAAuoT9V0lpkg.mp4?_nc_cat=106&_nc_sid=5e9851&_nc_ht=video-iad6-1.xx.fbcdn.net&_nc_ohc=nO7nFVp-nIsQ7kNvwE9HZz7&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5GQUNFQk9PSy4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjM2MDMxNTM3NjQzMTU5ODk0LCJhc3NldF9hZ2VfZGF5cyI6MCwidmlfdXNlY2FzZV9pZCI6MTAxMjIsImR1cmF0aW9uX3MiOjE0LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=51346f973fb2279d&_nc_vs=HBkcFQIYRWZiX2VwaGVtZXJhbC83NTQ1MzlCNjE0NzU3QzVDMkQ0QjVGOUE0RUJGNURCN19tdF8xX3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACashfSew5-BgAEVAigCQzMsF0AsMzMzMzMzGBlkYXNoX2gyNjQtYmFzaWMtZ2VuMl83MjBwEQB1AmWUngEA&_nc_gid=ePkf9NYTtziCPWR8YJ-DkQ&edm=APRAPSkEAAAA&_nc_zt=28&_nc_tpa=Q5bMBQG-KVzRHJiYOa8eBZSje8sL2VjUZNeGKMxhIBOybIq5I8wg9vY8htuPRwFytvujvB1E44hfU-5m&oh=00_Af6o2vvZMoR_YrNVZF0qOnoHhTDGLiCJsgTXu7iSd2In7A&oe=6A153BFE&bitrate=0&tag=dash_h264-basic-gen2_720p"
+    "reel_video_url": "https://video-iad6-1.xx.fbcdn.net/o1/v/t2/f2/m366/AQNV7-Wj31dgiYC7u5IZ8O_p8E7OKU-ivIIKh6dAK-jwm4xEoOtmeS_A7w9iY_wV1D5QpB9I5GI30gaTvZc5Vf4xpdSqGbAWRhAAuoT9V0lpkg.mp4?_nc_cat=106&_nc_sid=5e9851&_nc_ht=video-iad6-1.xx.fbcdn.net&_nc_ohc=nO7nFVp-nIsQ7kNvwE9HZz7&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5GQUNFQk9PSy4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjM2MDMxNTM3NjQzMTU5ODk0LCJhc3NldF9hZ2VfZGF5cyI6MCwidmlfdXNlY2FzZV9pZCI6MTAxMjIsImR1cmF0aW9uX3MiOjE0LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=51346f973fb2279d&_nc_vs=HBkcFQIYRWZiX2VwaGVtZXJhbC83NTQ1MzlCNjE0NzU3QzVDMkQ0QjVGOUE0RUJGNURCN19tdF8xX3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACashfSew5-BgAEVAigCQzMsF0AsMzMzMzMzGBlkYXNoX2gyNjQtYmFzaWMtZ2VuMl83MjBwEQB1AmWUngEA&_nc_gid=ePkf9NYTtziCPWR8YJ-DkQ&edm=APRAPSkEAAAA&_nc_zt=28&_nc_tpa=Q5bMBQG-KVzRHJiYOa8eBZSje8sL2VjUZNeGKMxhIBOybIq5I8wg9vY8htuPRwFytvujvB1E44hfU-5m&oh=00_Af6o2vvZMoR_YrNVZF0qOnoHhTDGLiCJsgTXu7iSd2In7A&oe=6A153BFE&bitrate=0&tag=dash_h264-basic-gen2_720p",
+    "ig_posted_at": "2026-05-23T16:54:38.610329+00:00",
+    "ig_success": true
   },
   "5LMCJ2D95JUL11750": {
     "title": "2018 Lincoln MKC Select",
-    "dry_run": true
+    "dry_run": true,
+    "ig_posted_at": "2026-05-23T16:55:32.078202+00:00",
+    "ig_success": true
   },
   "JA4AJVAW7RU606963": {
     "title": "2024 Mitsubishi RVR GT AWC",
@@ -705,11 +709,15 @@
   },
   "1FTFW1E88NFB85190": {
     "title": "2022 Ford F-150 XLT 4WD SuperCrew 5.5' Box",
-    "dry_run": true
+    "dry_run": true,
+    "ig_posted_at": "2026-05-23T16:56:03.748478+00:00",
+    "ig_success": true
   },
   "1VWBA7A31NC005671": {
     "title": "2022 Volkswagen Passat 2.0T Limited Edition",
-    "dry_run": true
+    "dry_run": true,
+    "ig_posted_at": "2026-05-23T16:56:40.274027+00:00",
+    "ig_success": true
   },
   "4JGFB4FB9RA985194": {
     "title": "2024 Mercedes-Benz GLE GLE 350 4MATIC SUV",
@@ -764,23 +772,23 @@
     "posted_at": "2026-05-23T15:44:41.531395+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-23T16:57:44.291599+00:00",
+    "ig_success": true
   },
   "2GC4YTE7XR1228770": {
     "title": "2024 Chevrolet Silverado 3500HD LT",
     "posted_at": "2026-05-23T15:56:40.560912+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-23T16:58:15.600695+00:00",
+    "ig_success": true
   },
   "1FTBR3X86SKB08450": {
     "title": "2025 Ford Transit Cargo Van T-250 148 EL Hi Rf 9070 GVWR RWD",
     "posted_at": "2026-05-23T16:08:47.111711+00:00",
     "dry_run": false,
     "success": true,
-    "ig_posted_at": null,
-    "ig_success": false
+    "ig_posted_at": "2026-05-23T16:58:45.439919+00:00",
+    "ig_success": true
   }
 }

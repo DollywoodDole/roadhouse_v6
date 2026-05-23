@@ -477,24 +477,19 @@ def post_to_facebook(message: str, link: str, photo_ids: list[str]) -> bool:
 
 # ── Instagram helpers ─────────────────────────────────────────────────────────
 
-def _wait_for_ig_container(container_id: str, timeout: int = 60) -> bool:
-    """Poll IG media container until FINISHED or timeout. Returns True if ready."""
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        r = requests.get(
-            f"{GRAPH_URL}/{container_id}",
-            params={"fields": "status_code", "access_token": FB_PAGE_TOKEN},
-            timeout=15,
-        )
-        status = r.json().get("status_code", "")
-        if status == "FINISHED":
-            return True
-        if status in ("ERROR", "EXPIRED"):
-            print(f"  IG:  Container {container_id} status: {status}")
-            return False
-        time.sleep(4)
-    print(f"  IG:  Container {container_id} timed out waiting for FINISHED")
-    return False
+def _create_ig_carousel_item(img_url: str) -> str | None:
+    """Create a single IG carousel item container. Returns container ID or None."""
+    r = requests.post(
+        f"{GRAPH_URL}/{IG_USER_ID}/media",
+        data={"image_url": img_url, "is_carousel_item": "true", "access_token": FB_PAGE_TOKEN},
+        timeout=30,
+    )
+    rj = r.json()
+    if "id" in rj:
+        return rj["id"]
+    err = rj.get("error", {})
+    print(f"  IG:  Warning: carousel item failed [{err.get('code','?')}]: {err.get('message', rj)}")
+    return None
 
 
 # ── Instagram ─────────────────────────────────────────────────────────────────
@@ -528,39 +523,21 @@ def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
             print(f"  IG:  Failed [{err.get('code','?')}]: {err.get('message', result)}")
             return False
         creation_id = result["id"]
-        if not _wait_for_ig_container(creation_id):
-            print("  IG:  Failed — single image container not ready")
-            return False
+        time.sleep(4)  # flat wait — status_code polling not available for this account
 
     elif len(images) > 1:
-        # Carousel: upload each item, poll until ready, then create carousel container
-        item_ids = []
-        for img_url in images:
-            r = requests.post(
-                f"{GRAPH_URL}/{IG_USER_ID}/media",
-                data={
-                    "image_url":        img_url,
-                    "is_carousel_item": "true",
-                    "access_token":     FB_PAGE_TOKEN,
-                },
-                timeout=30,
-            )
-            rj = r.json()
-            if "id" in rj:
-                item_ids.append(rj["id"])
-            else:
-                err = rj.get("error", {})
-                print(f"  IG:  Warning: carousel item failed [{err.get('code','?')}]: {err.get('message', rj)}")
+        # Carousel: create all item containers in parallel, wait flat 8s for Meta to
+        # process them (container status_code polling returns 403 for this account —
+        # flat wait is the correct pattern per Meta's own support guidance)
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            item_ids = [cid for cid in pool.map(_create_ig_carousel_item, images) if cid]
 
         if not item_ids:
             print("  IG:  Failed — no carousel items uploaded")
             return False
 
-        # Wait for all item containers to finish processing
-        item_ids = [cid for cid in item_ids if _wait_for_ig_container(cid)]
-        if not item_ids:
-            print("  IG:  Failed — no carousel items reached FINISHED state")
-            return False
+        print(f"  IG:  {len(item_ids)} items created — waiting 8s for Meta to process...")
+        time.sleep(8)
 
         r = requests.post(
             f"{GRAPH_URL}/{IG_USER_ID}/media",
@@ -695,20 +672,27 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
         print(f"[{i}/{len(picks)}] {title}")
         print(f"  VIN: {vin}  |  {price} CAD  |  {km}")
         print(f"  Images: {len(all_images)} total | FB: {len(raw_fb_images)} | IG: {len(raw_ig_images)} (skip={start})")
-        print("  Generating captions...")
+        # ── Captions — reuse cached versions on backfill to skip Claude ───────
+        cached_ig = posted.get(vin, {}).get("ig_caption")
+        cached_fb = posted.get(vin, {}).get("fb_caption")
 
-        try:
-            captions = generate_captions(v)
-        except Exception as e:
-            print(f"  ERROR: Claude generation failed — {e}\n")
-            continue
-
-        fb_caption = captions["fb"]
-        ig_caption = captions["ig"] + _ig_hashtags(v)
+        if backfill and cached_ig and cached_fb:
+            print("  Captions: cached (skipping Claude)")
+            fb_caption = cached_fb
+            ig_caption = cached_ig
+        else:
+            print("  Generating captions...")
+            try:
+                captions = generate_captions(v)
+            except Exception as e:
+                print(f"  ERROR: Claude generation failed — {e}\n")
+                continue
+            fb_caption = captions["fb"]
+            ig_caption = captions["ig"] + _ig_hashtags(v)
 
         # ── Compliance lint — FB and IG independently ──────────────────────────
         v_fb = lint(fb_caption)
-        v_ig = lint(captions["ig"])  # lint before hashtags (hashtags are always clean)
+        v_ig = lint(ig_caption.split("\n\n#")[0])  # lint before hashtags (hashtags are always clean)
 
         if v_fb or v_ig:
             total = len(v_fb) + len(v_ig)
@@ -799,10 +783,12 @@ def run(dry_run: bool = True, limit: int = POSTS_PER_RUN, backfill: bool = False
 
             entry = {
                 **existing,
-                "title":     title,
-                "posted_at": datetime.now(timezone.utc).isoformat() if fb_ok else None,
-                "dry_run":   False,
-                "success":   fb_ok,
+                "title":      title,
+                "posted_at":  datetime.now(timezone.utc).isoformat() if fb_ok else None,
+                "dry_run":    False,
+                "success":    fb_ok,
+                "fb_caption": fb_caption,
+                "ig_caption": ig_caption,
             }
             if ig_ok is not None:
                 entry["ig_posted_at"] = datetime.now(timezone.utc).isoformat() if ig_ok else None
