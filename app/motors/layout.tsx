@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
+import ScrollToTop from '@/components/motors/ScrollToTop'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://motors.roadhouse.capital'),
@@ -164,6 +165,7 @@ export default function MotorsLayout({ children }: { children: React.ReactNode }
       <main className="flex-1">
         {children}
       </main>
+      <ScrollToTop />
 
       <footer className="border-t border-white/[0.08] py-12 mt-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">

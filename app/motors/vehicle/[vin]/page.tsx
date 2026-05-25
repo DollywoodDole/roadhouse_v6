@@ -183,21 +183,23 @@ export default async function VehicleDetailPage({ params }: PageProps) {
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 space-y-10">
-        {/* Back */}
-        <div className="flex items-center gap-4 flex-wrap">
-          <Link
-            href="/motors/inventory"
-            className="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors"
-          >
-            <span aria-hidden>←</span> Back to Inventory
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm flex-wrap">
+          <Link href="/motors/inventory" className="text-white/40 hover:text-white/70 transition-colors">
+            Inventory
           </Link>
+          <span className="text-white/20" aria-hidden>/</span>
           <Link
             href={`/motors/inventory?make=${encodeURIComponent(vehicle.make)}`}
-            className="inline-flex items-center gap-1 text-white/35 hover:text-white/70 text-sm transition-colors"
+            className="text-white/40 hover:text-white/70 transition-colors"
           >
-            Browse more {vehicle.make} vehicles <span aria-hidden>→</span>
+            {vehicle.make}
           </Link>
-        </div>
+          <span className="text-white/20" aria-hidden>/</span>
+          <span className="text-white/55 truncate max-w-[200px] sm:max-w-xs">
+            {vehicle.year} {vehicle.make} {vehicle.model}
+          </span>
+        </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Left — images + specs */}
@@ -250,17 +252,12 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               <p className="text-white/35 text-xs">CAD + applicable taxes</p>
             </div>
 
-            {/* Payment Estimator */}
-            {vehicle.status !== 'sold' && vehicle.price > 0 && (
-              <PaymentEstimator price={vehicle.price} vin={vehicle.vin} />
-            )}
-
             {/* CTAs */}
             {vehicle.status !== 'sold' ? (
               <div className="space-y-3">
                 <Link
                   href={creditHref}
-                  className="block w-full bg-white text-black font-semibold text-base py-3.5 rounded-xl hover:bg-white/90 transition-colors text-center"
+                  className="block w-full bg-[#C9922A] text-black font-semibold text-base py-3.5 rounded-xl hover:bg-[#C9922A]/90 transition-colors text-center"
                 >
                   Get Pre-Qualified
                 </Link>
@@ -286,6 +283,11 @@ export default async function VehicleDetailPage({ params }: PageProps) {
             <p className="text-white/25 text-xs text-center">
               Dealer Licence DL331386 · Saskatchewan, Canada
             </p>
+
+            {/* Payment Estimator */}
+            {vehicle.status !== 'sold' && vehicle.price > 0 && (
+              <PaymentEstimator price={vehicle.price} vin={vehicle.vin} />
+            )}
 
             {/* Lead Form */}
             {vehicle.status !== 'sold' && (

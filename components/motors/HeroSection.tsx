@@ -47,7 +47,7 @@ export default function HeroSection({ make }: { make?: string }) {
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white leading-tight">
           {make ? `Used ${make} Vehicles for Sale in Saskatchewan` : 'Used Vehicles for Sale in Saskatchewan'}
         </h1>
-        <p className="mt-2 text-white/55 text-base font-normal">
+        <p className="mt-2 text-white/70 text-base font-normal">
           Certified pre-owned · Saskatchewan delivery available
         </p>
       </div>

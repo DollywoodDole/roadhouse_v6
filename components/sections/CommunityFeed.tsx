@@ -42,20 +42,8 @@ export default function CommunityFeed() {
                 @dollywooddole <ExternalLink size={9} />
               </a>
             </div>
-            <div className="p-4" style={{ minHeight: '400px' }}>
-              {/* Twitter timeline embed */}
-              <a
-                className="twitter-timeline"
-                href="https://twitter.com/dollywooddole"
-                data-theme="dark"
-                data-chrome="noheader nofooter noborders transparent"
-                data-tweet-limit="5"
-                style={{ color: 'inherit' }}
-              >
-                Loading tweets...
-              </a>
-              {/* Fallback posts */}
-              <div className="space-y-4 mt-2">
+            <div className="p-4">
+              <div className="space-y-4">
                 {[
                   { text: 'We\'re growing. Looking for translators and VOD clip assistants to join the team. DM or Discord. Standards apply.', date: 'Recent' },
                   { text: 'Grok is interesting. Physics intuition maps surprisingly well to AI reasoning. Still thinking through the synthesis workflow implications.', date: 'Recent' },
@@ -231,8 +219,6 @@ export default function CommunityFeed() {
         </div>
       </div>
 
-      {/* Twitter widget script */}
-      <script async src="https://platform.twitter.com/widgets.js" charSet="utf-8" />
     </section>
   )
 }

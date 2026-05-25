@@ -72,7 +72,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
         {/* Status badge */}
         <span
           className={clsx(
-            'absolute top-2 right-2 text-[9px] md:text-xs font-semibold tracking-widest uppercase px-2 py-0.5 md:px-3 md:py-1 rounded-full backdrop-blur-sm',
+            'absolute top-2 right-2 text-[11px] md:text-xs font-semibold tracking-widest uppercase px-2 py-0.5 md:px-3 md:py-1 rounded-full backdrop-blur-sm',
             badge.className
           )}
         >
@@ -84,7 +84,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
       {/* Content */}
       <div className="p-3 md:p-5 space-y-2 md:space-y-3">
         {/* Year · Stock */}
-        <p className="text-[9px] md:text-xs font-medium tracking-widest uppercase text-white/60">
+        <p className="text-[11px] md:text-xs font-medium tracking-widest uppercase text-white/60">
           {vehicle.year} &middot; {vehicle.stock_number}
         </p>
 
@@ -105,7 +105,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
           <span>{vehicle.fuel_type}</span>
         </p>
         {/* Condensed specs for mobile */}
-        <p className="sm:hidden text-[10px] text-white/55 truncate">
+        <p className="sm:hidden text-[11px] text-white/55 truncate">
           {formattedMileage} km &middot; {vehicle.fuel_type}
         </p>
 
@@ -119,7 +119,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
               <p className="text-white/50 text-xs md:text-sm line-through">{formattedMsrp}</p>
             )}
             <p className="text-white font-bold text-lg md:text-2xl">{formattedPrice}</p>
-            <p className="text-white/50 text-[10px] md:text-xs">CAD + taxes</p>
+            <p className="text-white/50 text-[11px] md:text-xs">CAD + taxes</p>
           </div>
 
           <Link
@@ -128,7 +128,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
               'text-xs md:text-base font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-lg transition-colors text-center',
               vehicle.status === 'sold'
                 ? 'bg-white/5 text-white/50 cursor-not-allowed pointer-events-none'
-                : 'bg-white text-black hover:bg-white/90'
+                : 'bg-[#C9922A] text-black hover:bg-[#C9922A]/90'
             )}
           >
             View Details
