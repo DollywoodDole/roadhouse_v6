@@ -38,6 +38,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // TEMP PATCH: block wallet re-binding until session auth is wired (M3).
+    // Prevents an attacker who knows a customerId from overwriting an existing
+    // wallet binding and poisoning the pre-mainnet snapshot.
+    // First-time registrations (no existing walletAddress) are still allowed.
+    const { getRoadBalance } = await import('@/lib/road-balance')
+    const existing = await getRoadBalance(customerId)
+    if (existing?.walletAddress && existing.walletAddress !== walletAddress) {
+      console.warn(JSON.stringify({ evt: 'wallet.rebind_blocked', customerId }))
+      return NextResponse.json(
+        { error: 'Wallet already registered. Contact support to update.' },
+        { status: 409 },
+      )
+    }
+
     const updated = await registerWallet(customerId, walletAddress)
     console.log(JSON.stringify({
       evt:           'wallet.registered',

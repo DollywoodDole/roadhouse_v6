@@ -54,11 +54,10 @@ export async function GET(req: NextRequest) {
     if (!balance) {
       return NextResponse.json({ error: 'No $ROAD record found' }, { status: 404 })
     }
-    // walletAddress lookup is unauthenticated — return only non-sensitive fields
-    if (!customerId) {
-      return NextResponse.json({ balance: balance.balance, tier: balance.tier })
-    }
-    return NextResponse.json(balance)
+    // TEMP PATCH: both paths return only non-sensitive fields until this endpoint
+    // is protected by session auth (M3). Full profile reads must go server-side
+    // via getRoadBalance() directly, not through this HTTP endpoint.
+    return NextResponse.json({ balance: balance.balance, tier: balance.tier })
   } catch (err) {
     console.error(JSON.stringify({ evt: 'road.balance.get_failed', error: String(err) }))
     return NextResponse.json({ error: 'Failed to fetch balance' }, { status: 500 })

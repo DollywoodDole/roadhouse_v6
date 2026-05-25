@@ -17,13 +17,16 @@ import type { MembershipTier } from '@/lib/membership'
 const VALID_TIERS: MembershipTier[] = ['regular', 'ranch-hand', 'partner']
 
 export async function POST(req: NextRequest) {
-  // Auth check — basic shared secret
+  // Auth check — fail closed: disabled if secret not configured
+  // TEMP PATCH: was fail-open (if adminSecret) — any caller could grant roles
+  // when DISCORD_ADMIN_SECRET was unset. Now returns 503 until secret is set.
   const adminSecret = optionalEnv('DISCORD_ADMIN_SECRET')
-  if (adminSecret) {
-    const provided = req.headers.get('x-admin-secret') ?? ''
-    if (provided !== adminSecret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!adminSecret) {
+    return NextResponse.json({ error: 'Endpoint not configured' }, { status: 503 })
+  }
+  const provided = req.headers.get('x-admin-secret') ?? ''
+  if (provided !== adminSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   let body: { discordUserId?: string; tier?: string }

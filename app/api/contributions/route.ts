@@ -35,10 +35,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'type and data required' }, { status: 400 });
   }
 
-  // Resolve customerId from wallet session header or body
-  let resolvedCustomerId = customerId ?? null;
+  // TEMP PATCH: removed body customerId bypass — resolves via walletAddress only
+  // until session auth is implemented (M3). customerId from body is untrusted;
+  // walletAddress is at least harder to enumerate than a Stripe customer ID.
+  let resolvedCustomerId: string | null = null;
 
-  if (!resolvedCustomerId && walletAddress) {
+  if (walletAddress) {
     const kv = getRedis();
     resolvedCustomerId = await kv.get<string>(`wallet:${walletAddress}`);
   }
