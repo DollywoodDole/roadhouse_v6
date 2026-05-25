@@ -9,7 +9,8 @@ export default function Hero() {
   return (
     <section
       id="home"
-      style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '6rem 4rem', overflow: 'hidden' }}
+      className="px-6 sm:px-10 lg:px-16"
+      style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '6rem', paddingBottom: '6rem', overflow: 'hidden' }}
     >
       {/* Hero image background */}
       <img
@@ -35,6 +36,19 @@ export default function Hero() {
           <div className="text-[11px] tracking-[0.4em] uppercase text-gold mb-8 font-mono">
             Est. Saskatchewan, Canada · Praetorian Holdings Corp.
           </div>
+        </div>
+
+        {/* H1 */}
+        <div
+          className={`transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          style={{ transitionDelay: '200ms' }}
+        >
+          <h1
+            className="text-6xl lg:text-8xl font-light italic text-white leading-none mb-8"
+            style={{ fontFamily: 'var(--font-cormorant)' }}
+          >
+            Where Standards <span className="text-gold">Matter.</span>
+          </h1>
         </div>
 
         {/* Tagline */}

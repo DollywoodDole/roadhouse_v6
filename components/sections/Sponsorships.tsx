@@ -2,8 +2,7 @@
 
 import { siteConfig } from '@/lib/site-config'
 
-import { useState } from 'react'
-import { ExternalLink, Loader2 } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
 const PACKAGES = [
   {
@@ -106,8 +105,6 @@ async function requestSponsorshipInvoice(packageName: string) {
 }
 
 export default function Sponsorships() {
-  const [loading, setLoading] = useState<string | null>(null)
-
   return (
     <section id="sponsorships" className="px-8 lg:px-16 py-20">
       <div className="mb-10">

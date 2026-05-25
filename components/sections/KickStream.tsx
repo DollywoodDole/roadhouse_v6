@@ -47,7 +47,6 @@ export default function KickStream() {
               <iframe
                 src="https://player.kick.com/dollywooddole"
                 title="DollywoodDole Live on Kick"
-                allowFullScreen
                 allow="autoplay; fullscreen"
                 loading="lazy"
               />
@@ -110,8 +109,6 @@ export default function KickStream() {
             <div className="space-y-3">
               {[
                 { title: 'Community Q&A', tags: 'Tech · Hiring', dur: '~8h', clip: 'clip_01KKDHTH3RXQBGX32BF91WQGF8' },
-                { title: 'AI & Physics Deep Dive', tags: 'Grok · First Principles', dur: '~10h', clip: null },
-                { title: 'Synthesizer Workshop', tags: 'Live Sound Design', dur: '~12h', clip: null },
               ].map(vod => (
                 <a
                   key={vod.title}

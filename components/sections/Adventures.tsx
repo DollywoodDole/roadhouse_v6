@@ -121,14 +121,14 @@ export default function Adventures() {
                 <button
                   onClick={() => reserve('lake', lake, 'lake-trip')}
                   disabled={loading === 'lake'}
-                  className="stripe-btn w-full py-2.5 text-rh-black text-[10px] tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
+                  className="stripe-btn w-full py-2.5 text-rh-black text-xs tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
                 >
                   {loading === 'lake' ? <Loader2 size={12} className="animate-spin" /> : 'Reserve Your Spot'}
                 </button>
               ) : (
                 <a
                   href={`mailto:${siteConfig.contactEmail}?subject=Lake%20Trip%20%E2%80%94%20Notify%20Me`}
-                  className="block w-full py-2.5 text-center text-[10px] tracking-widest uppercase border border-gold/30 text-gold hover:bg-gold/5 rounded transition-colors"
+                  className="block w-full py-2.5 text-center text-xs tracking-widest uppercase border border-gold/30 text-gold hover:bg-gold/5 rounded transition-colors"
                 >
                   Get Notified
                 </a>
@@ -188,19 +188,14 @@ export default function Adventures() {
                 <button
                   onClick={() => reserve('ski', ski, 'ski-trip')}
                   disabled={loading === 'ski'}
-                  className="stripe-btn w-full py-2.5 text-rh-black text-[10px] tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
+                  className="stripe-btn w-full py-2.5 text-rh-black text-xs tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
                 >
                   {loading === 'ski' ? <Loader2 size={12} className="animate-spin" /> : 'Reserve Your Spot'}
                 </button>
               ) : (
-                <a
-                  href="https://snapshot.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 w-full py-2.5 text-[10px] tracking-widest uppercase border border-gold/30 text-gold hover:bg-gold/5 rounded transition-colors"
-                >
-                  Vote on Location <ExternalLink size={10} />
-                </a>
+                <div className="w-full py-2.5 text-center text-xs tracking-widest uppercase border border-rh-border text-rh-faint rounded cursor-default select-none">
+                  Vote Coming Soon
+                </div>
               )}
             </div>
           </div>
@@ -246,14 +241,14 @@ export default function Adventures() {
                 <button
                   onClick={() => reserve('med', med, 'mediterranean')}
                   disabled={loading === 'med'}
-                  className="stripe-btn w-full py-2.5 text-rh-black text-[10px] tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
+                  className="stripe-btn w-full py-2.5 text-rh-black text-xs tracking-widest uppercase font-medium rounded flex items-center justify-center gap-1.5 disabled:opacity-60"
                 >
                   {loading === 'med' ? <Loader2 size={12} className="animate-spin" /> : 'Secure Your Hold'}
                 </button>
               ) : (
                 <a
                   href={`mailto:${siteConfig.contactEmail}?subject=Mediterranean%20%E2%80%94%20Waitlist`}
-                  className="block w-full py-2.5 text-center text-[10px] tracking-widest uppercase border border-rh-border text-rh-muted hover:border-gold/30 hover:text-gold rounded transition-colors"
+                  className="block w-full py-2.5 text-center text-xs tracking-widest uppercase border border-rh-border text-rh-muted hover:border-gold/30 hover:text-gold rounded transition-colors"
                 >
                   Join the Waitlist
                 </a>
