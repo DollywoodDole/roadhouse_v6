@@ -48,7 +48,11 @@ export async function POST(req: Request) {
   })
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const authHeader = req.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET?.trim()}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const count = await getInventoryCount(DEALER_ID)
   return NextResponse.json({ dealer_id: DEALER_ID, count })
 }
