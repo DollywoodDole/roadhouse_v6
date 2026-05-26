@@ -8,22 +8,38 @@ import { X, Menu, ExternalLink } from 'lucide-react'
 import WalletStatus from '@/components/wallet/WalletStatus'
 import NetworkIndicator from '@/components/wallet/NetworkIndicator'
 
-const NAV_ITEMS = [
-  { href: '#home',         icon: '⌂',  label: 'Home' },
-  { href: '#stream',       icon: '▶',  label: 'Live Stream' },
-  { href: '#merch',        icon: '🛒', label: 'Merch Store' },
-  { href: '#branches',     icon: '◈',  label: 'Branches' },
-  { href: '#feed',         icon: '◈',  label: 'Community Feed' },
-  { href: '#membership',   icon: '★',  label: 'Membership' },
-  { href: '#events',       icon: '◆',  label: 'Events' },
-  { href: '#adventures',   icon: '◈',  label: 'Adventures' },
-  { href: '/compound',     icon: '⬡',  label: 'The Compound' },
-  { href: '#sponsorships', icon: '⬡',  label: 'Sponsorships' },
-  { href: '#guilds',       icon: '◈',  label: 'DAO Ecosystem' },
-  { href: '#roadmap',      icon: '→',  label: 'Roadmap' },
-  { href: '#contact',      icon: '✉',  label: 'Contact' },
-  { href: '/partners',    icon: '★',  label: 'Partners' },
+const NAV_GROUPS = [
+  {
+    label: 'Community',
+    items: [
+      { href: '#home',       icon: '⌂', label: 'Home' },
+      { href: '#stream',     icon: '▶', label: 'Live Stream' },
+      { href: '#feed',       icon: '◈', label: 'Community Feed' },
+      { href: '#membership', icon: '★', label: 'Membership' },
+      { href: '/partners',   icon: '★', label: 'Partners' },
+    ],
+  },
+  {
+    label: 'Experience',
+    items: [
+      { href: '#merch',      icon: '◇', label: 'Merch' },
+      { href: '#events',     icon: '◆', label: 'Events' },
+      { href: '#adventures', icon: '◈', label: 'Adventures' },
+      { href: '/compound',   icon: '⬡', label: 'The Compound' },
+    ],
+  },
+  {
+    label: 'Business',
+    items: [
+      { href: '#sponsorships', icon: '⬡', label: 'Sponsorships' },
+      { href: '#guilds',       icon: '◈', label: 'DAO & Guilds' },
+      { href: '#contact',      icon: '✉', label: 'Contact' },
+    ],
+  },
 ]
+
+// Flat list of all items — used for scroll-spy
+const NAV_ITEMS = NAV_GROUPS.flatMap(g => g.items)
 
 const SOCIAL_LINKS = [
   { href: 'https://x.com/dollywooddole',               icon: '𝕏',  label: '@dollywooddole' },
@@ -150,36 +166,40 @@ export default function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4">
-          <div className="px-4 mb-2">
-            <span className="text-[9px] tracking-[0.3em] uppercase text-rh-faint font-medium">Navigate</span>
-          </div>
-          <ul className="space-y-0.5 px-3">
-            {NAV_ITEMS.map(item => {
-              const id = item.href.replace('#', '')
-              const isActive = active === id
-              return (
-                <li key={item.href}>
-                  <button
-                    onClick={() => handleNavClick(item.href)}
-                    className={`
-                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left
-                      text-[12px] tracking-wider transition-colors duration-150
-                      ${isActive
-                        ? 'bg-white/5 text-gold border-l-2 border-gold'
-                        : 'text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent'
-                      }
-                    `}
-                  >
-                    <span className="w-4 text-center text-sm opacity-70">{item.icon}</span>
-                    <span className="uppercase">{item.label}</span>
-                    {isActive && <span className="ml-auto w-1 h-1 rounded-full bg-gold" />}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={group.label} className={gi > 0 ? 'mt-4' : ''}>
+              <div className="px-4 mb-1.5">
+                <span className="text-[9px] tracking-[0.3em] uppercase text-rh-faint font-medium">{group.label}</span>
+              </div>
+              <ul className="space-y-0.5 px-3">
+                {group.items.map(item => {
+                  const id = item.href.replace('#', '')
+                  const isActive = active === id
+                  return (
+                    <li key={item.href}>
+                      <button
+                        onClick={() => handleNavClick(item.href)}
+                        className={`
+                          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left
+                          text-[12px] tracking-wider transition-colors duration-150
+                          ${isActive
+                            ? 'bg-white/5 text-gold border-l-2 border-gold'
+                            : 'text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent'
+                          }
+                        `}
+                      >
+                        <span className="w-4 text-center text-sm opacity-70">{item.icon}</span>
+                        <span className="uppercase">{item.label}</span>
+                        {isActive && <span className="ml-auto w-1 h-1 rounded-full bg-gold" />}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
 
-          <div className="px-4 mt-6 mb-2">
+          <div className="px-4 mt-4 mb-1.5">
             <span className="text-[9px] tracking-[0.3em] uppercase text-rh-faint font-medium">External</span>
           </div>
           <ul className="space-y-0.5 px-3">

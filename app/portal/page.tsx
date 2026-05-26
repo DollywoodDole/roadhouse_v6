@@ -138,6 +138,11 @@ export default function PortalPage() {
                 Join RoadHouse
               </a>
             </p>
+            <p className="mt-3 text-sm">
+              <a href="/" className="text-rh-faint hover:text-rh-muted transition-colors">
+                ← Back to roadhouse.capital
+              </a>
+            </p>
           </div>
         )}
 

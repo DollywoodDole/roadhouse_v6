@@ -137,30 +137,6 @@ export default function Membership() {
         </a>
       </div>
 
-      {/* Optional Discord ID — grants role at checkout instead of requiring /verify */}
-      <div className="mb-8 max-w-sm">
-        <label className="block text-xs font-mono tracking-wider text-rh-faint uppercase mb-2">
-          Discord ID{' '}
-          <span className="text-rh-faint/60 normal-case tracking-normal font-sans">
-            — optional, grants role at payment
-          </span>
-        </label>
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="e.g. 123456789012345678"
-          value={discordId}
-          onChange={(e) => setDiscordId(e.target.value.replace(/\D/g, '').slice(0, 20))}
-          className="w-full bg-rh-card border border-rh-border focus:border-gold/40 text-rh-text
-                     placeholder:text-rh-faint text-sm font-mono px-4 py-2.5 outline-none
-                     transition-colors rounded-sm"
-        />
-        <p className="text-rh-faint text-[10px] mt-1.5 leading-relaxed">
-          Settings → Advanced → Developer Mode, then right-click your username → Copy User ID.
-          Skip to link later via <code className="text-rh-muted">/verify</code> in the server.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {TIERS.map(tier => (
           <div
@@ -232,6 +208,30 @@ export default function Membership() {
       <p className="mt-6 text-[11px] text-rh-faint text-center tracking-wider">
         Recurring billing via Stripe · Cancel anytime in your member portal · $ROAD tokens accrued monthly
       </p>
+
+      {/* Optional Discord ID */}
+      <div className="mt-8 max-w-sm mx-auto">
+        <label className="block text-xs font-mono tracking-wider text-rh-faint uppercase mb-2">
+          Discord ID{' '}
+          <span className="text-rh-faint/60 normal-case tracking-normal font-sans">
+            — optional
+          </span>
+        </label>
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="e.g. 123456789012345678"
+          value={discordId}
+          onChange={(e) => setDiscordId(e.target.value.replace(/\D/g, '').slice(0, 20))}
+          className="w-full bg-rh-card border border-rh-border focus:border-gold/40 text-rh-text
+                     placeholder:text-rh-faint text-sm font-mono px-4 py-2.5 outline-none
+                     transition-colors rounded-sm"
+        />
+        <p className="text-rh-faint text-[11px] mt-1.5 leading-relaxed">
+          Add your Discord User ID to get your role assigned automatically at checkout.
+          Skip this and use <code className="text-rh-muted">/verify</code> in the server anytime after.
+        </p>
+      </div>
 
       {/* Upper tiers teaser */}
       <div className="mt-8 p-5 bg-rh-card border border-rh-border rounded-lg max-w-2xl mx-auto text-center">

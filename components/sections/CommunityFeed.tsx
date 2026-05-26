@@ -42,30 +42,25 @@ export default function CommunityFeed() {
                 @dollywooddole <ExternalLink size={9} />
               </a>
             </div>
-            <div className="p-4">
-              <div className="space-y-4">
-                {[
-                  { text: 'We\'re growing. Looking for translators and VOD clip assistants to join the team. DM or Discord. Standards apply.', date: 'Recent' },
-                  { text: 'Grok is interesting. Physics intuition maps surprisingly well to AI reasoning. Still thinking through the synthesis workflow implications.', date: 'Recent' },
-                  { text: 'New Kick clip is up — kick.com/dollywooddole/clips/…', date: 'Recent' },
-                ].map((post, i) => (
-                  <div key={i} className="p-3 rounded border border-rh-border hover:border-gold/20 transition-colors">
-                    <p className="text-[11px] text-rh-muted leading-relaxed mb-2">{post.text}</p>
-                    <div className="flex items-center justify-between text-[9px] text-rh-faint">
-                      <span>@dollywooddole</span>
-                      <span>{post.date}</span>
-                    </div>
-                  </div>
+            <div className="p-4 flex flex-col gap-4">
+              <p className="text-[12px] text-rh-muted leading-relaxed">
+                Tech, synthesis, physics, AI, and community building — posted when there&apos;s something worth saying.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['Tech', 'Synthesis', 'AI', 'Physics', 'Community'].map(tag => (
+                  <span key={tag} className="px-2 py-0.5 text-[10px] tracking-widest uppercase border border-rh-border text-rh-muted rounded">
+                    {tag}
+                  </span>
                 ))}
-                <a
-                  href="https://x.com/dollywooddole"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-center text-[10px] tracking-widest uppercase text-gold hover:underline mt-2"
-                >
-                  View Full Profile →
-                </a>
               </div>
+              <a
+                href="https://x.com/dollywooddole"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="stripe-btn block text-center text-rh-black text-[11px] tracking-widest uppercase py-2.5 rounded font-medium"
+              >
+                Follow @dollywooddole ↗
+              </a>
             </div>
           </div>
         </div>

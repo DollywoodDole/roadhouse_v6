@@ -1,8 +1,8 @@
 'use client'
 
 import { siteConfig } from '@/lib/site-config'
-
-import { ExternalLink } from 'lucide-react'
+import { useState } from 'react'
+import { ExternalLink, Loader2 } from 'lucide-react'
 
 const PACKAGES = [
   {
@@ -100,11 +100,46 @@ const PLATFORMS = [
   },
 ]
 
-async function requestSponsorshipInvoice(packageName: string) {
-  window.location.href = `mailto:${siteConfig.contactEmail}?subject=Sponsorship Inquiry — ${packageName}&body=Hi,%0A%0AI'm interested in the ${packageName} sponsorship package.%0A%0ACompany:%0AWebsite:%0AProduct/Service:%0AGoals:%0A%0AThanks`
-}
-
 export default function Sponsorships() {
+  const [selectedPkg, setSelectedPkg] = useState<string | null>(null)
+  const [form, setForm] = useState({ name: '', email: '', company: '', message: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [formError, setFormError] = useState('')
+
+  const openForm = (pkgName: string) => {
+    setSelectedPkg(pkgName)
+    setSent(false)
+    setFormError('')
+    setForm({ name: '', email: '', company: '', message: '' })
+    setTimeout(() => document.getElementById('sponsor-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setFormError('')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          type: `Sponsorship — ${selectedPkg}`,
+          message: `Company: ${form.company || 'Not provided'}\n\n${form.message}`,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setFormError(data.error ?? 'Submission failed. Please try again.'); return }
+      setSent(true)
+    } catch {
+      setFormError('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <section id="sponsorships" className="px-8 lg:px-16 py-20">
       <div className="mb-10">
@@ -155,18 +190,73 @@ export default function Sponsorships() {
             </ul>
 
             <button
-              onClick={() => requestSponsorshipInvoice(pkg.name)}
+              onClick={() => openForm(pkg.name)}
               className={`w-full py-2.5 text-[11px] tracking-widest uppercase font-medium rounded transition-all ${
                 pkg.badge === 'Recommended'
                   ? 'stripe-btn text-rh-black'
                   : 'border border-rh-border text-rh-text hover:border-gold/40 hover:bg-gold/5'
-              }`}
+              } ${selectedPkg === pkg.name ? 'ring-1 ring-gold/40' : ''}`}
             >
-              Request Package
+              {selectedPkg === pkg.name ? 'Inquiry Open ↓' : 'Request Package'}
             </button>
           </div>
         ))}
       </div>
+
+      {/* Inline inquiry form */}
+      {selectedPkg && (
+        <div id="sponsor-form" className="mb-12 bg-rh-card border border-gold/20 rounded-lg p-6 max-w-xl">
+          {sent ? (
+            <div className="text-center py-4">
+              <div className="text-gold text-lg mb-2">✓ Message sent.</div>
+              <p className="text-rh-muted text-sm">We'll follow up at your email directly. Typical response within 1 business day.</p>
+              <button onClick={() => setSelectedPkg(null)} className="mt-4 text-xs text-rh-faint hover:text-rh-muted transition-colors tracking-widest uppercase">
+                Close
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-rh-text font-medium">{selectedPkg} — Inquiry</p>
+                <button onClick={() => setSelectedPkg(null)} className="text-rh-faint hover:text-rh-muted transition-colors text-xs tracking-widest uppercase">✕ Close</button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] tracking-widest uppercase text-rh-faint mb-1">Name *</label>
+                    <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full bg-rh-surface border border-rh-border text-rh-text text-sm px-3 py-2 rounded focus:outline-none focus:border-gold/40 transition-colors placeholder:text-rh-faint"
+                      placeholder="Your name" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] tracking-widest uppercase text-rh-faint mb-1">Email *</label>
+                    <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full bg-rh-surface border border-rh-border text-rh-text text-sm px-3 py-2 rounded focus:outline-none focus:border-gold/40 transition-colors placeholder:text-rh-faint"
+                      placeholder="you@company.com" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-rh-faint mb-1">Company</label>
+                  <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))}
+                    className="w-full bg-rh-surface border border-rh-border text-rh-text text-sm px-3 py-2 rounded focus:outline-none focus:border-gold/40 transition-colors placeholder:text-rh-faint"
+                    placeholder="Company / brand name" />
+                </div>
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-rh-faint mb-1">What are you promoting? *</label>
+                  <textarea required value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                    rows={3} className="w-full bg-rh-surface border border-rh-border text-rh-text text-sm px-3 py-2 rounded focus:outline-none focus:border-gold/40 transition-colors placeholder:text-rh-faint resize-none"
+                    placeholder="Product, service, campaign goals…" />
+                </div>
+                {formError && <p className="text-red-400 text-xs">{formError}</p>}
+                <button type="submit" disabled={submitting}
+                  className="stripe-btn w-full py-2.5 text-rh-black text-[11px] tracking-widest uppercase font-medium rounded flex items-center justify-center gap-2 disabled:opacity-60">
+                  {submitting ? <Loader2 size={13} className="animate-spin" /> : 'Send Inquiry'}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Platform breakdown */}
       <div className="mb-8">
