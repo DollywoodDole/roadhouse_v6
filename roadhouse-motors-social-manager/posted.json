@@ -529,7 +529,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T19:28:08.178017+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-05-26T17:57:14.178372+00:00",
+    "reel_fb_success": true
   },
   "3VV8C7B28SM029720": {
     "title": "2025 Volkswagen Taos Trendline",
@@ -537,7 +539,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T19:29:59.221121+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-05-26T17:58:30.634618+00:00",
+    "reel_fb_success": true
   },
   "2T3B1RFV0SC511222": {
     "title": "2025 Toyota RAV4 LE",
