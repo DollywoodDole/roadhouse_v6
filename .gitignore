@@ -61,12 +61,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-.vercel
-.env*.local
-
-.env*.local
-.vercel
 .gitnexus/
 venv/
-
-.env*.local

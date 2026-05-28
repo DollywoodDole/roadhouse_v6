@@ -162,7 +162,7 @@ Authenticated   → require session or redirect /login
 
 ---
 
-## GOOGLE SHEETS OPS LAYER (roadhouse-ops/)
+## GOOGLE SHEETS OPS LAYER (ops/google-sheets/)
 
 Standalone Apps Script layer — NOT part of Next.js app. Admin: `roadhousesyndicate@gmail.com`.
 
@@ -293,7 +293,7 @@ proxy.ts rewrites `motors.*` → `/motors/*`; all `/motors` paths are FULLY_PUBL
 - `public/motors/team/dalton.png` — Dalton Ellscheid founder photo (PNG, use `unoptimized` in Image)
 
 ### Social Manager
-- `roadhouse-motors-social-manager/` — standalone Python tool; NOT part of Next.js
+- `ops/motors-social/` — standalone Python tool; NOT part of Next.js
 - 3 posts/day (FB + IG); Claude claude-sonnet-4-6 copy generation; FCAA compliant
 - GitHub Actions workflow (`.github/workflows/motors-social.yml`) — daily 9am CST, no PC required
 - `posted.json` committed back after each run — deduplication across days

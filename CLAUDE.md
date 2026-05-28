@@ -31,7 +31,7 @@
 | Discord | REST API bot — role gating by Stripe tier |
 | Storage | Vercel KV (Upstash Redis) — off-chain $ROAD balances |
 | Deploy | Vercel (iad1) · Domain: `https://roadhouse.capital` (canonical) |
-| Ops layer | `roadhouse-ops/` — Google Sheets OS · clasp · googleapis · Apps Script |
+| Ops layer | `ops/google-sheets/` — Google Sheets OS · clasp · googleapis · Apps Script |
 
 ---
 
@@ -99,7 +99,7 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 /docs/  stripe-products.md · tokenomics.md · governance-spec.md · multisig-spec.md
         founding-nft-spec.md · membership-model.md · guild-economy.md · compound-node-model.md
 
-/roadhouse-ops/                  ← standalone ops layer — NOT part of Next.js app
+/ops/google-sheets/              ← standalone ops layer — NOT part of Next.js app
   src/
     appsscript.json              ← V8 runtime, OAuth scopes, execution API
     Config.js                   ← SHEET/COL constants, getConfig() cache, tier helpers
@@ -240,7 +240,7 @@ STRIPE_SECRET_KEY=sk_live_... npx ts-node --project tsconfig.scripts.json script
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-### roadhouse-ops (cd roadhouse-ops first)
+### ops/google-sheets (cd ops/google-sheets first)
 
 ```bash
 npm run auth          # OAuth2 desktop flow → token.json (re-run if scopes change)
@@ -499,7 +499,7 @@ Infra confirmed: domain live · all env vars set · Stripe webhook e2e · Discor
 
 ## ROADHOUSE OS — 2026-03-31
 
-Ops layer bootstrapped: `roadhouse-ops/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
+Ops layer bootstrapped: `ops/google-sheets/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
 
 ## MOTORS — 2026-05-06
 
@@ -536,14 +536,14 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - `bigint: Failed to load bindings` — Solana `bigint-buffer` native addon warning at build time. Pure JS fallback runs fine. Fix: `npm rebuild` or pin `bigint-buffer` to a version with prebuilt binaries for this Node version.
 
 **Google Sheet inventory (2026-05-08):**
-- `roadhouse-ops/src/MotorsInventory.js` — Apps Script daily sync at 9:30am Regina time
+- `ops/google-sheets/src/MotorsInventory.js` — Apps Script daily sync at 9:30am Regina time
 - Fetches `GET /api/motors/feed?format=json` (Bearer CRON_SECRET), writes all vehicles to sheet
 - Sheet: `My Drive/RoadHouse_Motors/Motors_Inventory` — ID stored in Script Properties as `MOTORS_SHEET_ID`
 - One-time setup: run `setupMotorsSheet()` from Apps Script editor; trigger auto-registers
 - Sheet ID: `1g_Q-wXDWkQ0cBYSdZFxWBY6CW6S4u-ZFH0lO_4FfD9s`
 
 **Facebook + Instagram social manager (2026-05-21):**
-- `roadhouse-motors-social-manager/` — standalone Python tool (NOT part of Next.js app)
+- `ops/motors-social/` — standalone Python tool (NOT part of Next.js app)
 - `social_manager.py` — fetches feed, generates platform-differentiated captions with `claude-opus-4-6`, watermarks images, posts to FB + IG
 - Runs daily at 9am CST via GitHub Actions (`.github/workflows/motors-social.yml`) — no PC required
 - 6 posts/day · vehicles with CDN images only · skips first 2 images (O'Brian's branded overlay + secondary branded image)
@@ -558,7 +558,7 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - GitHub secrets: `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN`
 - GitHub vars: `FB_PAGE_ID` · `IG_USER_ID` · `ENABLE_REELS=true` · `REELS_AUDIO_DIR`
 - CLI flags: `--live` · `--limit N` · `--reset` · `--backfill` · `--reels-only` · `--reels-limit N` · `--feed-only` · `--lint-only FILE`
-- Local dry run: `cd roadhouse-motors-social-manager && venv\Scripts\python social_manager.py`
+- Local dry run: `cd ops/motors-social && venv\Scripts\python social_manager.py`
 - IG Reels TODO: add `PUT /api/motors/reels/upload` → Vercel Blob → return public URL → pass to IG `video_url`
 
 **Lead capture pipeline + credit rebuild (2026-05-09):**
@@ -585,7 +585,7 @@ RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live wi
 - `reels.py` — ffmpeg Reels pipeline: static letterboxed clips (zoompan removed — caused shake), xfade transitions, brand outro card; publishes via `/{page_id}/videos` multipart POST; 2 FB Reels/day; `ENABLE_REELS=true` GitHub var
 - IG Reels blocked: FB CDN URLs (video.xx.fbcdn.net) not accessible to IG servers (error 2207076); needs Vercel Blob upload → public URL → IG `video_url`
 - `app/api/motors/feed/catalog/route.ts` — FB Marketplace Vehicles Catalog CSV; FB pulls hourly; setup in `MARKETPLACE_SETUP.md`
-- `roadhouse-motors-social-manager/posted.json` schema: `posted_at`, `success`, `ig_posted_at`, `ig_success`, `reel_posted_at`, `reel_fb_success`, `reel_ig_success`, `reel_video_url` per VIN
+- `ops/motors-social/posted.json` schema: `posted_at`, `success`, `ig_posted_at`, `ig_success`, `reel_posted_at`, `reel_fb_success`, `reel_ig_success`, `reel_video_url` per VIN
 
 ---
 
