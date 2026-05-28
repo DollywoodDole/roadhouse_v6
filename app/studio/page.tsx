@@ -1,5 +1,15 @@
-// RoadHouse Studio — studio.roadhouse.capital
-// Media arm: streaming, content production, owned IP
+import StudioNav from '@/components/studio/StudioNav'
+import StudioHero from '@/components/studio/StudioHero'
+import StudioTicker from '@/components/studio/StudioTicker'
+import StudioEngage from '@/components/studio/StudioEngage'
+
 export default function StudioPage() {
-  return <div>RoadHouse Studio — coming soon</div>
+  return (
+    <main>
+      <StudioNav />
+      <StudioHero />
+      <StudioTicker />
+      <StudioEngage />
+    </main>
+  )
 }

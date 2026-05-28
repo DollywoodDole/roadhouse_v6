@@ -46,6 +46,8 @@ const FULLY_PUBLIC = [
   // Motors — public dealer subdomain, no auth
   '/motors',
   '/api/motors',
+  // Studio — public media subdomain, no auth
+  '/studio',
   // Static
   '/_next',
   '/favicon.ico',
@@ -80,6 +82,23 @@ export async function proxy(req: NextRequest) {
       return NextResponse.next();
     }
     const rewritePath = pathname === '/' ? '/motors' : `/motors${pathname}`;
+    const url = req.nextUrl.clone();
+    url.pathname = rewritePath;
+    url.search = search;
+    return NextResponse.rewrite(url);
+  }
+
+  // studio.roadhouse.capital/* → /studio/*
+  if (host.startsWith('studio.')) {
+    if (
+      pathname.startsWith('/studio') ||
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      /\.(png|jpg|jpeg|gif|svg|ico|webp|css|js|woff2?)$/.test(pathname)
+    ) {
+      return NextResponse.next();
+    }
+    const rewritePath = pathname === '/' ? '/studio' : `/studio${pathname}`;
     const url = req.nextUrl.clone();
     url.pathname = rewritePath;
     url.search = search;
