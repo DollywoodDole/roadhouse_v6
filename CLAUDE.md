@@ -7,6 +7,19 @@
 
 ---
 
+## ECOSYSTEM
+
+| Subdomain | Purpose | Status |
+|---|---|---|
+| `roadhouse.capital` | Member platform — auth, dashboard, adventures, DAO | Live |
+| `motors.roadhouse.capital` | White-label dealer inventory — O'Brian's Auto | Live |
+| `studio.roadhouse.capital` | Creative + build arm — client work + house IP | Live (scaffold) |
+| `faber.roadhouse.capital` | Future branch — TBD | Planned |
+
+**Subdomain routing:** all handled in `proxy.ts` (not middleware.ts). Each subdomain rewrites to its `/app/{name}/` directory before auth logic runs.
+
+---
+
 ## MANDATE — priority order, do not invert
 
 1. Web2 perfect — Stripe, Discord gating, email, member portal ✅ M1 complete
@@ -14,6 +27,7 @@
 3. Adventure NFTs + DAO — on-chain credentials, guilds, steward verification 🟢 M3 active
 4. Claude agent team — orchestrator + specialists, human-gated outputs
 5. RoadHouse Motors — dealer inventory platform (motors.roadhouse.capital) 🟢 active
+6. RoadHouse Studio — creative arm subdomain (studio.roadhouse.capital) 🟢 scaffolded
 
 ---
 
@@ -32,6 +46,7 @@
 | Storage | Vercel KV (Upstash Redis) — off-chain $ROAD balances |
 | Deploy | Vercel (iad1) · Domain: `https://roadhouse.capital` (canonical) |
 | Ops layer | `ops/google-sheets/` — Google Sheets OS · clasp · googleapis · Apps Script |
+| Social | `ops/motors-social/` — Python · Claude API · Meta Graph API · ffmpeg |
 
 ---
 
@@ -60,6 +75,18 @@ panel: #111110   border: #1e1e1c   warm: #ede8dc   muted: #5a5550   green: #4b7c
 ```
 Fonts: `Space Mono` (data/body) · `Bebas Neue` (headings) · `Syne` (category labels)
 Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay loaded; grain overlay preserved.
+
+### Studio design system (`app/studio/` layer) — inline styles only, no Tailwind
+```css
+/* Core palette */
+bg: #07080A   surface: #0E1012   border: #141618   amber: #C8861E
+text-warm: #E8E0D0   text-muted: #5A5550   text-dark: #2A2520
+```
+Fonts (CSS vars via next/font/google on wrapper div in `app/studio/layout.tsx`):
+- `--font-bebas` → Bebas_Neue — headlines
+- `--font-dm-mono-studio` → DM_Mono — labels, nav, meta
+- `--font-barlow` → Barlow (weight 300/400/500) — body copy
+Rules: inline styles only; no Tailwind classes on studio components; amber `#C8861E` is the single accent.
 
 ---
 
@@ -123,10 +150,21 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
     Form:        1Gh3sBchYq7LHVYtKz1RCJxEuO7-d3hwguOLCR1QMMHE
     Script:      1DQauYe9yB-Z539gEITvBXV8sFVfOqxAZ2q1hz_CiizQTZqbjZtwpZY1T
     Drive folder: 1bMJUoKQ0GUL9XpgEpCi8DPAImND_dWik
+
+/ops/motors-social/              ← standalone Python tool — NOT part of Next.js app
+  social_manager.py             ← main runner: feed fetch → captions → watermark → FB/IG post
+  compliance.py                 ← FCAA linter; 31 tests; 2-attempt regeneration before skip
+  watermark.py                  ← Pillow pipeline; binary upload to FB; CDN URL reused for IG
+  reels.py                      ← ffmpeg 9:16 MP4; xfade transitions; brand outro; 2 FB Reels/day
+  posted.json                   ← committed after each run; deduplication across days
+  tests/test_compliance.py      ← 31 FCAA compliance tests
+  MARKETPLACE_SETUP.md          ← FB Marketplace catalog setup guide
 ```
 
 **Nav rule:** No Nav.tsx / Header.tsx. Navigation = Sidebar.tsx only.
 `/compound` and `/partners` in sidebar. `/partners` is sidebar-only (gated content).
+
+---
 
 ### Motors subdomain (`motors.roadhouse.capital`)
 
@@ -156,7 +194,7 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
   ActiveFilterChips.tsx   ← client component; reads URL params; chip strip above grid; per-chip remove; Clear all
   HeroSection.tsx         ← make-aware H1; inventory banner
   PaymentEstimator.tsx    ← amortizing payment calc; down payment slider; term + rate dropdowns
-  CreditForm.tsx          ← full pre-qualification form; reads ?vehicle= param
+  CreditForm.tsx          ← full pre-qualification form; reads ?vehicle= param; POSTs to /api/motors/leads
   ReviewCarousel.tsx      ← client component; auto-advance 7s; swipe; prev/next + dots; 5-star SVG; partial-neighbor
                              peek md+; prefers-reduced-motion; returns null when REVIEWS_ENABLED=false
 
@@ -173,6 +211,8 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
 
 /app/api/motors/seed/
   route.ts                ← returns 410 Gone (deprecated — scraper is source of truth)
+/app/api/motors/credit/
+  route.ts                ← returns 410 Gone (deprecated — CreditForm POSTs to /api/motors/leads)
 /app/api/motors/sync/
   route.ts                ← POST (Bearer CRON_SECRET) full O'Brian's scrape+sync; GET returns count
                              maxDuration=300; runs via Vercel cron daily at 9am CST
@@ -185,12 +225,16 @@ Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay l
   route.ts                ← PATCH (CRON_SECRET) update lead status
 /app/api/motors/feed/
   route.ts                ← GET (Bearer CRON_SECRET) JSON + AAMVA XML export
+/app/api/motors/feed/catalog/
+  route.ts                ← GET (Bearer CRON_SECRET) RFC 4180 CSV for FB Marketplace Vehicles Catalog
 ```
 
 **Motors KV key pattern:**
 ```
 motors:inventory:obrians:{vin}   → Vehicle JSON
 motors:index:obrians             → Redis SET of VINs (index for efficient bulk reads)
+motors:leads:{id}                → MotorsLead JSON
+motors:leads:index               → Redis SET of lead IDs
 ```
 
 **Motors sync — how it works:**
@@ -207,20 +251,73 @@ motors:index:obrians             → Redis SET of VINs (index for efficient bulk
 **Motors constraints (permanent):**
 - Zero $ROAD, Web3, Solana, or RoadHouse Capital branding on any motors page
 - No O'Brian's phone numbers, logos, or dealer name in any scraped content displayed to users
-- subdomain isolated — no nav links from main roadhouse.capital site
+- Subdomain isolated — no nav links from main roadhouse.capital site
 - `proxy.ts` handles `motors.*` host rewrite → `/motors/*` before any auth logic
 - All motors routes are FULLY_PUBLIC in proxy.ts
 - Webflow CDN (`cdn.prod.website-files.com`) added to next/image remotePatterns for scraped vehicle photos
 
-**Assets used:**
-- Inventory banner: `/public/motors/rh-motors-header.svg` (Canva AI, displayed cropped 16/7.2 aspect ratio)
-- OG/Twitter image: `/public/motors/rh-motors-header.jpg` (2560×1440 JPEG rendered from SVG)
+**Image rule (motors):** All `next/image` usage in motors must include `unoptimized` prop — optimizer causes rendering failures on this subdomain. Applies to local assets and CDN images alike.
+
+**Admin panel access:** `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}`
+
+**Motors assets:**
+- Inventory banner: `/public/motors/rh-motors-header.svg` (Canva AI, cropped 16/7.2 aspect ratio)
+- OG/Twitter image: `/public/motors/rh-motors-header.jpg` (2560×1440 JPEG)
 - Watermark: `/public/motors/rh-logo.png` — 30% opacity on cards
 - Placeholder: `/public/motors/rh-coming-soon.svg`
-- No local vehicle photos — all images served from Webflow CDN; `rh-coming-soon.svg` is the fallback
-- Team photo: `/public/motors/team/dalton.png` — Dalton Ellscheid founder photo; rendered unoptimized
+- Team photo: `/public/motors/team/dalton.png` — rendered unoptimized
 
-**Image rule (motors):** All `next/image` usage in motors must include `unoptimized` prop — optimizer causes rendering failures on this subdomain. Applies to local assets and CDN images alike.
+---
+
+### Studio subdomain (`studio.roadhouse.capital`)
+
+```
+/app/studio/
+  layout.tsx              ← nested layout (no html/body); Bebas_Neue + DM_Mono + Barlow via next/font/google
+                             CSS vars: --font-bebas · --font-dm-mono-studio · --font-barlow
+                             full metadata; canonical https://studio.roadhouse.capital
+  page.tsx                ← server component; mounts StudioNav · StudioHero · StudioTicker · StudioEngage
+  README.md               ← ecosystem map + asset notes
+
+/components/studio/
+  StudioNav.tsx           ← server; sticky; RS amber box; DM Mono; Work/House/Contact + "Enter ↗" CTA
+  StudioHero.tsx          ← 'use client'; owns activeView: 'client'|'house' toggle state
+                             Bebas headline OPERATORS/BUILD/DIFFERENT.; amber rule; body copy + toggle buttons
+                             renders StudioServices + MotorsCaseStudy with activeView prop
+  StudioServices.tsx      ← 'use client'; activeView prop; hover state; 3-col grid with border-right dividers
+                             client: Build/Mark/Move · house: Signal/Produce/IP
+  MotorsCaseStudy.tsx     ← returns null when activeView !== 'client'
+                             amber 3px left border; stats (vehicles/ADF-XML/multi/JSON-LD)
+                             TODO: replace hardcoded stats with await getInventoryCount('obrians') from lib/motors/storage.ts
+                             Blocked on multi-dealer-wip merge to main
+  StudioTicker.tsx        ← server; inline keyframe animation; doubled content for seamless loop
+  StudioEngage.tsx        ← server; WORK/WITH/US.; hello@roadhouse.capital CTA
+
+/lib/studio/index.ts      ← entry point stub
+/types/studio.ts          ← domain types placeholder
+```
+
+**Studio constraints:**
+- Inline styles only — no Tailwind on studio components
+- Studio layout defines its own font CSS vars on wrapper div; does NOT conflict with root layout `<link>` tags
+- `proxy.ts` handles `studio.*` host rewrite → `/studio/*` before any auth logic
+- All studio routes are FULLY_PUBLIC in proxy.ts
+- No RoadHouse Capital membership branding, no $ROAD, no wallet UI on studio pages
+
+---
+
+## PROXY.TS — subdomain routing
+
+`proxy.ts` is the middleware (exported from `middleware.ts` which re-exports it). Order matters:
+
+1. `host.startsWith('motors.')` → rewrite `/motors/*`; passthrough if already prefixed
+2. `host.startsWith('studio.')` → rewrite `/studio/*`; passthrough if already prefixed
+3. Static file fast path
+4. `FULLY_PUBLIC` array → immediate passthrough (includes `/motors`, `/studio`, all API routes)
+5. Session resolution (wallet JWT)
+6. `SESSION_OPTIONAL` → resolve session, set headers, never redirect
+7. Auth gate → redirect `/login?from=...`
+8. `/dashboard` → requires `isMember`
 
 ---
 
@@ -249,6 +346,18 @@ npm run push          # clasp push → deploy Apps Script
 npm run logs          # clasp logs --watch (live trigger logs)
 npm test:webhook      # Smoke test Discord webhooks
 npm run distribute    # Distribute $ROAD via Solana SPL (V2 — requires ROAD_TOKEN_MINT)
+```
+
+### ops/motors-social (cd ops/motors-social first)
+
+```bash
+venv\Scripts\python social_manager.py           # dry run (no --live)
+venv\Scripts\python social_manager.py --live    # live post (10-20 min, do NOT background)
+venv\Scripts\python social_manager.py --live --limit 3
+venv\Scripts\python social_manager.py --live --reels-only --reels-limit 2
+venv\Scripts\python social_manager.py --live --feed-only
+venv\Scripts\python social_manager.py --lint-only ops/motors-social/posted.json
+# Manual GitHub Actions trigger: Actions tab → "RoadHouse Motors — Daily Social Post" → Run workflow
 ```
 
 ---
@@ -295,6 +404,10 @@ NEXT_PUBLIC_ROAD_MINT_ADDRESS
 NEXT_PUBLIC_NFT_FOUNDING_COLLECTION · REGULAR · RANCH · PARTNER
 NEXT_PUBLIC_TREASURY_WALLET · NEXT_PUBLIC_MULTISIG_WALLET
 ```
+
+**GitHub secrets (motors-social workflow):** `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN`
+**GitHub vars:** `FB_PAGE_ID=1047748735096733` · `IG_USER_ID=17841417177506354` · `ENABLE_REELS=true` · `REELS_AUDIO_DIR`
+**Meta App ID:** `915612138190380`
 
 ---
 
@@ -347,6 +460,10 @@ NEXT_PUBLIC_TREASURY_WALLET · NEXT_PUBLIC_MULTISIG_WALLET
 | `treasury:snapshot` | `TreasurySnapshot` | DAO balances (5-min TTL cache) |
 | `treasury:votes` | `GovernanceVote[]` | Snapshot proposals |
 | `missions:{customerId}` | `Mission[]` | Daily missions (M3 — placeholder, not yet active) |
+| `motors:inventory:obrians:{vin}` | Vehicle JSON | Single vehicle record |
+| `motors:index:obrians` | Redis SET of VINs | Efficient bulk reads |
+| `motors:leads:{id}` | MotorsLead JSON | Lead/pre-qualification submission |
+| `motors:leads:index` | Redis SET of lead IDs | Lead list |
 
 ---
 
@@ -476,7 +593,7 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 
 - TypeScript strict — no `any`, no `ts-ignore` without comment
 - Tier string: `'ranch-hand'` canonical in Stripe/Discord/KV code (see MEMBERSHIP TIERS)
-- No inline styles in app pages — Tailwind tokens only. Dashboard layer exception: CSS vars + established inline hex.
+- No inline styles in app pages — Tailwind tokens only. Dashboard layer exception: CSS vars + established inline hex. Studio layer exception: inline styles only (see Studio design system).
 - Mobile-first — responsive before merge
 - No `console.log` in production — structured JSON; `console.error` for errors only
 - API routes: structured JSON, handle errors, log, return 200 from Stripe webhook
@@ -488,104 +605,74 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 - Sidebar `backdrop-filter`: `overflow-x: hidden` must be on `<html>`, not `<body>`. Body overflow breaks
   compositing layer for `position: fixed` children in Chrome/Safari, silently disabling blur.
 
+**Known pre-existing repo issues (not blocking):**
+- No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
+- `bigint: Failed to load bindings` — Solana `bigint-buffer` native addon warning at build time. Pure JS fallback runs fine.
+
 ---
 
-## M2 COMPLETE — 2026-03-27
+## BRANCH STATE — 2026-05-28
 
-Dashboard reworked: 6 static tabs → 5 functional tabs with live KV wiring.
-New pages: `/compound` · `/partners`. Sidebar glassmorphism. WalletStatus glass treatment.
-Docs delivered: `governance-spec.md` · `multisig-spec.md` · `founding-nft-spec.md`.
-Infra confirmed: domain live · all env vars set · Stripe webhook e2e · Discord interactions endpoint.
+| Branch | Status | Notes |
+|---|---|---|
+| `main` | Live · clean | All features merged through this session |
+| `multi-dealer-wip` | 4 commits ahead | Multi-dealer architecture; do NOT touch until explicitly scoped |
+| `feature/roadhouse-studio` | Merged → main | f2d90fb · deleted after merge |
+| `chore/repo-cleanup` | Merged → main | c7eabc8 · deleted after merge |
 
-## ROADHOUSE OS — 2026-03-31
+**multi-dealer-wip contains:** `lib/motors/storage-multi.ts`, multi-dealer abstraction layer, `DEALER_ID` parameterization. Merge to main requires explicit scoping session — do not cherry-pick or rebase against it.
 
-Ops layer bootstrapped: `ops/google-sheets/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields, linked to Outputs_RAW), 5 Apps Script triggers deployed, Discord webhooks live (#roadhouse-lounge leaderboard + #backroom-brass alerts), wallet registry wired. Score multipliers in `scoring.json`. Admin in `roadhousesyndicate@gmail.com`.
+---
 
-## MOTORS — 2026-05-06
+## CHANGELOG
 
-RoadHouse Motors fully operational. Subdomain `motors.roadhouse.capital` live with ~116 real O'Brian's vehicles synced from obrians.ca. Daily automated sync at 9am CST via Vercel cron — no CSV, no manual updates.
+### REPO CLEANUP + STUDIO LAUNCH — 2026-05-28
 
-**Infrastructure (2026-04-24):**
-- Inventory banner: Canva AI SVG header (cropped 16/7.2 aspect ratio, 10% top+bottom)
-- OG/Twitter card image: JPEG rendered at 2560×1440 from SVG (SVG not supported by Twitter/X)
-- Phone number (306) 381-8222, dealer licence DL331386 in footer
-- All vehicle photos served from Webflow CDN; local JPEG assets deleted (scraper is source of truth)
-- `lib/motors/scraper.ts` — scrapes Webflow CMS JetBoost data + individual listing pages (8 concurrent)
-- `app/api/motors/sync/route.ts` — CRON_SECRET-authenticated sync endpoint (maxDuration=300)
-- Vercel cron `0 15 * * *` wired; CRON_SECRET cleaned in Vercel (trailing `\n` removed via `~/.local/bin/vercel env rm/add`)
-- Sentinel price filter: `formPrice=1000` = "contact for price" → excluded
-- Stale KV cleanup: vehicles that become unparseable between runs are removed
+**Repo cleanup (`chore/repo-cleanup`):**
+- Deleted tracked MP4 binary (`public/Clip_TikTok_0.mp4`) — was unnecessarily git-tracked
+- Deduplicated `.gitignore` — removed 3 duplicate `.vercel` entries, 3 duplicate `.env*.local` entries, collapsed trailing junk lines
+- Consolidated standalone tools into `ops/`: `roadhouse-motors-social-manager/` → `ops/motors-social/`, `roadhouse-ops/` → `ops/google-sheets/`
+- Updated all path references: `.github/workflows/motors-social.yml` (3 refs), `CLAUDE.md` (8 refs), `IMPLEMENTATION.md` (2 refs)
+- 410'd deprecated `app/api/motors/credit/route.ts` (CreditForm already POSTs to `/api/motors/leads`)
+- Deleted `app/api/webhook/route.ts` (dead 410 tombstone, no live refs)
+- Deleted `app/motors/credit/thank-you/page.tsx` (orphaned, inline confirmation replaced redirect)
 
-**SEO + Image fixes (2026-05-06):**
-- `components/motors/VehicleImage.tsx` — client component with `onError` fallback to `rh-coming-soon.svg`; `unoptimized` auto-set for SVG srcs
-- Scraper image fix: switched from largest-batch (≥5) to first-batch (≥3) — fixes wrong vehicle photos bleeding in from "similar vehicles" section of listing pages
-- `app/motors/robots.txt/route.ts` — GET route handler returning `text/plain`; replaces broken metadata route (Next.js only supports `robots.ts` at app root, not subdirectories)
-- `app/motors/sitemap.ts` — real `lastModified` from `v.updated_at`; one entry per make with available inventory so Google indexes `?make=Ford` as a distinct ranking page
-- `app/motors/layout.tsx` — AutoDealer JSON-LD sitewide; `priceRange` + `image` added
-- `app/motors/vehicle/[vin]/page.tsx` — Car JSON-LD: `itemCondition`, `image`, `description`; BreadcrumbList JSON-LD; "Browse more [make] vehicles →" internal link
-- `components/motors/CreditForm.tsx` — extracted from page as client component; reads `?vehicle=` search param to pre-fill Vehicle Interest field
-- `app/motors/credit/page.tsx` — server component with metadata + Suspense; FAQPage JSON-LD; Twitter card + OG image added
-- `app/motors/inventory/page.tsx` — dynamic `generateMetadata` with Twitter card; H1 and ItemList JSON-LD now reflect active `?make=` filter; FilterSidebar `makes` prop derived from live KV (no sold vehicles), parallel fetched
-- `components/motors/FilterSidebar.tsx` — `makes: string[]` prop replaces hardcoded list; only shows makes actually in stock; debounced search + model filter added
-- `components/motors/HeroSection.tsx` — `make?: string` prop; H1 is now "Used [Make] Vehicles for Sale in Saskatchewan" when filtered, else "Used Vehicles for Sale in Saskatchewan"
-- `app/api/motors/feed/route.ts` — `GET /api/motors/feed?format=json|xml` — exports full KV inventory; AAMVA XML for Facebook/Kijiji/AutoTrader; Bearer CRON_SECRET auth
-- CI simplified: removed broken lint job, removed redundant Vercel deploy steps
+**RoadHouse Studio (`feature/roadhouse-studio` → merged f2d90fb):**
+- Scaffolded `app/studio/` — layout, page, README
+- Built full Studio homepage: StudioNav · StudioHero · StudioServices · MotorsCaseStudy · StudioTicker · StudioEngage
+- Added `studio.*` hostname rewrite to `proxy.ts` + `/studio` to `FULLY_PUBLIC`
+- Added `studio.roadhouse.capital` to Vercel project
+- `MotorsCaseStudy.tsx` blocked on `multi-dealer-wip` merge for live inventory count
 
-**Known pre-existing repo issues (not motors):**
-- No ESLint config — `next lint` / `npm run lint` non-functional project-wide. Fix: add `eslint.config.js` for Next.js 16 flat config format.
-- `bigint: Failed to load bindings` — Solana `bigint-buffer` native addon warning at build time. Pure JS fallback runs fine. Fix: `npm rebuild` or pin `bigint-buffer` to a version with prebuilt binaries for this Node version.
+**Social stats as of 2026-05-28:** 119 VINs tracked · 111 FB posts · 110 IG posts · 12 Reels
 
-**Google Sheet inventory (2026-05-08):**
-- `ops/google-sheets/src/MotorsInventory.js` — Apps Script daily sync at 9:30am Regina time
-- Fetches `GET /api/motors/feed?format=json` (Bearer CRON_SECRET), writes all vehicles to sheet
-- Sheet: `My Drive/RoadHouse_Motors/Motors_Inventory` — ID stored in Script Properties as `MOTORS_SHEET_ID`
-- One-time setup: run `setupMotorsSheet()` from Apps Script editor; trigger auto-registers
-- Sheet ID: `1g_Q-wXDWkQ0cBYSdZFxWBY6CW6S4u-ZFH0lO_4FfD9s`
+### SOCIAL MANAGER UPGRADES — 2026-05-21
 
-**Facebook + Instagram social manager (2026-05-21):**
-- `ops/motors-social/` — standalone Python tool (NOT part of Next.js app)
-- `social_manager.py` — fetches feed, generates platform-differentiated captions with `claude-opus-4-6`, watermarks images, posts to FB + IG
-- Runs daily at 9am CST via GitHub Actions (`.github/workflows/motors-social.yml`) — no PC required
-- 6 posts/day · vehicles with CDN images only · skips first 2 images (O'Brian's branded overlay + secondary branded image)
-- `posted.json` committed back to repo after each run — prevents duplicate posts across days; tracks fb/ig/reel success per VIN
-- FCAA compliance linter (`compliance.py`) — scans every caption before publish; regenerates on violation; skips vehicle if second attempt also fails; logs to `logs/compliance_violations.log`
-- Platform-differentiated captions: FB (200-320 char, URL inline), IG (up to 1,200 char, scroll-stop hook, Saskatchewan geo keywords, hashtags, "Link in bio")
-- **RH logo watermark**: every image downloaded → `rh-logo.png` composited bottom-right (18% width, 30% opacity) → binary-uploaded to FB → FB CDN URL used for IG (no separate hosting)
-- **Reels pipeline** (`reels.py`): renders 9:16 MP4 via ffmpeg (static letterboxed clips + xfade transitions + brand outro card); publishes 2 FB Reels/day; `ENABLE_REELS=true` GitHub var to activate; IG Reels stubbed pending Vercel Blob hosting for public video URL
-- **FB Marketplace catalog**: `GET /api/motors/feed/catalog` (Bearer CRON_SECRET) → RFC 4180 CSV; FB pulls hourly; setup in `MARKETPLACE_SETUP.md`
-- Manual trigger: GitHub Actions tab → RoadHouse Motors — Daily Social Post → Run workflow
-- Meta App ID: `915612138190380` · FB Page ID: `1047748735096733` · IG User ID: `17841417177506354`
-- GitHub secrets: `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN`
-- GitHub vars: `FB_PAGE_ID` · `IG_USER_ID` · `ENABLE_REELS=true` · `REELS_AUDIO_DIR`
-- CLI flags: `--live` · `--limit N` · `--reset` · `--backfill` · `--reels-only` · `--reels-limit N` · `--feed-only` · `--lint-only FILE`
-- Local dry run: `cd ops/motors-social && venv\Scripts\python social_manager.py`
-- IG Reels TODO: add `PUT /api/motors/reels/upload` → Vercel Blob → return public URL → pass to IG `video_url`
-
-**Lead capture pipeline + credit rebuild (2026-05-09):**
-- `types/inventory.ts` — `MotorsLead` interface added (id, submittedAt, name, phone, email, vehicleInterest, creditRange, monthlyIncome, employmentStatus, message, status, source)
-- KV keys: `motors:leads:{id}` → MotorsLead JSON · `motors:leads:index` → Redis SET of lead IDs
-- `POST /api/motors/leads` — saves lead to KV, sends notification email to `roadhousesyndicate@gmail.com` (Resend). Accepts full credit form body; maps `firstName+lastName` → `name`, `creditRating` → `creditRange`, `annualIncome/12` → `monthlyIncome`, `notes` → `message`. Email failure does NOT block the user — lead is persisted regardless.
-- `GET /api/motors/leads` (Bearer CRON_SECRET) — returns all leads sorted newest-first
-- `PATCH /api/motors/leads/[id]` (Bearer CRON_SECRET) — updates lead status in KV
-- `app/motors/admin/page.tsx` — token-gated server component; access via `?token={CRON_SECRET}` in URL. Shows locked password-input state if token missing/wrong. Fetches leads server-side direct from KV (not via HTTP). `AdminPanel.tsx` is the client component — status dropdown fires PATCH with no page reload.
-- `components/motors/CreditForm.tsx` — now POSTs to `/api/motors/leads` (was `/api/motors/credit`). On success: inline confirmation "Thanks [name] — we'll be in touch within 1 business day." No redirect. `CreditRebuildSection` renders above the white form: 3 gold-accented cards + 4-item accordion ("What Lenders Look At") + co-signer callout, all in dark motors aesthetic.
-- Language swap (all motors routes): "Apply for Credit/Financing" → "Get Pre-Qualified" · "Credit Application" → "Pre-Qualification Form" · updated in layout nav, VDP CTA, FilterSidebar, credit page metadata + OG + Twitter + FAQ JSON-LD
-- `components/motors/PaymentEstimator.tsx` — client component; mounted on every available VDP (between price block and CTA). Standard amortizing formula + $499 doc fee added to principal for realistic estimates. Slider (down payment) + term buttons (36/48/60/72/84mo) + rate tier dropdown (4.99%–19.99%). Live bi-weekly + monthly output. CTA → `/motors/credit?vehicle={vin}`.
-- FAQ JSON-LD on credit page: 4 new entries — bad credit, min score, turnaround time, data privacy
-- `app/motors/credit/page.tsx` — metadata updated to "Get Pre-Qualified | RoadHouse Motors Saskatchewan"
-- OG image on main `roadhouse.capital` — added `rh-hero.jpg` to `openGraph.images` and `twitter.images` in `app/layout.tsx`; added `metadataBase`
-
-**Admin panel access:** `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}` — CRON_SECRET is in Vercel dashboard → Project Settings → Environment Variables.
-
-**Social manager upgrades (2026-05-21):**
-- `compliance.py` — FCAA linter; 31 tests in `tests/test_compliance.py`; integrated into all publish paths with 2-attempt regeneration before skip
+- `compliance.py` — FCAA linter; 31 tests in `tests/test_compliance.py`; 2-attempt regeneration before skip
 - Platform-differentiated captions — one Claude call returns `{"fb": ..., "ig": ...}`; FB 200-320 char; IG up to 1,200 char with hashtags
-- `watermark.py` — Pillow watermark pipeline; binary uploads to FB; FB CDN URL reused for IG (no separate CDN needed)
-- Image skip: `images[2:]` not `images[1:]` — safely clears O'Brian's branded overlay in all positions
-- `reels.py` — ffmpeg Reels pipeline: static letterboxed clips (zoompan removed — caused shake), xfade transitions, brand outro card; publishes via `/{page_id}/videos` multipart POST; 2 FB Reels/day; `ENABLE_REELS=true` GitHub var
-- IG Reels blocked: FB CDN URLs (video.xx.fbcdn.net) not accessible to IG servers (error 2207076); needs Vercel Blob upload → public URL → IG `video_url`
-- `app/api/motors/feed/catalog/route.ts` — FB Marketplace Vehicles Catalog CSV; FB pulls hourly; setup in `MARKETPLACE_SETUP.md`
-- `ops/motors-social/posted.json` schema: `posted_at`, `success`, `ig_posted_at`, `ig_success`, `reel_posted_at`, `reel_fb_success`, `reel_ig_success`, `reel_video_url` per VIN
+- `watermark.py` — Pillow watermark pipeline; binary uploads to FB; FB CDN URL reused for IG
+- `reels.py` — ffmpeg 9:16 MP4; static letterboxed clips; xfade transitions; brand outro; 2 FB Reels/day; `ENABLE_REELS=true` GitHub var
+- IG Reels blocked: FB CDN URLs not accessible to IG servers (error 2207076); needs Vercel Blob upload → public URL → IG `video_url`
+- `app/api/motors/feed/catalog/route.ts` — FB Marketplace Vehicles Catalog CSV
+
+### MOTORS — 2026-05-06 / 2026-05-09
+
+- Fully operational: ~116 vehicles, daily sync 9am CST, no manual work
+- Lead pipeline: `POST /api/motors/leads` → KV + Resend email
+- Pre-qualification form + PaymentEstimator on every VDP
+- Admin panel: `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}`
+- Google Sheet inventory sync via `ops/google-sheets/src/MotorsInventory.js` (Sheet ID: `1g_Q-wXDWkQ0cBYSdZFxWBY6CW6S4u-ZFH0lO_4FfD9s`)
+- FB Marketplace catalog, AAMVA XML feed, SEO JSON-LD on all routes
+- Frontend audit (2026-05-25): 21 items fixed — UX, a11y, OG images, metadata (commits d591b29, c12f9b1, dca8307)
+- Security patches (2026-05-25): 5 temp patches on road/balance PII, contributions unauth write, discord assign-role fail-open, wallet re-bind squatting, sync GET unauthed
+
+### ROADHOUSE OS — 2026-03-31
+
+Ops layer bootstrapped: `ops/google-sheets/` standalone toolchain — Google Sheets OS (6 tabs + formula engine), Google Form (7 fields), 5 Apps Script triggers, Discord webhooks live, wallet registry wired.
+
+### M2 COMPLETE — 2026-03-27
+
+Dashboard reworked: 6 static tabs → 5 functional tabs with live KV wiring. New pages: `/compound` · `/partners`. Sidebar glassmorphism. Docs: `governance-spec.md` · `multisig-spec.md` · `founding-nft-spec.md`. Domain live, all env vars set, Stripe webhook e2e, Discord interactions endpoint.
 
 ---
 
@@ -609,6 +696,8 @@ Dependency chain: steward verification → $ROAD release → contribution record
 13. **Devnet deploys** — Candy Machine (founding NFT) · Squads multisig · Snapshot space + Aragon DAO
 14. **GitHub Pages dashboard** — public: treasury + member count + $ROAD + guilds
 15. **Missions KV** — wire `missions:{customerId}`; reset timer from KV TTL; streak from `road:{customerId}.streak`
+16. **Studio live inventory** — merge `multi-dealer-wip` → wire `getInventoryCount('obrians')` into `MotorsCaseStudy.tsx`
+17. **IG Reels** — `PUT /api/motors/reels/upload` → Vercel Blob → public URL → IG `video_url`
 
 ---
 
