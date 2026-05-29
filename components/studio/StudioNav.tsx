@@ -110,6 +110,8 @@ export default function StudioNav() {
           <style>{`
             .studio-nav-links { display: flex; align-items: center; gap: 4px; }
             .studio-nav-link  { display: inline-block; }
+            .studio-nav-link:hover { color: #E8E0D0 !important; }
+            .studio-nav-enter:hover { opacity: 0.82; }
             .studio-hamburger { display: none; }
             @media (max-width: 640px) {
               .studio-nav-link  { display: none !important; }
@@ -164,14 +166,13 @@ export default function StudioNav() {
               onClick={() => setMenuOpen(true)}
               aria-label="Open navigation menu"
               style={{
-                background:  'none',
-                border:      'none',
-                cursor:      'pointer',
-                padding:     '8px',
-                display:     'flex',
+                background:    'none',
+                border:        'none',
+                cursor:        'pointer',
+                padding:       '8px',
                 flexDirection: 'column' as const,
-                gap:         '5px',
-                marginLeft:  '8px',
+                gap:           '5px',
+                marginLeft:    '8px',
               }}
             >
               {[0, 1, 2].map((i) => (
