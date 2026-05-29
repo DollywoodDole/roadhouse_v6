@@ -10,13 +10,19 @@ export default function LenisProvider() {
     gsap.registerPlugin(ScrollTrigger)
 
     const lenis = new Lenis({
-      duration:  1.2,
-      easing:    (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration:    1.4,
+      easing:      (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     })
 
-    // Keep GSAP ScrollTrigger in sync with Lenis scroll position
-    lenis.on('scroll', ScrollTrigger.update)
+    // Sync ScrollTrigger + emit velocity as CSS var for velocity-reactive components
+    lenis.on('scroll', (e: { velocity: number }) => {
+      ScrollTrigger.update()
+      document.documentElement.style.setProperty(
+        '--scroll-velocity',
+        String(Math.abs(e.velocity))
+      )
+    })
 
     const raf = (time: number) => lenis.raf(time * 1000)
     gsap.ticker.add(raf)

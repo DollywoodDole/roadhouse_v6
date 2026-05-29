@@ -24,6 +24,13 @@ export default function StudioGrain() {
       frameRef.current = requestAnimationFrame(render)
       // Throttle to every 3rd frame (~20fps) — grain imperceptible at 60fps
       if (tick++ % 3 !== 0) return
+
+      // Velocity-reactive opacity: grain vibrates with scroll momentum
+      const vel = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--scroll-velocity') || '0'
+      )
+      canvas.style.opacity = String(0.035 + Math.min(vel * 0.004, 0.02))
+
       const { width, height } = canvas
       const image = ctx.createImageData(width, height)
       const data  = image.data

@@ -133,7 +133,7 @@ function OrbitalNode({
     const arr = lineGeo.attributes.position.array as Float32Array
     arr[3] = x; arr[4] = y; arr[5] = z
     lineGeo.attributes.position.needsUpdate = true
-    lineMat.opacity = 0.15 + Math.sin(t * 1.5 + arm.phase) * 0.08
+    lineMat.opacity = 0.15 + Math.sin(t * 1.5 + arm.phase) * 0.08 + Math.min(vel * 0.2, 0.15)
   })
 
   return (
@@ -229,6 +229,7 @@ export default function StudioScene() {
   const mouse      = useRef({ x: 0, y: 0 })
   const scrollVel  = useRef(0)
   const lastScroll = useRef(0)
+  const tiltZ      = useRef(0)
 
   useEffect(() => {
     const onMouse = (e: MouseEvent) => {
@@ -252,6 +253,9 @@ export default function StudioScene() {
     camera.position.x += (mouse.current.x * 1.2 - camera.position.x) * 0.025
     camera.position.y += (mouse.current.y * 0.6 - camera.position.y) * 0.025
     camera.lookAt(0, 0, 0)
+    // Subtle z-tilt mirrors scroll velocity — stacked on top of lookAt rotation
+    tiltZ.current += (scrollVel.current * 0.02 - tiltZ.current) * 0.05
+    camera.rotation.z += tiltZ.current
     scrollVel.current *= 0.92
   })
 

@@ -16,6 +16,19 @@ const STATS = [
   { value: 'LIVE',  label: 'Proof. Motors.' },
 ]
 
+// Split a word into individually-animated character spans
+function splitToChars(word: string) {
+  return word.split('').map((char, i) => (
+    <span
+      key={i}
+      data-char
+      style={{ display: 'inline-block' }}
+    >
+      {char}
+    </span>
+  ))
+}
+
 export default function StudioHero() {
   const [activeView, setActiveView] = useState<ActiveView>('client')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -26,15 +39,16 @@ export default function StudioHero() {
 
   return (
     <>
-      {/* ── Hero — exactly one viewport tall ── */}
+      {/* ── Hero — sticky, persists behind all subsequent content ── */}
       <section
         id="work"
         data-section="hero"
         style={{
-          position:  'relative',
+          position:  'sticky',
+          top:       0,
           height:    '100vh',
           minHeight: '640px',
-          overflow:  'hidden',
+          zIndex:    0,
         }}
       >
         {/* Layer 0: WebGL canvas */}
@@ -57,7 +71,7 @@ export default function StudioHero() {
           ref={containerRef}
           style={{
             position: 'absolute',
-            bottom:   '112px',   // clears the stats strip
+            bottom:   '112px',
             left:     0,
             right:    0,
             zIndex:   10,
@@ -92,16 +106,20 @@ export default function StudioHero() {
               </span>
             </div>
 
-            {/* Headline */}
-            <div style={{
-              fontFamily:    'var(--font-bebas)',
-              fontSize:      'clamp(60px, 8vw, 96px)',
-              lineHeight:    0.9,
-              letterSpacing: '0.01em',
-            }}>
-              <div data-hero-line style={{ color: '#E8E0D0' }}>OPERATORS</div>
-              <div data-hero-line style={{ color: '#E8E0D0' }}>BUILD</div>
-              <div data-hero-line style={{ color: '#C8861E' }}>DIFFERENT.</div>
+            {/* Headline — character-level entrance with perspective */}
+            <div style={{ perspective: '800px' }}>
+              <div
+                style={{
+                  fontFamily:    'var(--font-bebas)',
+                  fontSize:      'clamp(60px, 8vw, 96px)',
+                  lineHeight:    0.9,
+                  letterSpacing: '0.01em',
+                }}
+              >
+                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('OPERATORS')}</div>
+                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('BUILD')}</div>
+                <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('DIFFERENT.')}</div>
+              </div>
             </div>
 
             {/* Amber rule */}
@@ -137,7 +155,7 @@ export default function StudioHero() {
                 Operators only. No tourism.
               </p>
 
-              {/* Toggle — glass treatment */}
+              {/* Toggle */}
               <div style={{ display: 'flex', flexShrink: 0 }}>
                 {(['client', 'house'] as ActiveView[]).map((view, i) => {
                   const label  = view === 'client' ? 'For Clients' : 'For the House'
@@ -231,10 +249,12 @@ export default function StudioHero() {
         </div>
       </section>
 
-      {/* ── Below fold: services + case study ── */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '64px 2rem 0' }}>
-        <StudioServices activeView={activeView} />
-        <MotorsCaseStudy activeView={activeView} />
+      {/* ── Below fold: services + case study — scrolls over sticky hero ── */}
+      <div style={{ position: 'relative', zIndex: 1, background: '#07080A' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '64px 2rem 0' }}>
+          <StudioServices activeView={activeView} />
+          <MotorsCaseStudy activeView={activeView} />
+        </div>
       </div>
     </>
   )

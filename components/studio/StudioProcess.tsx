@@ -2,7 +2,9 @@
 
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
-import { processEntrance, processLine, scrambleOnEnter } from '@/lib/studio/animations'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { scrambleOnEnter } from '@/lib/studio/animations'
 
 const STEPS = [
   {
@@ -18,7 +20,7 @@ const STEPS = [
   {
     num:  '03',
     name: 'BUILD',
-    desc: "7\u201321 days. You're in a shared channel. Daily updates. No black boxes.",
+    desc: "7–21 days. You're in a shared channel. Daily updates. No black boxes.",
   },
   {
     num:  '04',
@@ -35,126 +37,189 @@ const STEPS = [
 export default function StudioProcess() {
   const containerRef = useRef<HTMLElement>(null)
   const headingRef   = useRef<HTMLDivElement>(null)
-  const lineRef      = useRef<HTMLDivElement>(null)
+  const stepsRef     = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
     if (!containerRef.current) return
+    gsap.registerPlugin(ScrollTrigger)
 
-    // Scramble heading on scroll enter
     if (headingRef.current) {
       scrambleOnEnter(headingRef.current, 'THE ENGAGEMENT.')
     }
 
-    // Connecting amber line
-    if (lineRef.current) {
-      processLine(lineRef.current)
-    }
+    const mm = gsap.matchMedia()
 
-    // Steps slide in
-    const steps = containerRef.current.querySelectorAll('[data-process-step]')
-    if (steps.length) processEntrance(steps)
+    // ── Desktop: horizontal pinned scroll ──────────────────────────────────
+    mm.add('(min-width: 1024px)', () => {
+      if (!stepsRef.current || !containerRef.current) return
+
+      const steps      = stepsRef.current.querySelectorAll('[data-process-step]')
+      const stepCount  = steps.length
+
+      // First step active, rest muted
+      steps.forEach((step, i) => {
+        if (i !== 0) {
+          gsap.set(step.querySelector('[data-step-title]'), { opacity: 0.3 })
+          gsap.set(step.querySelector('[data-step-desc]'),  { opacity: 0.3 })
+        }
+      })
+
+      const getEndDist = () =>
+        stepsRef.current!.scrollWidth - window.innerWidth + 80
+
+      gsap.to(stepsRef.current, {
+        x:    () => -getEndDist(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: containerRef.current,
+          pin:     true,
+          scrub:   1,
+          end:     () => '+=' + getEndDist(),
+          onUpdate(self) {
+            const activeIdx = Math.round(self.progress * (stepCount - 1))
+            steps.forEach((step, i) => {
+              const isActive = i === activeIdx
+              gsap.to(step.querySelector('[data-step-title]'), {
+                opacity:   isActive ? 1 : 0.3,
+                duration:  0.25,
+                overwrite: 'auto',
+              })
+              gsap.to(step.querySelector('[data-step-desc]'), {
+                opacity:   isActive ? 1 : 0.3,
+                duration:  0.25,
+                overwrite: 'auto',
+              })
+            })
+          },
+        },
+      })
+    })
+
+    // ── Mobile: vertical slide-in ───────────────────────────────────────────
+    mm.add('(max-width: 1023px)', () => {
+      const steps = containerRef.current?.querySelectorAll('[data-process-step]')
+      if (!steps?.length) return
+      steps.forEach((step, i) => {
+        ScrollTrigger.create({
+          trigger: step,
+          start:   'top 88%',
+          once:    true,
+          onEnter: () => {
+            gsap.fromTo(step,
+              { opacity: 0, x: -40 },
+              { opacity: 1, x: 0, duration: 0.65, ease: 'power2.out', delay: i * 0.06 }
+            )
+          },
+        })
+      })
+    })
   }, { scope: containerRef })
 
   return (
     <section
       ref={containerRef}
       id="process"
-      style={{ borderTop: '1px solid #141618', padding: '96px 0' }}
+      style={{
+        borderTop: '1px solid #141618',
+        overflow:  'hidden',
+      }}
     >
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1.5rem' }}>
-
-        {/* Section heading */}
-        <div style={{ marginBottom: '60px' }}>
-          <div
-            ref={headingRef}
-            style={{
-              fontFamily:    'var(--font-bebas)',
-              fontSize:      'clamp(40px, 6vw, 72px)',
-              color:         '#E8E0D0',
-              lineHeight:    0.95,
-              letterSpacing: '0.01em',
-            }}
-          >
-            THE ENGAGEMENT.
-          </div>
-        </div>
-
-        {/* Amber connecting line — draws left-to-right on scroll */}
-        <div style={{ position: 'relative', marginBottom: '0' }}>
-          <div
-            ref={lineRef}
-            style={{
-              height:          '1px',
-              background:      'linear-gradient(to right, #C8861E, rgba(200,134,30,0.2))',
-              marginBottom:    '-1px',
-              transformOrigin: 'left center',
-              transform:       'scaleX(0)',
-            }}
-          />
-        </div>
-
-        {/* Steps */}
+      {/* Heading — sits above the horizontal strip */}
+      <div style={{ padding: '64px 48px 32px' }}>
         <div
-          className="studio-process-grid"
+          ref={headingRef}
           style={{
-            display:             'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            borderTop:           '1px solid #141618',
+            fontFamily:    'var(--font-bebas)',
+            fontSize:      'clamp(40px, 6vw, 72px)',
+            color:         '#E8E0D0',
+            lineHeight:    0.95,
+            letterSpacing: '0.01em',
           }}
         >
-          {STEPS.map((step, i) => (
+          THE ENGAGEMENT.
+        </div>
+      </div>
+
+      {/* Steps — horizontal strip on desktop, vertical stack on mobile */}
+      <div
+        ref={stepsRef}
+        className="studio-process-steps"
+        style={{
+          display:    'flex',
+          willChange: 'transform',
+        }}
+      >
+        {STEPS.map((step, i) => (
+          <div
+            key={step.num}
+            data-process-step
+            style={{
+              flexShrink:   0,
+              width:        'clamp(260px, 26vw, 380px)',
+              padding:      '32px 48px 64px',
+              borderRight:  i < STEPS.length - 1 ? '1px solid #141618' : 'none',
+            }}
+          >
+            {/* Large ghost number */}
+            <div style={{
+              fontFamily:    'var(--font-bebas)',
+              fontSize:      'clamp(80px, 11vw, 160px)',
+              lineHeight:    0.85,
+              letterSpacing: '0.01em',
+              color:         '#0F1114',
+              marginBottom:  '16px',
+              userSelect:    'none',
+            }}>
+              {step.num}
+            </div>
+
+            {/* Step name */}
             <div
-              key={step.num}
-              data-process-step
+              data-step-title
               style={{
-                padding:     '40px 28px',
-                borderRight: i < 4 ? '1px solid #141618' : 'none',
+                fontFamily:    'var(--font-bebas)',
+                fontSize:      '42px',
+                color:         '#E8E0D0',
+                letterSpacing: '0.04em',
+                lineHeight:    1,
+                marginBottom:  '14px',
               }}
             >
-              <div style={{
-                fontFamily:              'var(--font-bebas)',
-                fontSize:                '80px',
-                lineHeight:              1,
-                letterSpacing:           '0.01em',
-                marginBottom:            '16px',
-                userSelect:              'none',
-                color:         '#8B5A14',
-              }}>
-                {step.num}
-              </div>
-              <div style={{
-                fontFamily:    'var(--font-bebas)',
-                fontSize:      '24px',
-                color:         '#E8E0D0',
-                letterSpacing: '0.06em',
-                marginBottom:  '14px',
-                lineHeight:    1,
-              }}>
-                {step.name}
-              </div>
-              <p style={{
+              {step.name}
+            </div>
+
+            {/* Description */}
+            <p
+              data-step-desc
+              style={{
                 fontFamily: 'var(--font-barlow)',
                 fontSize:   '13px',
                 color:      '#878070',
                 lineHeight: 1.7,
                 margin:     0,
                 fontWeight: 300,
-              }}>
-                {step.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+                maxWidth:   '260px',
+              }}
+            >
+              {step.desc}
+            </p>
+          </div>
+        ))}
       </div>
 
       <style>{`
-        @media (max-width: 900px) {
-          .studio-process-grid {
-            grid-template-columns: 1fr !important;
+        @media (max-width: 1023px) {
+          .studio-process-steps {
+            flex-direction: column !important;
+            will-change: auto !important;
           }
-          .studio-process-grid > div {
+          .studio-process-steps > [data-process-step] {
+            width: 100% !important;
             border-right: none !important;
             border-bottom: 1px solid #141618;
+          }
+          .studio-process-steps > [data-process-step]:last-child {
+            border-bottom: none;
           }
         }
       `}</style>

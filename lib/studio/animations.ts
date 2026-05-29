@@ -57,7 +57,10 @@ export function scrambleOnEnter(el: Element, finalText: string) {
 // ── Hero entrance ─────────────────────────────────────────────────────────────
 export function heroEntrance(container: Element) {
   if (prefersReducedMotion()) {
-    // Immediately resolve stat values without animation
+    // Ensure all chars visible, resolve stat values
+    container.querySelectorAll('[data-char]').forEach((el) => {
+      (el as HTMLElement).style.opacity = '1'
+    })
     container.querySelectorAll('[data-stat-value]').forEach((el) => {
       const val = el.getAttribute('data-stat-final') ?? el.textContent ?? ''
       el.textContent = val
@@ -66,14 +69,22 @@ export function heroEntrance(container: Element) {
   }
   gsap.registerPlugin(ScrollTrigger)
 
-  const lines = container.querySelectorAll('[data-hero-line]')
-  gsap.from(lines, {
-    y:        40,
-    opacity:  0,
-    duration: 0.9,
-    stagger:  0.13,
-    ease:     'power3.out',
-  })
+  // Character-level entrance — OPERATORS / BUILD / DIFFERENT. stagger per char
+  const chars = container.querySelectorAll('[data-char]')
+  if (chars.length) {
+    gsap.fromTo(chars,
+      { opacity: 0, y: 60, rotateX: -40 },
+      {
+        opacity:  1,
+        y:        0,
+        rotateX:  0,
+        duration: 0.7,
+        stagger:  0.022,
+        ease:     'power3.out',
+        delay:    0.3,
+      }
+    )
+  }
 
   const rule = container.querySelector('[data-hero-rule]')
   if (rule) {
@@ -81,7 +92,7 @@ export function heroEntrance(container: Element) {
       scaleX:          0,
       transformOrigin: 'left center',
       duration:        0.7,
-      delay:           0.45,
+      delay:           0.65,
       ease:            'power2.out',
     })
   }
@@ -93,10 +104,9 @@ export function heroEntrance(container: Element) {
       opacity:  0,
       duration: 0.5,
       stagger:  0.09,
-      delay:    0.75,
+      delay:    0.9,
       ease:     'power2.out',
       onComplete() {
-        // Scramble each stat value after fade-in
         container.querySelectorAll('[data-stat-value]').forEach((el) => {
           const val = el.getAttribute('data-stat-final') ?? el.textContent ?? ''
           scrambleText(el, val, 600)

@@ -1,232 +1,323 @@
+'use client'
+
+import { useRef } from 'react'
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 type ActiveView = 'client' | 'house'
 
 const STATS = [
-  // TODO: replace with await getInventoryCount('obrians') from lib/motors-kv.ts
-  // Blocked on multi-dealer-wip merge to main
-  { value: '112', label: 'Live vehicles' },
-  { value: 'ADF/XML', label: 'Dealership software export' },
-  { value: 'Multi', label: 'Multi-dealer architecture' },
-  { value: 'JSON-LD', label: 'Full schema stack' },
+  { value: '112',     label: 'Live vehicles' },
+  { value: 'ADF/XML', label: 'DMS export' },
+  { value: 'MULTI',   label: 'Dealer architecture' },
+  { value: 'JSON-LD', label: 'Schema stack' },
 ]
 
-// Simplified inventory card skeleton for the browser frame mockup
 function InventoryCardSkeleton({ amber }: { amber?: boolean }) {
   return (
     <div style={{
       background: '#0F1012',
       border:     '1px solid #141618',
       padding:    '8px',
-      display:    'flex',
-      flexDirection: 'column' as const,
-      gap:        '4px',
     }}>
-      <div style={{ height: '28px', background: '#141618' }} />
-      <div style={{ height: '5px', background: '#1A1C1F', width: '70%' }} />
-      <div style={{ height: '5px', background: '#1A1C1F', width: '50%' }} />
+      <div style={{ height: '28px', background: '#141618', marginBottom: '4px' }} />
+      <div style={{ height: '4px', background: '#1A1C1F', width: '70%', marginBottom: '3px' }} />
+      <div style={{ height: '4px', background: '#1A1C1F', width: '50%', marginBottom: '6px' }} />
       <div style={{
-        marginTop: '4px',
-        height:    '5px',
+        height:     '4px',
         background: amber ? '#C8861E' : '#1A1C1F',
-        width:     '40%',
-        opacity:   0.7,
+        width:      '40%',
+        opacity:    0.8,
       }} />
     </div>
   )
 }
 
 export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView }) {
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const leftRef    = useRef<HTMLDivElement>(null)
+  const rightRef   = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    if (!sectionRef.current || !leftRef.current || !rightRef.current) return
+    gsap.registerPlugin(ScrollTrigger)
+
+    const trigger = {
+      trigger: sectionRef.current,
+      start:   'top 82%',
+      end:     'top 28%',
+      scrub:   1.2,
+    }
+
+    gsap.fromTo(leftRef.current,
+      { x: -40, opacity: 0 },
+      { x: 0,   opacity: 1, ease: 'power2.out', scrollTrigger: trigger }
+    )
+    gsap.fromTo(rightRef.current,
+      { x: 40,  opacity: 0 },
+      { x: 0,   opacity: 1, ease: 'power2.out', scrollTrigger: trigger }
+    )
+  }, { scope: sectionRef })
+
   if (activeView !== 'client') return null
 
   return (
-    <div style={{
-      border:    '1px solid #1A1C1F',
-      margin:          '0 0 80px',
-      background:      '#0C0D0F',
-    }}>
+    <div
+      ref={sectionRef}
+      style={{
+        padding:   '80px 0',
+        borderTop: '1px solid #141618',
+        overflow:  'hidden',
+      }}
+    >
+      <style>{`
+        .motors-cs-layout {
+          display: flex;
+          gap: 48px;
+          align-items: flex-start;
+        }
+        .motors-cs-left  { flex: 0 0 58%; min-width: 260px; }
+        .motors-cs-right { flex: 1; min-width: 260px; }
+        .motors-cs-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          border: 1px solid #1A1C1F;
+          margin-bottom: 36px;
+        }
+        @media (max-width: 768px) {
+          .motors-cs-layout    { flex-direction: column !important; }
+          .motors-cs-left      { flex: none !important; width: 100% !important; }
+          .motors-cs-right     { flex: none !important; width: 100% !important; }
+          .motors-cs-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
 
-      {/* Header */}
-      <div style={{
-        padding:        '28px 32px 24px',
-        borderBottom:   '1px solid #1A1C1F',
-        display:        'flex',
-        alignItems:     'flex-start',
-        justifyContent: 'space-between',
-        flexWrap:       'wrap' as const,
-        gap:            '16px',
-      }}>
-        <div>
+      <div className="motors-cs-layout">
+
+        {/* Left — label, heading, stats, description, CTA */}
+        <div className="motors-cs-left" ref={leftRef}>
           <p style={{
             fontFamily:    'var(--font-dm-mono-studio)',
             fontSize:      '10px',
             color:         '#878070',
             letterSpacing: '0.15em',
             textTransform: 'uppercase' as const,
-            margin:        '0 0 8px',
+            margin:        '0 0 10px',
           }}>
             Dealer Platform · O&apos;Brian&apos;s Auto · Saskatchewan
           </p>
+
+          <div style={{
+            fontFamily:    'var(--font-bebas)',
+            fontSize:      '72px',
+            color:         '#C8861E',
+            letterSpacing: '0.03em',
+            lineHeight:    0.95,
+            marginBottom:  '4px',
+          }}>
+            MOTORS
+          </div>
+
           <h3 style={{
             fontFamily:    'var(--font-bebas)',
-            fontSize:      '32px',
+            fontSize:      '24px',
             color:         '#E8E0D0',
-            letterSpacing: '0.03em',
-            margin:        '0 0 6px',
+            letterSpacing: '0.04em',
             lineHeight:    1,
+            margin:        '0 0 32px',
+            fontWeight:    400,
           }}>
             RoadHouse Motors
           </h3>
+
+          {/* 2×2 Stats */}
+          <div className="motors-cs-stats-grid">
+            {STATS.map((stat, i) => (
+              <div
+                key={stat.label}
+                style={{
+                  padding:      '20px 24px',
+                  borderRight:  i % 2 === 0 ? '1px solid #1A1C1F' : 'none',
+                  borderBottom: i < 2       ? '1px solid #1A1C1F' : 'none',
+                }}
+              >
+                <div style={{
+                  fontFamily:    'var(--font-bebas)',
+                  fontSize:      '36px',
+                  color:         '#C8861E',
+                  letterSpacing: '0.03em',
+                  lineHeight:    1,
+                  marginBottom:  '4px',
+                }}>
+                  {stat.value}
+                </div>
+                <div style={{
+                  fontFamily:    'var(--font-dm-mono-studio)',
+                  fontSize:      '9px',
+                  color:         '#878070',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase' as const,
+                }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p style={{
+            fontFamily: 'var(--font-barlow)',
+            fontSize:   '14px',
+            color:      '#878070',
+            lineHeight: 1.75,
+            margin:     '0 0 32px',
+            fontWeight: 300,
+            maxWidth:   '460px',
+          }}>
+            Full-stack dealer platform — live inventory sync, ADF/XML DMS integration,
+            automated daily cron, lead pipeline with KV storage, and a complete JSON-LD
+            schema stack. Subdomain-isolated. No manual updates required.
+          </p>
+
           <a
             href="https://motors.roadhouse.capital"
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              fontFamily:    'var(--font-dm-mono-studio)',
-              fontSize:      '10px',
-              color:         '#C8861E',
-              letterSpacing: '0.1em',
+              fontFamily:     'var(--font-dm-mono-studio)',
+              fontSize:       '11px',
+              color:          '#C8861E',
+              letterSpacing:  '0.12em',
+              textTransform:  'uppercase' as const,
               textDecoration: 'none',
-              textTransform: 'uppercase' as const,
+              border:         '1px solid #C8861E',
+              padding:        '10px 22px',
+              display:        'inline-block',
+              transition:     'background 0.15s ease, color 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget
+              el.style.background = '#C8861E'
+              el.style.color      = '#07080A'
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget
+              el.style.background = 'transparent'
+              el.style.color      = '#C8861E'
             }}
           >
-            motors.roadhouse.capital
+            View live ↗
           </a>
         </div>
 
-        {/* Live badge */}
-        <div style={{
-          display:    'flex',
-          alignItems: 'center',
-          gap:        '6px',
-          background: '#0F1A0F',
-          border:     '1px solid #1A3020',
-          padding:    '6px 12px',
-          alignSelf:  'flex-start',
-        }}>
-          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4CAF50' }} />
-          <span style={{
-            fontFamily:    'var(--font-dm-mono-studio)',
-            fontSize:      '10px',
-            color:         '#4CAF50',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase' as const,
-          }}>Live</span>
-        </div>
-      </div>
-
-      {/* Browser frame mockup */}
-      <div style={{ padding: '24px 32px 0' }}>
-        <div style={{
-          border:       '1px solid #1A1C1F',
-          background:   '#090A0C',
-          overflow:     'hidden',
-        }}>
-          {/* Chrome bar */}
+        {/* Right — simulated browser frame */}
+        <div className="motors-cs-right" ref={rightRef}>
           <div style={{
-            height:       '30px',
-            background:   '#111316',
-            borderBottom: '1px solid #1A1C1F',
-            display:      'flex',
-            alignItems:   'center',
-            padding:      '0 12px',
-            gap:          '6px',
+            border:   '1px solid #1A1C1F',
+            background: '#090A0C',
           }}>
-            {(['#FF5F57', '#FEBC2E', '#28C840'] as const).map((color) => (
-              <div key={color} style={{
-                width: '8px', height: '8px',
-                borderRadius: '50%',
-                background: color,
-                opacity: 0.6,
-              }} />
-            ))}
-            {/* URL bar */}
+            {/* Chrome bar */}
             <div style={{
-              flex:         1,
-              height:       '16px',
-              background:   '#0C0D10',
-              margin:       '0 12px',
+              height:       '32px',
+              background:   '#111316',
+              borderBottom: '1px solid #1A1C1F',
               display:      'flex',
               alignItems:   'center',
-              padding:      '0 8px',
+              padding:      '0 12px',
+              gap:          '6px',
             }}>
+              {(['#FF5F57', '#FEBC2E', '#28C840'] as const).map((color) => (
+                <div key={color} style={{
+                  width: '8px', height: '8px',
+                  borderRadius: '50%',
+                  background:   color,
+                  opacity:      0.6,
+                }} />
+              ))}
+              <div style={{
+                flex:        1,
+                height:      '16px',
+                background:  '#0C0D10',
+                margin:      '0 10px',
+                display:     'flex',
+                alignItems:  'center',
+                padding:     '0 8px',
+              }}>
+                <span style={{
+                  fontFamily:    'var(--font-dm-mono-studio)',
+                  fontSize:      '9px',
+                  color:         '#2A2520',
+                  letterSpacing: '0.08em',
+                }}>
+                  motors.roadhouse.capital/inventory
+                </span>
+              </div>
+              {/* LIVE badge */}
+              <div style={{
+                display:    'flex',
+                alignItems: 'center',
+                gap:        '4px',
+                background: '#0F1A0F',
+                border:     '1px solid #1A3020',
+                padding:    '3px 8px',
+              }}>
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4CAF50' }} />
+                <span style={{
+                  fontFamily:    'var(--font-dm-mono-studio)',
+                  fontSize:      '8px',
+                  color:         '#4CAF50',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase' as const,
+                }}>
+                  Live
+                </span>
+              </div>
+            </div>
+
+            {/* Simulated inventory nav bar */}
+            <div style={{
+              height:       '36px',
+              background:   '#0C0D0F',
+              borderBottom: '1px solid #141618',
+              display:      'flex',
+              alignItems:   'center',
+              padding:      '0 16px',
+              gap:          '12px',
+            }}>
+              <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '14px', color: '#C8861E', letterSpacing: '0.05em' }}>
+                RH MOTORS
+              </div>
+              <div style={{ flex: 1, height: '14px', background: '#111316', display: 'flex', alignItems: 'center', padding: '0 8px', gap: '6px' }}>
+                <div style={{ width: '6px', height: '6px', background: '#1A1C1F' }} />
+                <div style={{ height: '3px', background: '#1E2024', flex: 1 }} />
+              </div>
               <span style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
-                fontSize:      '9px',
-                color:         '#2A2520',
-                letterSpacing: '0.08em',
+                fontSize:      '8px',
+                color:         '#C8861E',
+                letterSpacing: '0.1em',
               }}>
-                motors.roadhouse.capital/inventory
+                112 VEHICLES
               </span>
             </div>
-          </div>
 
-          {/* Inventory grid preview */}
-          <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-            <InventoryCardSkeleton amber />
-            <InventoryCardSkeleton />
-            <InventoryCardSkeleton amber />
-            <InventoryCardSkeleton />
-            <InventoryCardSkeleton amber />
-            <InventoryCardSkeleton />
+            {/* Inventory grid preview */}
+            <div style={{
+              padding:             '10px',
+              display:             'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap:                 '5px',
+            }}>
+              <InventoryCardSkeleton amber />
+              <InventoryCardSkeleton />
+              <InventoryCardSkeleton amber />
+              <InventoryCardSkeleton />
+              <InventoryCardSkeleton amber />
+              <InventoryCardSkeleton />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Stats row */}
-      <style>{`
-        .motors-cs-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid #1A1C1F; }
-        @media (max-width: 640px) {
-          .motors-cs-stats { grid-template-columns: repeat(2, 1fr) !important; }
-          .motors-cs-stats > div:nth-child(2) { border-right: none !important; }
-        }
-      `}</style>
-      <div className="motors-cs-stats" style={{ marginTop: '24px' }}>
-        {STATS.map((stat, i) => (
-          <div
-            key={stat.label}
-            style={{
-              padding:     '20px 24px',
-              borderRight: i < 3 ? '1px solid #1A1C1F' : 'none',
-            }}
-          >
-            <div style={{
-              fontFamily:    'var(--font-bebas)',
-              fontSize:      '28px',
-              color:         '#C8861E',
-              letterSpacing: '0.03em',
-              lineHeight:    1,
-              marginBottom:  '4px',
-            }}>
-              {stat.value}
-            </div>
-            <div style={{
-              fontFamily:    'var(--font-dm-mono-studio)',
-              fontSize:      '10px',
-              color:         '#878070',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase' as const,
-            }}>
-              {stat.label}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Description */}
-      <div style={{ padding: '24px 32px' }}>
-        <p style={{
-          fontFamily: 'var(--font-barlow)',
-          fontSize:   '14px',
-          color:      '#878070',
-          lineHeight: 1.75,
-          margin:     0,
-          fontWeight: 300,
-          maxWidth:   '680px',
-        }}>
-          Full-stack dealer platform built on Next.js — live inventory sync from dealer CMS,
-          structured ADF/XML exports for DMS integration, automated daily sync via Vercel cron,
-          lead pipeline with KV storage, and a complete JSON-LD schema stack for organic search.
-          Subdomain-isolated, proxy-routed, no manual updates required.
-        </p>
       </div>
     </div>
   )

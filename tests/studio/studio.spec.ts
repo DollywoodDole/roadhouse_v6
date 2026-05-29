@@ -177,4 +177,33 @@ test.describe('RoadHouse Studio', () => {
     await label.scrollIntoViewIfNeeded()
     await expect(label).toBeVisible()
   })
+
+  test('16. Lenis wiring — no fatal JS errors on load', async ({ page }) => {
+    const errors: string[] = []
+    page.on('console', msg => {
+      if (msg.type() === 'error') errors.push(msg.text())
+    })
+
+    await page.goto(URL)
+    await page.waitForTimeout(2000)
+
+    const fatalErrors = errors.filter(e =>
+      !e.includes('hydrat') &&
+      !e.includes('Warning') &&
+      !e.includes('bigint')
+    )
+    expect(fatalErrors.length).toBe(0)
+  })
+
+  test('17. Sticky hero — WebGL canvas persists after scrolling', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForSelector('canvas')
+
+    await expect(page.locator('canvas').first()).toBeVisible()
+
+    await page.evaluate(() => window.scrollBy(0, 900))
+    await page.waitForTimeout(500)
+
+    await expect(page.locator('canvas').first()).toBeVisible()
+  })
 })
