@@ -9,10 +9,23 @@ module.exports = {
     extend: {
       fontFamily: {
         cormorant: ['var(--font-cormorant)', 'Georgia', 'serif'],
-        mono: ['var(--font-dm-mono)', 'Courier New', 'monospace'],
-        roboto: ['Roboto', 'system-ui', 'sans-serif'],
+        mono:      ['var(--font-dm-mono)', 'Courier New', 'monospace'],
+        roboto:    ['Roboto', 'system-ui', 'sans-serif'],
+        bebas:     ['var(--font-bebas)', 'sans-serif'],
+        'dm-mono-studio': ['var(--font-dm-mono-studio)', 'monospace'],
+        barlow:    ['var(--font-barlow)', 'sans-serif'],
       },
       colors: {
+        studio: {
+          bg:          '#07080A',
+          surface:     '#0E1012',
+          border:      '#141618',
+          amber:       '#C8861E',
+          'amber-dim': '#5A3A18',
+          warm:        '#E8E0D0',
+          muted:       '#5A5550',
+          dark:        '#2A2520',
+        },
         gold: {
           DEFAULT: '#C9922A',
           light: '#F0C060',

@@ -92,11 +92,14 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
       </div>
 
       {/* Stats row */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        borderBottom: '1px solid #1A1C1F',
-      }}>
+      <style>{`
+        .motors-cs-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid #1A1C1F; }
+        @media (max-width: 640px) {
+          .motors-cs-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .motors-cs-stats > div:nth-child(2) { border-right: none !important; }
+        }
+      `}</style>
+      <div className="motors-cs-stats">
         {STATS.map((stat, i) => (
           <div
             key={stat.label}

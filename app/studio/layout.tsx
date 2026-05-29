@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Bebas_Neue, DM_Mono, Barlow } from 'next/font/google'
+import GSAPProvider from '@/components/studio/GSAPProvider'
 
 const bebas = Bebas_Neue({
   weight: '400',
@@ -49,6 +50,7 @@ export default function StudioLayout({ children }: { children: React.ReactNode }
       className={`${bebas.variable} ${dmMono.variable} ${barlow.variable} min-h-screen`}
       style={{ background: '#07080A', color: '#E8E0D0' }}
     >
+      <GSAPProvider />
       {children}
     </div>
   )

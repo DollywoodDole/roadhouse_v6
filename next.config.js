@@ -14,15 +14,16 @@ const nextConfig = {
   // Turbopack needs resolveAlias instead of webpack fallback.
   // Recent Solana wallet adapter versions handle Buffer/process internally,
   // so most polyfills aren't needed — just alias the crypto/stream packages.
+  // Turbopack resolveAlias applies to BOTH server and client bundles — unlike webpack's
+  // isServer guard. Aliasing http/https to browser shims here breaks SSR for any module
+  // that uses Node's https.Agent (e.g. @solana/web3.js Connection). Only alias the
+  // pure-JS polyfills that are safe in both environments.
   turbopack: {
     resolveAlias: {
       crypto:  'crypto-browserify',
       stream:  'stream-browserify',
       buffer:  'buffer',
       process: 'process/browser',
-      zlib:    'browserify-zlib',
-      http:    'stream-http',
-      https:   'https-browserify',
       url:     'url',
       assert:  'assert',
     },
