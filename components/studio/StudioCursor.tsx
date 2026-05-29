@@ -73,13 +73,13 @@ export default function StudioCursor() {
           left:          0,
           width:         '28px',
           height:        '28px',
-          border:      '1.5px solid #C8861E',
-          transform:   'translate(-50%, -50%)',
+          border:        '1.5px solid #C8861E',
+          transform:     'translate(-200px, -200px)',
           pointerEvents: 'none',
-          zIndex:      9997,
-          opacity:     0.8,
-          borderRadius: '50%',
-          willChange:  'transform',
+          zIndex:        9997,
+          opacity:       0.8,
+          borderRadius:  '50%',
+          willChange:    'transform',
         }}
       />
       {/* Dot */}
@@ -93,12 +93,12 @@ export default function StudioCursor() {
           left:          0,
           width:         '4px',
           height:        '4px',
-          background:  '#C8861E',
-          transform:   'translate(-50%, -50%)',
+          background:    '#C8861E',
+          transform:     'translate(-200px, -200px)',
           pointerEvents: 'none',
-          zIndex:      9998,
-          borderRadius: '50%',
-          willChange:  'transform',
+          zIndex:        9998,
+          borderRadius:  '50%',
+          willChange:    'transform',
         }}
       />
     </>

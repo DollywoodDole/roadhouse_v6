@@ -27,6 +27,7 @@
 html {
   margin: 0;
   padding: 0;
+  background: #07080A !important;
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
@@ -34,7 +35,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: #07080A;
+  background: #07080A !important;
+  overflow-x: hidden;
   color: var(--text);
   font-family: var(--font-dm-mono);
 }
