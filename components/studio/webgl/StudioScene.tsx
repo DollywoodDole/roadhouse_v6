@@ -245,7 +245,7 @@ function ParticleField({
   baseSpeedRef,
 }: {
   scrollVel:    MutableRefObject<number>
-  mouse:        MutableRefObject<{ x: number; y: number }>
+  mouse:        MutableRefObject<THREE.Vector2>
   baseSpeedRef: MutableRefObject<number>
 }) {
   const pointsRef = useRef<THREE.Points>(null)
@@ -286,7 +286,7 @@ function ParticleField({
 
     if (!reducedMotion.current) {
       // Project mouse NDC to world space at z=0 plane
-      raycaster.setFromCamera(mouse.current as THREE.Vector2Like, camera)
+      raycaster.setFromCamera(mouse.current, camera)
       const hit = raycaster.ray.intersectPlane(plane, mouseWorld)
 
       if (hit) {
@@ -336,7 +336,7 @@ function ParticleField({
 export default function StudioScene() {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const ambientRef     = useRef<THREE.AmbientLight>(null)
-  const mouse          = useRef({ x: 0, y: 0 })
+  const mouse          = useRef(new THREE.Vector2(0, 0))
   const scrollVel      = useRef(0)
   const scrollProgress = useRef(0)
   const lastScroll     = useRef(0)
