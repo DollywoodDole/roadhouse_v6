@@ -110,16 +110,18 @@ export function heroEntrance(container: Element) {
 export function sectionEntrance(els: NodeListOf<Element> | Element[]) {
   if (prefersReducedMotion()) return
   gsap.registerPlugin(ScrollTrigger)
+  // onEnter pattern: element never touched until ScrollTrigger fires,
+  // so content is visible at page load regardless of JS timing.
   Array.from(els).forEach((el) => {
-    gsap.from(el, {
-      y:        40,
-      opacity:  0,
-      duration: 0.75,
-      ease:     'power2.out',
-      scrollTrigger: {
-        trigger: el,
-        start:   'top 88%',
-        once:    true,
+    ScrollTrigger.create({
+      trigger: el,
+      start:   'top 88%',
+      once:    true,
+      onEnter: () => {
+        gsap.fromTo(el,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.75, ease: 'power2.out' }
+        )
       },
     })
   })
@@ -130,16 +132,15 @@ export function processEntrance(steps: NodeListOf<Element> | Element[]) {
   if (prefersReducedMotion()) return
   gsap.registerPlugin(ScrollTrigger)
   Array.from(steps).forEach((step, i) => {
-    gsap.from(step, {
-      x:        -40,
-      opacity:  0,
-      duration: 0.65,
-      ease:     'power2.out',
-      delay:    i * 0.07,
-      scrollTrigger: {
-        trigger: step,
-        start:   'top 88%',
-        once:    true,
+    ScrollTrigger.create({
+      trigger: step,
+      start:   'top 88%',
+      once:    true,
+      onEnter: () => {
+        gsap.fromTo(step,
+          { opacity: 0, x: -40 },
+          { opacity: 1, x: 0, duration: 0.65, ease: 'power2.out', delay: i * 0.07 }
+        )
       },
     })
   })

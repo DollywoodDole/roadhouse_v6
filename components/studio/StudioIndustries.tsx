@@ -37,17 +37,8 @@ export default function StudioIndustries() {
     >
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1.5rem' }}>
 
-        {/* Section label */}
+        {/* Section heading */}
         <div style={{ marginBottom: '60px' }}>
-          <span style={{
-            fontFamily:    'var(--font-dm-mono-studio)',
-            fontSize:      '11px',
-            color:         '#C8861E',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase' as const,
-          }}>
-            Who we serve
-          </span>
           <div
             ref={headingRef}
             style={{
@@ -56,7 +47,6 @@ export default function StudioIndustries() {
               color:         '#E8E0D0',
               lineHeight:    0.95,
               letterSpacing: '0.01em',
-              marginTop:     '12px',
             }}
           >
             THE OPERATORS.
@@ -82,9 +72,9 @@ export default function StudioIndustries() {
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   padding:      '40px 36px',
-                  borderRight:  (i % 3 < 2) ? `1px solid ${isHov ? '#C8861E' : '#141618'}` : 'none',
-                  borderBottom: (i < 3)      ? `1px solid ${isHov ? '#C8861E' : '#141618'}` : 'none',
-                  borderTop:    `3px solid ${isHov ? '#C8861E' : 'transparent'}`,
+                  borderRight:  !isHov && (i % 3 < 2) ? '1px solid #141618' : 'none',
+                  borderBottom: !isHov && (i < 3)      ? '1px solid #141618' : 'none',
+                  border:       isHov ? '1px solid #C8861E' : undefined,
                   transition:   'border-color 0.18s ease, background 0.18s ease',
                   background:   isHov ? '#0C0D0F' : 'transparent',
                   cursor:       'default',

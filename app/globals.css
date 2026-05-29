@@ -245,3 +245,9 @@ body {
   outline: 2px solid #C8861E;
   outline-offset: 3px;
 }
+
+/* Studio: form placeholder contrast */
+[data-section="studio"] input::placeholder,
+[data-section="studio"] textarea::placeholder {
+  color: #5A5450;
+}

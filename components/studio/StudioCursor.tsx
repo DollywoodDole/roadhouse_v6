@@ -66,6 +66,7 @@ export default function StudioCursor() {
       <div
         ref={ringRef}
         aria-hidden="true"
+        suppressHydrationWarning
         style={{
           position:      'fixed',
           top:           0,
@@ -85,6 +86,7 @@ export default function StudioCursor() {
       <div
         ref={dotRef}
         aria-hidden="true"
+        suppressHydrationWarning
         style={{
           position:      'fixed',
           top:           0,

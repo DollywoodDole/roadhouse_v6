@@ -4,8 +4,8 @@ const STATS = [
   // TODO: replace with await getInventoryCount('obrians') from lib/motors-kv.ts
   // Blocked on multi-dealer-wip merge to main
   { value: '112', label: 'Live vehicles' },
-  { value: 'ADF/XML', label: 'Tekion DMS format' },
-  { value: 'Multi', label: 'Dealer-partitioned' },
+  { value: 'ADF/XML', label: 'Dealership software export' },
+  { value: 'Multi', label: 'Multi-dealer architecture' },
   { value: 'JSON-LD', label: 'Full schema stack' },
 ]
 

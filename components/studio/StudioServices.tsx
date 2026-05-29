@@ -83,7 +83,6 @@ export default function StudioServices({ activeView }: { activeView: ActiveView 
                 padding:       '40px 32px',
                 borderRight:   i < 2 ? `1px solid ${isHov ? '#C8861E' : '#141618'}` : 'none',
                 borderBottom:  `1px solid ${isHov ? '#C8861E' : '#141618'}`,
-                borderLeft:    `3px solid ${isHov ? '#C8861E' : 'transparent'}`,
                 transition:    'border-color 0.15s ease',
                 cursor:        'default',
                 display:       'flex',
@@ -158,19 +157,16 @@ export default function StudioServices({ activeView }: { activeView: ActiveView 
                   borderTop:  '1px solid #1A1C1F',
                   paddingTop: '16px',
                 }}>
-                  {s.tiers.map((tier, idx) => (
+                  {s.tiers.map((tier) => (
                     <li
                       key={tier}
                       style={{
                         fontFamily:    'var(--font-dm-mono-studio)',
-                        fontSize:      '10px',
+                        fontSize:      '9px',
                         color:         '#878070',
                         letterSpacing: '0.1em',
                         lineHeight:    2,
                         whiteSpace:    'pre' as const,
-                        opacity:       isHov ? 1 : 0,
-                        transform:     isHov ? 'translateY(0)' : 'translateY(4px)',
-                        transition:    `opacity 0.2s ease ${idx * 0.055}s, transform 0.2s ease ${idx * 0.055}s`,
                       }}
                     >
                       {tier}

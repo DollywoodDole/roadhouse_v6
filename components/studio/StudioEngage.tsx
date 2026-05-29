@@ -21,7 +21,7 @@ const FIELD: React.CSSProperties = {
 const LABEL: React.CSSProperties = {
   fontFamily:    'var(--font-dm-mono-studio)',
   fontSize:      '10px',
-  color:         '#5A5450',
+  color:         '#878070',
   letterSpacing: '0.13em',
   textTransform: 'uppercase',
   display:       'block',
@@ -96,7 +96,7 @@ export default function StudioEngage() {
                 <span style={{
                   fontFamily:    'var(--font-dm-mono-studio)',
                   fontSize:      '11px',
-                  color:         '#4A4540',
+                  color:         '#878070',
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase' as const,
                 }}>

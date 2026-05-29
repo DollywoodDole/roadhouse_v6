@@ -7,7 +7,7 @@ import StudioEngage     from '@/components/studio/StudioEngage'
 
 export default function StudioPage() {
   return (
-    <main>
+    <main data-section="studio">
       <StudioNav />
       <StudioHero />
       <StudioProcess />
