@@ -63,3 +63,10 @@ yarn-error.log*
 
 .gitnexus/
 venv/
+
+# Claude Code skills (local tooling)
+.claude/skills/
+
+# Audit / screenshot artifacts
+audit-*.png
+.playwright-mcp/
