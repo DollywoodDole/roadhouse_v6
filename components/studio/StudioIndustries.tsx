@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
-import { sectionEntrance } from '@/lib/studio/animations'
+import { sectionEntrance, scrambleOnEnter } from '@/lib/studio/animations'
 
 const INDUSTRIES = [
   { name: 'AUTOMOTIVE',   code: 'AUT', desc: 'Dealer platforms, inventory sync, lead pipelines' },
@@ -16,9 +16,15 @@ const INDUSTRIES = [
 export default function StudioIndustries() {
   const [hovered, setHovered] = useState<number | null>(null)
   const containerRef          = useRef<HTMLElement>(null)
+  const headingRef            = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
     if (!containerRef.current) return
+
+    if (headingRef.current) {
+      scrambleOnEnter(headingRef.current, 'THE OPERATORS.')
+    }
+
     const tiles = containerRef.current.querySelectorAll('[data-industry-tile]')
     if (tiles.length) sectionEntrance(tiles)
   }, { scope: containerRef })
@@ -42,14 +48,17 @@ export default function StudioIndustries() {
           }}>
             Who we serve
           </span>
-          <div style={{
-            fontFamily:    'var(--font-bebas)',
-            fontSize:      'clamp(40px, 6vw, 72px)',
-            color:         '#E8E0D0',
-            lineHeight:    0.95,
-            letterSpacing: '0.01em',
-            marginTop:     '12px',
-          }}>
+          <div
+            ref={headingRef}
+            style={{
+              fontFamily:    'var(--font-bebas)',
+              fontSize:      'clamp(40px, 6vw, 72px)',
+              color:         '#E8E0D0',
+              lineHeight:    0.95,
+              letterSpacing: '0.01em',
+              marginTop:     '12px',
+            }}
+          >
             THE OPERATORS.
           </div>
         </div>
@@ -89,7 +98,7 @@ export default function StudioIndustries() {
                   right:         '20px',
                   fontFamily:    'var(--font-dm-mono-studio)',
                   fontSize:      '10px',
-                  color:         isHov ? '#C8861E' : '#1E1C18',
+                  color:         isHov ? '#C8861E' : '#2A2520',
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase' as const,
                   transition:    'color 0.18s ease',
@@ -100,7 +109,7 @@ export default function StudioIndustries() {
                 <div style={{
                   fontFamily:    'var(--font-bebas)',
                   fontSize:      '36px',
-                  color:         isHov ? '#E8E0D0' : '#5A5550',
+                  color:         isHov ? '#E8E0D0' : '#4A4540',
                   letterSpacing: '0.04em',
                   lineHeight:    1,
                   marginBottom:  '16px',
@@ -111,10 +120,11 @@ export default function StudioIndustries() {
                 <p style={{
                   fontFamily: 'var(--font-barlow)',
                   fontSize:   '13px',
-                  color:      '#3A3530',
+                  color:      isHov ? '#5A5550' : '#3A3530',
                   lineHeight: 1.6,
                   margin:     0,
                   fontWeight: 300,
+                  transition: 'color 0.18s ease',
                 }}>
                   {ind.desc}
                 </p>

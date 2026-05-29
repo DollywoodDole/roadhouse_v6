@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
-import { processEntrance } from '@/lib/studio/animations'
+import { processEntrance, processLine, scrambleOnEnter } from '@/lib/studio/animations'
 
 const STEPS = [
   {
@@ -34,9 +34,23 @@ const STEPS = [
 
 export default function StudioProcess() {
   const containerRef = useRef<HTMLElement>(null)
+  const headingRef   = useRef<HTMLDivElement>(null)
+  const lineRef      = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
     if (!containerRef.current) return
+
+    // Scramble heading on scroll enter
+    if (headingRef.current) {
+      scrambleOnEnter(headingRef.current, 'THE ENGAGEMENT.')
+    }
+
+    // Connecting amber line
+    if (lineRef.current) {
+      processLine(lineRef.current)
+    }
+
+    // Steps slide in
     const steps = containerRef.current.querySelectorAll('[data-process-step]')
     if (steps.length) processEntrance(steps)
   }, { scope: containerRef })
@@ -60,16 +74,33 @@ export default function StudioProcess() {
           }}>
             How it works
           </span>
-          <div style={{
-            fontFamily:    'var(--font-bebas)',
-            fontSize:      'clamp(40px, 6vw, 72px)',
-            color:         '#E8E0D0',
-            lineHeight:    0.95,
-            letterSpacing: '0.01em',
-            marginTop:     '12px',
-          }}>
+          <div
+            ref={headingRef}
+            style={{
+              fontFamily:    'var(--font-bebas)',
+              fontSize:      'clamp(40px, 6vw, 72px)',
+              color:         '#E8E0D0',
+              lineHeight:    0.95,
+              letterSpacing: '0.01em',
+              marginTop:     '12px',
+            }}
+          >
             THE ENGAGEMENT.
           </div>
+        </div>
+
+        {/* Amber connecting line — draws left-to-right on scroll */}
+        <div style={{ position: 'relative', marginBottom: '0' }}>
+          <div
+            ref={lineRef}
+            style={{
+              height:          '1px',
+              background:      'linear-gradient(to right, #C8861E, rgba(200,134,30,0.2))',
+              marginBottom:    '-1px',
+              transformOrigin: 'left center',
+              transform:       'scaleX(0)',
+            }}
+          />
         </div>
 
         {/* Steps */}

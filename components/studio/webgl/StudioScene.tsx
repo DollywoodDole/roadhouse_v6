@@ -26,15 +26,18 @@ const NODE_DEFS: NodeDef[] = [
   { id: 'faber',   label: 'FABER',   orbit: 4.8, speed: 0.0015, phase: 4.2, size: 0.14, color: '#3A3A38' },
 ]
 
+// ── Shared scroll velocity ref (passed down) ──────────────────────────────────
+
 // ── PraetorianCore — central amber icosahedron ─────────────────────────────
 
-function PraetorianCore() {
+function PraetorianCore({ scrollVel }: { scrollVel: React.MutableRefObject<number> }) {
   const meshRef = useRef<THREE.Mesh>(null)
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
-    meshRef.current.rotation.x += 0.003
-    meshRef.current.rotation.y += 0.005
+    const vel = Math.abs(scrollVel.current)
+    meshRef.current.rotation.x += 0.003 + vel * 0.08
+    meshRef.current.rotation.y += 0.005 + vel * 0.12
     const pulse = Math.sin(clock.getElapsedTime() * 0.8) * 0.05 + 1.0
     meshRef.current.scale.setScalar(0.95 + (pulse - 0.95))
   })
@@ -49,7 +52,7 @@ function PraetorianCore() {
 
 // ── OrbitalNode — one sphere + connection line + hover label ───────────────
 
-function OrbitalNode({ def }: { def: NodeDef }) {
+function OrbitalNode({ def, scrollVel }: { def: NodeDef; scrollVel: React.MutableRefObject<number> }) {
   const meshRef     = useRef<THREE.Mesh>(null)
   const [hovered, setHovered] = useState(false)
   const scaleTarget = useRef(1.0)
@@ -73,9 +76,12 @@ function OrbitalNode({ def }: { def: NodeDef }) {
   }, [hovered])
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
-    const x = Math.cos(t * def.speed + def.phase) * def.orbit
-    const z = Math.sin(t * def.speed + def.phase) * def.orbit
+    const t   = clock.getElapsedTime()
+    const vel = Math.abs(scrollVel.current)
+    // Speed multiplier based on scroll velocity — orbits accelerate on fast scroll
+    const speedMult = 1 + vel * 18
+    const x = Math.cos(t * def.speed * speedMult + def.phase) * def.orbit
+    const z = Math.sin(t * def.speed * speedMult + def.phase) * def.orbit
     const y = Math.sin(t * def.speed * 0.3 + def.phase) * 0.4
 
     if (meshRef.current) {
@@ -137,12 +143,12 @@ function OrbitalNode({ def }: { def: NodeDef }) {
 
 // ── ParticleField — 300 random points slowly rotating ─────────────────────
 
-function ParticleField() {
+function ParticleField({ scrollVel }: { scrollVel: React.MutableRefObject<number> }) {
   const meshRef = useRef<THREE.Points>(null)
 
   const geo = useMemo(() => {
-    const geometry = new THREE.BufferGeometry()
-    const count    = 300
+    const geometry  = new THREE.BufferGeometry()
+    const count     = 300
     const positions = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2
@@ -163,8 +169,9 @@ function ParticleField() {
 
   useFrame(() => {
     if (!meshRef.current) return
-    meshRef.current.rotation.y += 0.0005
-    meshRef.current.rotation.x += 0.0002
+    const vel = Math.abs(scrollVel.current)
+    meshRef.current.rotation.y += 0.0005 + vel * 0.02
+    meshRef.current.rotation.x += 0.0002 + vel * 0.01
   })
 
   return <points ref={meshRef} geometry={geo} material={mat} />
@@ -173,20 +180,39 @@ function ParticleField() {
 // ── StudioScene — main scene: camera parallax + scene graph ───────────────
 
 export default function StudioScene() {
-  const mouse = useRef({ x: 0, y: 0 })
+  const mouse     = useRef({ x: 0, y: 0 })
+  const scrollVel = useRef(0)
+  const lastScroll = useRef(0)
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2
+    const onMouse = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth  - 0.5) * 2
       mouse.current.y = -(e.clientY / window.innerHeight - 0.5) * 2
     }
-    window.addEventListener('mousemove', handler, { passive: true })
-    return () => window.removeEventListener('mousemove', handler)
+
+    const onScroll = () => {
+      const current = window.scrollY
+      const delta   = current - lastScroll.current
+      scrollVel.current    = delta * 0.002
+      lastScroll.current   = current
+    }
+
+    window.addEventListener('mousemove', onMouse,  { passive: true })
+    window.addEventListener('scroll',    onScroll,  { passive: true })
+
+    return () => {
+      window.removeEventListener('mousemove', onMouse)
+      window.removeEventListener('scroll',    onScroll)
+    }
   }, [])
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera, clock }) => {
+    // Camera parallax from mouse
     camera.position.x += (mouse.current.x * 0.8 - camera.position.x) * 0.02
     camera.position.y += (mouse.current.y * 0.4 - camera.position.y) * 0.02
+
+    // Decay scroll velocity over time
+    scrollVel.current *= 0.92
   })
 
   return (
@@ -195,13 +221,13 @@ export default function StudioScene() {
       <pointLight position={[0, 0, 0]} color="#C8861E" intensity={2} />
       <pointLight position={[10, 5, 10]} color="#ffffff" intensity={0.3} />
 
-      <PraetorianCore />
+      <PraetorianCore scrollVel={scrollVel} />
 
       {NODE_DEFS.map((def) => (
-        <OrbitalNode key={def.id} def={def} />
+        <OrbitalNode key={def.id} def={def} scrollVel={scrollVel} />
       ))}
 
-      <ParticleField />
+      <ParticleField scrollVel={scrollVel} />
     </>
   )
 }

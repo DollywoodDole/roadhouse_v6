@@ -36,10 +36,10 @@ export default function StudioHero() {
       <div
         aria-hidden="true"
         style={{
-          position:   'absolute',
-          inset:      0,
-          zIndex:     1,
-          background: 'linear-gradient(to bottom, rgba(7,8,10,0.3) 0%, rgba(7,8,10,0.7) 60%, rgba(7,8,10,1) 100%)',
+          position:      'absolute',
+          inset:         0,
+          zIndex:        1,
+          background:    'linear-gradient(to bottom, rgba(7,8,10,0.3) 0%, rgba(7,8,10,0.7) 60%, rgba(7,8,10,1) 100%)',
           pointerEvents: 'none',
         }}
       />
@@ -74,7 +74,7 @@ export default function StudioHero() {
           <span style={{
             fontFamily:    'var(--font-dm-mono-studio)',
             fontSize:      '11px',
-            color:         '#2A2520',
+            color:         '#3A3530',
             letterSpacing: '0.14em',
             textTransform: 'uppercase' as const,
           }}>
@@ -165,9 +165,9 @@ export default function StudioHero() {
         <div
           className="studio-stats-grid"
           style={{
-            borderTop:    '1px solid rgba(20,22,24,0.7)',
-            borderBottom: '1px solid rgba(20,22,24,0.7)',
-            marginBottom: '64px',
+            borderTop:      '1px solid rgba(20,22,24,0.7)',
+            borderBottom:   '1px solid rgba(20,22,24,0.7)',
+            marginBottom:   '64px',
             backdropFilter: 'blur(8px)',
           }}
         >
@@ -180,14 +180,18 @@ export default function StudioHero() {
                 borderRight: i < 3 ? '1px solid rgba(20,22,24,0.7)' : 'none',
               }}
             >
-              <div style={{
-                fontFamily:    'var(--font-bebas)',
-                fontSize:      '42px',
-                color:         '#C8861E',
-                letterSpacing: '0.03em',
-                lineHeight:    1,
-                marginBottom:  '6px',
-              }}>
+              <div
+                data-stat-value
+                data-stat-final={stat.value}
+                style={{
+                  fontFamily:    'var(--font-bebas)',
+                  fontSize:      '42px',
+                  color:         '#C8861E',
+                  letterSpacing: '0.03em',
+                  lineHeight:    1,
+                  marginBottom:  '6px',
+                }}
+              >
                 {stat.value}
               </div>
               <div style={{
