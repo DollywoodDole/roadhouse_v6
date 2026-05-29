@@ -194,7 +194,7 @@ export default function StudioProcess() {
               style={{
                 fontFamily: 'var(--font-barlow)',
                 fontSize:   '13px',
-                color:      '#878070',
+                color:      '#E8E0D0',
                 lineHeight: 1.7,
                 margin:     0,
                 fontWeight: 300,

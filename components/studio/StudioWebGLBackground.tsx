@@ -18,7 +18,7 @@ export default function StudioWebGLBackground() {
           inset:         0,
           zIndex:        1,
           pointerEvents: 'none',
-          background:    'linear-gradient(160deg, rgba(7,8,10,0.15) 0%, rgba(7,8,10,0.45) 40%, rgba(7,8,10,0.85) 70%, rgba(7,8,10,1.0) 100%)',
+          background:    'linear-gradient(to bottom, rgba(7,8,10,0.0) 0%, rgba(7,8,10,0.2) 30%, rgba(7,8,10,0.75) 65%, rgba(7,8,10,1.0) 100%)',
         }}
       />
     </>

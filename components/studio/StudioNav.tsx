@@ -24,6 +24,29 @@ export default function StudioNav() {
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
 
+  // Active nav state via IntersectionObserver — no React state, DOM only
+  useEffect(() => {
+    const setActive = (id: string) => {
+      document.querySelectorAll('.studio-nav-link').forEach((el) => {
+        const isActive = (el as HTMLAnchorElement).getAttribute('href') === `#${id}`
+        ;(el as HTMLElement).style.color = isActive ? '#C8861E' : '#878070'
+      })
+    }
+    const sections = ['work', 'house', 'contact']
+    const observers: IntersectionObserver[] = []
+    sections.forEach((id) => {
+      const el = document.getElementById(id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActive(id) },
+        { rootMargin: '-10% 0px -75% 0px' }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach((o) => o.disconnect())
+  }, [])
+
   const closeMenu = () => setMenuOpen(false)
 
   return (
@@ -55,7 +78,7 @@ export default function StudioNav() {
       <header
         data-studio-nav
         style={{
-          background:           scrolled ? 'rgba(7,8,10,0.92)' : '#07080A',
+          background:           scrolled ? 'rgba(7,8,10,0.92)' : 'transparent',
           backdropFilter:       scrolled ? 'blur(14px)'         : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(14px)'         : 'none',
           borderBottom:         '1px solid #141618',

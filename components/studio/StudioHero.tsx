@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useGSAP } from '@gsap/react'
 import { heroEntrance } from '@/lib/studio/animations'
 import StudioServices from './StudioServices'
@@ -30,16 +30,32 @@ function splitToChars(word: string) {
 
 export default function StudioHero() {
   const [activeView, setActiveView] = useState<ActiveView>('client')
-  const containerRef = useRef<HTMLDivElement>(null)
+  const sectionRef    = useRef<HTMLElement>(null)
+  const scrollHintRef = useRef<HTMLDivElement>(null)
 
+  // heroEntrance scoped to the section — finds [data-char], [data-hero-rule], [data-stat]
   useGSAP(() => {
-    if (containerRef.current) heroEntrance(containerRef.current)
-  }, { scope: containerRef })
+    if (sectionRef.current) heroEntrance(sectionRef.current)
+  }, { scope: sectionRef })
+
+  // Hide scroll hint on first scroll
+  useEffect(() => {
+    const hide = () => {
+      const el = scrollHintRef.current
+      if (el) {
+        el.style.opacity = '0'
+        el.style.transition = 'opacity 0.5s ease'
+      }
+    }
+    window.addEventListener('scroll', hide, { passive: true, once: true })
+    return () => window.removeEventListener('scroll', hide)
+  }, [])
 
   return (
     <>
       {/* ── Hero — sticky, persists behind all subsequent content ── */}
       <section
+        ref={sectionRef}
         id="work"
         data-section="hero"
         style={{
@@ -50,9 +66,29 @@ export default function StudioHero() {
           zIndex:    0,
         }}
       >
+        <style>{`
+          .studio-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+          @media (max-width: 640px) {
+            .studio-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .studio-stats-grid > div:nth-child(2) { border-right: none !important; }
+          }
+          @keyframes studio-float {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-6px); }
+          }
+          @keyframes studio-scroll-hint {
+            0%         { transform: scaleY(0); opacity: 0; transform-origin: top center; }
+            15%, 75%   { transform: scaleY(1); opacity: 0.6; transform-origin: top center; }
+            100%       { transform: scaleY(1); opacity: 0; transform-origin: bottom center; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            @keyframes studio-float        { 0%, 100% { transform: none; } }
+            @keyframes studio-scroll-hint  { 0%, 100% { opacity: 0; } }
+          }
+        `}</style>
+
         {/* Text content — bottom-anchored above stats strip */}
         <div
-          ref={containerRef}
           style={{
             position: 'absolute',
             bottom:   '112px',
@@ -128,7 +164,7 @@ export default function StudioHero() {
               <p style={{
                 fontFamily: 'var(--font-barlow)',
                 fontSize:   '15px',
-                color:      '#878070',
+                color:      '#E8E0D0',
                 lineHeight: 1.7,
                 maxWidth:   '420px',
                 margin:     0,
@@ -171,17 +207,76 @@ export default function StudioHero() {
                 })}
               </div>
             </div>
+
+            {/* Motors live pill — floats between headline and stats strip */}
+            <div style={{ marginTop: '28px' }}>
+              <div
+                data-motors-pill
+                style={{
+                  display:              'inline-flex',
+                  alignItems:           'center',
+                  gap:                  '10px',
+                  background:           'rgba(10,11,13,0.82)',
+                  border:               '1px solid #1A1C1F',
+                  padding:              '7px 14px',
+                  animation:            'studio-float 3.2s ease-in-out infinite',
+                  backdropFilter:       'blur(6px)',
+                  WebkitBackdropFilter: 'blur(6px)',
+                }}
+              >
+                <span style={{
+                  fontFamily:    'var(--font-dm-mono-studio)',
+                  fontSize:      '9px',
+                  color:         '#3A3A38',
+                  letterSpacing: '0.08em',
+                }}>
+                  motors.roadhouse.capital
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#4CAF50', flexShrink: 0 }} />
+                  <span style={{
+                    fontFamily:    'var(--font-dm-mono-studio)',
+                    fontSize:      '8px',
+                    color:         '#4CAF50',
+                    letterSpacing: '0.1em',
+                  }}>LIVE</span>
+                </div>
+                <div style={{ width: 1, height: 10, background: '#1E2024' }} />
+                <span style={{
+                  fontFamily:    'var(--font-dm-mono-studio)',
+                  fontSize:      '9px',
+                  color:         '#3A3A38',
+                  letterSpacing: '0.06em',
+                }}>
+                  112 vehicles · Updated today
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Scroll hint — amber line, disappears on first scroll */}
+        <div
+          ref={scrollHintRef}
+          data-scroll-hint
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            bottom:   '92px',
+            left:     '50%',
+            transform: 'translateX(-50%)',
+            zIndex:   10,
+          }}
+        >
+          <div style={{
+            width:     '1px',
+            height:    '32px',
+            background: 'linear-gradient(to bottom, transparent, #C8861E)',
+            animation: 'studio-scroll-hint 2s ease-in-out infinite',
+          }} />
+        </div>
+
         {/* Layer 2b: stats strip — full width, absolute bottom */}
-        <style>{`
-          .studio-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
-          @media (max-width: 640px) {
-            .studio-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            .studio-stats-grid > div:nth-child(2) { border-right: none !important; }
-          }
-        `}</style>
         <div
           className="studio-stats-grid"
           style={{
@@ -222,7 +317,7 @@ export default function StudioHero() {
               <div style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '10px',
-                color:         '#878070',
+                color:         '#E8E0D0',
                 letterSpacing: '0.13em',
                 textTransform: 'uppercase' as const,
               }}>

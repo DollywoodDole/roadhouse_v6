@@ -139,7 +139,7 @@ export default function StudioServices({ activeView }: { activeView: ActiveView 
               <p style={{
                 fontFamily: 'var(--font-barlow)',
                 fontSize:   '14px',
-                color:      '#878070',
+                color:      '#E8E0D0',
                 lineHeight: 1.75,
                 margin:     '0 0 20px',
                 fontWeight: 300,

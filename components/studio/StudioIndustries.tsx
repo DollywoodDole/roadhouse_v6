@@ -5,12 +5,12 @@ import { useGSAP } from '@gsap/react'
 import { sectionEntrance, scrambleOnEnter } from '@/lib/studio/animations'
 
 const INDUSTRIES = [
-  { name: 'AUTOMOTIVE',   code: 'AUT', count: '01', desc: 'Dealer platforms, inventory sync, lead pipelines' },
-  { name: 'AGRICULTURE',  code: 'AGR', count: '02', desc: 'Equipment management, land ops, cooperative tools' },
-  { name: 'TRADES',       code: 'TRD', count: '03', desc: 'Service quoting, crew management, client portals' },
-  { name: 'HOSPITALITY',  code: 'HSP', count: '04', desc: 'Booking infrastructure, event ops, brand systems' },
-  { name: 'RETAIL',       code: 'RTL', count: '05', desc: 'Inventory, loyalty, and conversion infrastructure' },
-  { name: 'PROFESSIONAL', code: 'PRO', count: '06', desc: 'Practice sites, client intake, and authority brand' },
+  { name: 'AUTOMOTIVE',   code: 'AUT', count: '01', live: '3', desc: 'Dealer platforms, inventory sync, lead pipelines' },
+  { name: 'AGRICULTURE',  code: 'AGR', count: '02', live: '—', desc: 'Equipment management, land ops, cooperative tools' },
+  { name: 'TRADES',       code: 'TRD', count: '03', live: '—', desc: 'Service quoting, crew management, client portals' },
+  { name: 'HOSPITALITY',  code: 'HSP', count: '04', live: '—', desc: 'Booking infrastructure, event ops, brand systems' },
+  { name: 'RETAIL',       code: 'RTL', count: '05', live: '—', desc: 'Inventory, loyalty, and conversion infrastructure' },
+  { name: 'PROFESSIONAL', code: 'PRO', count: '06', live: '—', desc: 'Practice sites, client intake, and authority brand' },
 ]
 
 export default function StudioIndustries() {
@@ -130,14 +130,26 @@ export default function StudioIndustries() {
                 <p style={{
                   fontFamily: 'var(--font-barlow)',
                   fontSize:   '13px',
-                  color:      '#878070',
+                  color:      '#E8E0D0',
                   lineHeight: 1.6,
                   margin:     0,
                   fontWeight: 300,
-                  transition: 'color 0.18s ease',
                 }}>
                   {ind.desc}
                 </p>
+
+                {/* Live project count — bottom right */}
+                <div style={{
+                  position:      'absolute',
+                  bottom:        '18px',
+                  right:         '20px',
+                  fontFamily:    'var(--font-dm-mono-studio)',
+                  fontSize:      '8px',
+                  color:         ind.live === '—' ? '#2A2520' : '#C8861E',
+                  letterSpacing: '0.1em',
+                }}>
+                  {ind.live}
+                </div>
               </div>
             )
           })}

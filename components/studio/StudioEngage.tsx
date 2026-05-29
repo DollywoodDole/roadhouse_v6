@@ -72,8 +72,8 @@ export default function StudioEngage() {
             letterSpacing: '0.01em',
             color:         '#E8E0D0',
           }}>
-            <div>WORK /</div>
-            <div><span style={{ color: '#C8861E' }}>WITH</span> /</div>
+            <div>WORK</div>
+            <div><span style={{ color: '#C8861E' }}>WITH</span></div>
             <div>US.</div>
           </div>
           <p style={{
@@ -104,6 +104,19 @@ export default function StudioEngage() {
                 </span>
               </div>
             ))}
+          </div>
+
+          {/* Response time signal */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '20px' }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#4CAF50', flexShrink: 0 }} />
+            <span style={{
+              fontFamily:    'var(--font-dm-mono-studio)',
+              fontSize:      '8px',
+              color:         '#3A3A38',
+              letterSpacing: '0.1em',
+            }}>
+              Typically responds within 24 hours
+            </span>
           </div>
 
           {/* Secondary CTA */}
