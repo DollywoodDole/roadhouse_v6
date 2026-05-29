@@ -25,6 +25,10 @@ export default function StudioTicker() {
           from { transform: translateX(-50%); }
           to   { transform: translateX(0); }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .studio-ticker-fwd,
+          .studio-ticker-rev { animation: none !important; }
+        }
       `}</style>
 
       {/* Row 1 — label + forward ticker */}
@@ -50,7 +54,7 @@ export default function StudioTicker() {
           In production →
         </span>
         <div style={{ overflow: 'hidden', flex: 1 }}>
-          <div style={{
+          <div className="studio-ticker-fwd" style={{
             display:    'inline-flex',
             whiteSpace: 'nowrap' as const,
             animation:  'studio-ticker-fwd 22s linear infinite',
@@ -61,7 +65,7 @@ export default function StudioTicker() {
                 style={{
                   fontFamily:    'var(--font-dm-mono-studio)',
                   fontSize:      '11px',
-                  color:         '#3A3530',
+                  color:         '#5A5450',
                   letterSpacing: '0.18em',
                   textTransform: 'uppercase' as const,
                 }}
@@ -75,7 +79,7 @@ export default function StudioTicker() {
 
       {/* Row 2 — reverse ticker */}
       <div style={{ overflow: 'hidden', padding: '10px 0' }}>
-        <div style={{
+        <div className="studio-ticker-rev" style={{
           display:    'inline-flex',
           whiteSpace: 'nowrap' as const,
           animation:  'studio-ticker-rev 32s linear infinite',

@@ -19,7 +19,11 @@ export default function StudioGrain() {
     resize()
     window.addEventListener('resize', resize, { passive: true })
 
+    let tick = 0
     const render = () => {
+      frameRef.current = requestAnimationFrame(render)
+      // Throttle to every 3rd frame (~20fps) — grain imperceptible at 60fps
+      if (tick++ % 3 !== 0) return
       const { width, height } = canvas
       const image = ctx.createImageData(width, height)
       const data  = image.data
@@ -31,7 +35,6 @@ export default function StudioGrain() {
         data[i + 3] = 22
       }
       ctx.putImageData(image, 0, 0)
-      frameRef.current = requestAnimationFrame(render)
     }
     render()
 

@@ -63,17 +63,8 @@ export default function StudioProcess() {
     >
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1.5rem' }}>
 
-        {/* Section label */}
+        {/* Section heading */}
         <div style={{ marginBottom: '60px' }}>
-          <span style={{
-            fontFamily:    'var(--font-dm-mono-studio)',
-            fontSize:      '11px',
-            color:         '#C8861E',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase' as const,
-          }}>
-            How it works
-          </span>
           <div
             ref={headingRef}
             style={{
@@ -82,7 +73,6 @@ export default function StudioProcess() {
               color:         '#E8E0D0',
               lineHeight:    0.95,
               letterSpacing: '0.01em',
-              marginTop:     '12px',
             }}
           >
             THE ENGAGEMENT.
@@ -128,11 +118,7 @@ export default function StudioProcess() {
                 letterSpacing:           '0.01em',
                 marginBottom:            '16px',
                 userSelect:              'none',
-                background:              'linear-gradient(180deg, #1E2024 0%, #3A2010 55%, #C8861E 100%)',
-                WebkitBackgroundClip:    'text',
-                WebkitTextFillColor:     'transparent',
-                backgroundClip:          'text',
-                color:                   'transparent',
+                color:         '#8B5A14',
               }}>
                 {step.num}
               </div>
@@ -149,7 +135,7 @@ export default function StudioProcess() {
               <p style={{
                 fontFamily: 'var(--font-barlow)',
                 fontSize:   '13px',
-                color:      '#5A5550',
+                color:      '#878070',
                 lineHeight: 1.7,
                 margin:     0,
                 fontWeight: 300,

@@ -3,6 +3,10 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export function registerGSAP() {
   gsap.registerPlugin(ScrollTrigger)
 }
@@ -11,6 +15,10 @@ export function registerGSAP() {
 const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789◆·/'
 
 export function scrambleText(el: Element, finalText: string, durationMs = 700) {
+  if (prefersReducedMotion()) {
+    el.textContent = finalText
+    return
+  }
   const totalFrames = Math.ceil(durationMs / 16)
   let frame = 0
 
@@ -48,6 +56,14 @@ export function scrambleOnEnter(el: Element, finalText: string) {
 
 // ── Hero entrance ─────────────────────────────────────────────────────────────
 export function heroEntrance(container: Element) {
+  if (prefersReducedMotion()) {
+    // Immediately resolve stat values without animation
+    container.querySelectorAll('[data-stat-value]').forEach((el) => {
+      const val = el.getAttribute('data-stat-final') ?? el.textContent ?? ''
+      el.textContent = val
+    })
+    return
+  }
   gsap.registerPlugin(ScrollTrigger)
 
   const lines = container.querySelectorAll('[data-hero-line]')
@@ -92,6 +108,7 @@ export function heroEntrance(container: Element) {
 
 // ── Section entrance (generic stagger) ───────────────────────────────────────
 export function sectionEntrance(els: NodeListOf<Element> | Element[]) {
+  if (prefersReducedMotion()) return
   gsap.registerPlugin(ScrollTrigger)
   Array.from(els).forEach((el) => {
     gsap.from(el, {
@@ -110,6 +127,7 @@ export function sectionEntrance(els: NodeListOf<Element> | Element[]) {
 
 // ── Process entrance (slide-in from left) ────────────────────────────────────
 export function processEntrance(steps: NodeListOf<Element> | Element[]) {
+  if (prefersReducedMotion()) return
   gsap.registerPlugin(ScrollTrigger)
   Array.from(steps).forEach((step, i) => {
     gsap.from(step, {
@@ -129,6 +147,10 @@ export function processEntrance(steps: NodeListOf<Element> | Element[]) {
 
 // ── Process connecting line (scaleX 0 → 1) ───────────────────────────────────
 export function processLine(lineEl: Element) {
+  if (prefersReducedMotion()) {
+    gsap.set(lineEl, { scaleX: 1 })
+    return
+  }
   gsap.registerPlugin(ScrollTrigger)
   gsap.fromTo(
     lineEl,

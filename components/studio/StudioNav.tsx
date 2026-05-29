@@ -28,6 +28,30 @@ export default function StudioNav() {
 
   return (
     <>
+      {/* Skip to content — keyboard users */}
+      <a
+        href="#work"
+        style={{
+          position:      'absolute',
+          top:           '-100%',
+          left:          0,
+          padding:       '8px 16px',
+          background:    '#C8861E',
+          color:         '#07080A',
+          fontFamily:    'var(--font-dm-mono-studio)',
+          fontSize:      '11px',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase' as const,
+          textDecoration: 'none',
+          zIndex:        200,
+          fontWeight:    500,
+        }}
+        onFocus={(e) => { e.currentTarget.style.top = '0' }}
+        onBlur={(e)  => { e.currentTarget.style.top = '-100%' }}
+      >
+        Skip to content
+      </a>
+
       <header
         data-studio-nav
         style={{
@@ -102,10 +126,10 @@ export default function StudioNav() {
                 style={{
                   fontFamily:     'var(--font-dm-mono-studio)',
                   fontSize:       '11px',
-                  color:          '#5A5550',
+                  color:          '#878070',
                   letterSpacing:  '0.1em',
                   textTransform:  'uppercase' as const,
-                  padding:        '8px 14px',
+                  padding:        '11px 14px',
                   textDecoration: 'none',
                   transition:     'color 0.15s ease',
                 }}
@@ -199,7 +223,7 @@ export default function StudioNav() {
               style={{
                 background:  'none',
                 border:      '1px solid #1E1C18',
-                color:       '#5A5550',
+                color:       '#878070',
                 cursor:      'pointer',
                 padding:     '6px 14px',
                 fontFamily:  'var(--font-dm-mono-studio)',
@@ -228,7 +252,7 @@ export default function StudioNav() {
                 style={{
                   fontFamily:     'var(--font-bebas)',
                   fontSize:       'clamp(52px, 15vw, 80px)',
-                  color:          '#3A3530',
+                  color:          '#5A5450',
                   letterSpacing:  '0.02em',
                   textDecoration: 'none',
                   lineHeight:     1,
@@ -236,7 +260,7 @@ export default function StudioNav() {
                   display:        'block',
                 }}
                 onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#E8E0D0' }}
-                onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#3A3530' }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5A5450' }}
               >
                 {label.toUpperCase()}
               </a>

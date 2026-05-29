@@ -21,7 +21,7 @@ const FIELD: React.CSSProperties = {
 const LABEL: React.CSSProperties = {
   fontFamily:    'var(--font-dm-mono-studio)',
   fontSize:      '10px',
-  color:         '#3A3530',
+  color:         '#5A5450',
   letterSpacing: '0.13em',
   textTransform: 'uppercase',
   display:       'block',
@@ -79,7 +79,7 @@ export default function StudioEngage() {
           <p style={{
             fontFamily:    'var(--font-dm-mono-studio)',
             fontSize:      '11px',
-            color:         '#3A3530',
+            color:         '#5A5450',
             letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
             marginTop:     '20px',
@@ -114,7 +114,7 @@ export default function StudioEngage() {
                 style={{
                   fontFamily:     'var(--font-dm-mono-studio)',
                   fontSize:       '11px',
-                  color:          '#5A5550',
+                  color:          '#878070',
                   letterSpacing:  '0.12em',
                   textTransform:  'uppercase' as const,
                   padding:        '12px 24px',
@@ -131,7 +131,7 @@ export default function StudioEngage() {
                 onMouseLeave={(e) => {
                   const el = e.currentTarget
                   el.style.borderColor = '#1E1C18'
-                  el.style.color = '#5A5550'
+                  el.style.color = '#878070'
                 }}
               >
                 View Case Study →
@@ -183,7 +183,7 @@ export default function StudioEngage() {
               <div style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '10px',
-                color:         '#3A3530',
+                color:         '#5A5450',
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase' as const,
                 paddingBottom: '16px',

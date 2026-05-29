@@ -39,10 +39,7 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
 
   return (
     <div style={{
-      borderLeft:      '3px solid #C8861E',
-      border:          '1px solid #1A1C1F',
-      borderLeftWidth: '3px',
-      borderLeftColor: '#C8861E',
+      border:    '1px solid #1A1C1F',
       margin:          '0 0 80px',
       background:      '#0C0D0F',
     }}>
@@ -204,7 +201,7 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
             <div style={{
               fontFamily:    'var(--font-dm-mono-studio)',
               fontSize:      '10px',
-              color:         '#3A3530',
+              color:         '#5A5450',
               letterSpacing: '0.1em',
               textTransform: 'uppercase' as const,
             }}>
@@ -219,7 +216,7 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
         <p style={{
           fontFamily: 'var(--font-barlow)',
           fontSize:   '14px',
-          color:      '#5A5550',
+          color:      '#878070',
           lineHeight: 1.75,
           margin:     0,
           fontWeight: 300,

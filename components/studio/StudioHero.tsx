@@ -25,136 +25,154 @@ export default function StudioHero() {
   }, { scope: containerRef })
 
   return (
-    <section
-      id="work"
-      style={{ position: 'relative', minHeight: '100vh', padding: '80px 0 0' }}
-    >
-      {/* ── WebGL canvas ── */}
-      <StudioWebGLDynamic />
-
-      {/* ── Gradient overlay — keeps text readable ── */}
-      <div
-        aria-hidden="true"
+    <>
+      {/* ── Hero — exactly one viewport tall ── */}
+      <section
+        id="work"
+        data-section="hero"
         style={{
-          position:      'absolute',
-          inset:         0,
-          zIndex:        1,
-          background:    'linear-gradient(to bottom, rgba(7,8,10,0.3) 0%, rgba(7,8,10,0.7) 60%, rgba(7,8,10,1) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* ── Content (sits above canvas + overlay) ── */}
-      <div
-        ref={containerRef}
-        style={{
-          maxWidth: '1400px',
-          margin:   '0 auto',
-          padding:  '0 1.5rem',
-          position: 'relative',
-          zIndex:   2,
+          position:  'relative',
+          height:    '100vh',
+          minHeight: '640px',
+          overflow:  'hidden',
         }}
       >
-        {/* Label row */}
-        <div style={{
-          display:        'flex',
-          justifyContent: 'space-between',
-          alignItems:     'center',
-          marginBottom:   '28px',
-        }}>
-          <span style={{
-            fontFamily:    'var(--font-dm-mono-studio)',
-            fontSize:      '11px',
-            color:         '#C8861E',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase' as const,
-          }}>
-            Roadhouse Studio
-          </span>
-          <span style={{
-            fontFamily:    'var(--font-dm-mono-studio)',
-            fontSize:      '11px',
-            color:         '#3A3530',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase' as const,
-          }}>
-            System One · Est. 2026
-          </span>
-        </div>
+        {/* Layer 0: WebGL canvas */}
+        <StudioWebGLDynamic />
 
-        {/* Giant headline */}
-        <div style={{
-          fontFamily:    'var(--font-bebas)',
-          fontSize:      'clamp(72px, 12vw, 156px)',
-          lineHeight:    0.9,
-          letterSpacing: '0.01em',
-        }}>
-          <div data-hero-line style={{ color: '#E8E0D0' }}>OPERATORS</div>
-          <div data-hero-line style={{ color: '#E8E0D0' }}>BUILD</div>
-          <div data-hero-line style={{ color: '#C8861E' }}>DIFFERENT.</div>
-        </div>
-
-        {/* Amber rule */}
+        {/* Layer 1: directional gradient veil — text-readable bottom half */}
         <div
-          data-hero-rule
-          style={{ height: '1.5px', background: '#C8861E', margin: '36px 0 40px', transformOrigin: 'left center' }}
+          aria-hidden="true"
+          style={{
+            position:      'absolute',
+            inset:         0,
+            zIndex:        1,
+            pointerEvents: 'none',
+            background:    'linear-gradient(160deg, rgba(7,8,10,0.15) 0%, rgba(7,8,10,0.45) 40%, rgba(7,8,10,0.85) 70%, rgba(7,8,10,1.0) 100%)',
+          }}
         />
 
-        {/* Sub-row: body copy + toggle */}
-        <div style={{
-          display:        'flex',
-          alignItems:     'flex-start',
-          justifyContent: 'space-between',
-          gap:            '40px',
-          flexWrap:       'wrap' as const,
-          marginBottom:   '48px',
-        }}>
-          <p style={{
-            fontFamily: 'var(--font-barlow)',
-            fontSize:   '16px',
-            color:      '#5A5550',
-            lineHeight: 1.75,
-            maxWidth:   '480px',
-            margin:     0,
-            fontWeight: 300,
-          }}>
-            RoadHouse Studio builds the infrastructure behind the ecosystem —
-            platforms, identities, content, and owned IP.
-            Operators only. No tourism.
-          </p>
+        {/* Layer 2: text content — bottom-anchored above stats strip */}
+        <div
+          ref={containerRef}
+          style={{
+            position: 'absolute',
+            bottom:   '112px',   // clears the stats strip
+            left:     0,
+            right:    0,
+            zIndex:   10,
+          }}
+        >
+          <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
 
-          {/* Toggle */}
-          <div style={{ display: 'flex', flexShrink: 0 }}>
-            {(['client', 'house'] as ActiveView[]).map((view, i) => {
-              const label  = view === 'client' ? 'For Clients' : 'For the House'
-              const active = activeView === view
-              return (
-                <button
-                  key={view}
-                  onClick={() => setActiveView(view)}
-                  style={{
-                    fontFamily:    'var(--font-dm-mono-studio)',
-                    fontSize:      '11px',
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase' as const,
-                    padding:       '11px 22px',
-                    border:        `1px solid ${active ? '#C8861E' : '#1E1C18'}`,
-                    borderLeft:    i === 1 ? `1px solid ${active ? '#C8861E' : '#1E1C18'}` : undefined,
-                    background:    active ? '#C8861E' : 'transparent',
-                    color:         active ? '#07080A' : '#4A4540',
-                    cursor:        'pointer',
-                    transition:    'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
-                    fontWeight:    active ? 500 : 400,
-                  }}
-                >
-                  {label}
-                </button>
-              )
-            })}
+            {/* Label row */}
+            <div style={{
+              display:        'flex',
+              justifyContent: 'space-between',
+              alignItems:     'center',
+              marginBottom:   '20px',
+            }}>
+              <span style={{
+                fontFamily:    'var(--font-dm-mono-studio)',
+                fontSize:      '11px',
+                color:         '#C8861E',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase' as const,
+              }}>
+                Roadhouse Studio
+              </span>
+              <span style={{
+                fontFamily:    'var(--font-dm-mono-studio)',
+                fontSize:      '11px',
+                color:         '#5A5450',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase' as const,
+              }}>
+                System One · Est. 2026
+              </span>
+            </div>
+
+            {/* Headline */}
+            <div style={{
+              fontFamily:    'var(--font-bebas)',
+              fontSize:      'clamp(60px, 9.5vw, 136px)',
+              lineHeight:    0.9,
+              letterSpacing: '0.01em',
+            }}>
+              <div data-hero-line style={{ color: '#E8E0D0' }}>OPERATORS</div>
+              <div data-hero-line style={{ color: '#E8E0D0' }}>BUILD</div>
+              <div data-hero-line style={{ color: '#C8861E' }}>DIFFERENT.</div>
+            </div>
+
+            {/* Amber rule */}
+            <div
+              data-hero-rule
+              style={{
+                height:          '1.5px',
+                background:      '#C8861E',
+                margin:          '24px 0 28px',
+                transformOrigin: 'left center',
+              }}
+            />
+
+            {/* Body copy + toggle */}
+            <div style={{
+              display:        'flex',
+              alignItems:     'flex-start',
+              justifyContent: 'space-between',
+              gap:            '40px',
+              flexWrap:       'wrap' as const,
+            }}>
+              <p style={{
+                fontFamily: 'var(--font-barlow)',
+                fontSize:   '15px',
+                color:      '#878070',
+                lineHeight: 1.7,
+                maxWidth:   '420px',
+                margin:     0,
+                fontWeight: 300,
+              }}>
+                RoadHouse Studio builds the infrastructure behind the ecosystem —
+                platforms, identities, content, and owned IP.
+                Operators only. No tourism.
+              </p>
+
+              {/* Toggle — glass treatment */}
+              <div style={{ display: 'flex', flexShrink: 0 }}>
+                {(['client', 'house'] as ActiveView[]).map((view, i) => {
+                  const label  = view === 'client' ? 'For Clients' : 'For the House'
+                  const active = activeView === view
+                  return (
+                    <button
+                      key={view}
+                      onClick={() => setActiveView(view)}
+                      style={{
+                        fontFamily:           'var(--font-dm-mono-studio)',
+                        fontSize:             '11px',
+                        letterSpacing:        '0.12em',
+                        textTransform:        'uppercase' as const,
+                        padding:              '12px 20px',
+                        border:               `1px solid ${active ? '#C8861E' : '#1E2024'}`,
+                        borderLeft:           i === 1 ? `1px solid ${active ? '#C8861E' : '#1E2024'}` : undefined,
+                        background:           active ? '#C8861E' : 'rgba(14,16,18,0.7)',
+                        backdropFilter:       active ? 'none' : 'blur(6px)',
+                        WebkitBackdropFilter: active ? 'none' : 'blur(6px)' as string,
+                        color:                active ? '#07080A' : '#878070',
+                        cursor:               'pointer',
+                        transition:           'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+                        fontWeight:           active ? 500 : 400,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Stats strip */}
+        {/* Layer 2b: stats strip — full width, absolute bottom */}
         <style>{`
           .studio-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
           @media (max-width: 640px) {
@@ -165,10 +183,15 @@ export default function StudioHero() {
         <div
           className="studio-stats-grid"
           style={{
-            borderTop:      '1px solid rgba(20,22,24,0.7)',
-            borderBottom:   '1px solid rgba(20,22,24,0.7)',
-            marginBottom:   '64px',
-            backdropFilter: 'blur(8px)',
+            position:             'absolute',
+            bottom:               0,
+            left:                 0,
+            right:                0,
+            zIndex:               10,
+            borderTop:            '1px solid #141618',
+            background:           'rgba(7,8,10,0.8)',
+            backdropFilter:       'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
         >
           {STATS.map((stat, i) => (
@@ -176,8 +199,8 @@ export default function StudioHero() {
               key={stat.label}
               data-stat
               style={{
-                padding:     '28px 24px',
-                borderRight: i < 3 ? '1px solid rgba(20,22,24,0.7)' : 'none',
+                padding:     '22px 24px',
+                borderRight: i < 3 ? '1px solid #141618' : 'none',
               }}
             >
               <div
@@ -185,11 +208,11 @@ export default function StudioHero() {
                 data-stat-final={stat.value}
                 style={{
                   fontFamily:    'var(--font-bebas)',
-                  fontSize:      '42px',
+                  fontSize:      '38px',
                   color:         '#C8861E',
                   letterSpacing: '0.03em',
                   lineHeight:    1,
-                  marginBottom:  '6px',
+                  marginBottom:  '4px',
                 }}
               >
                 {stat.value}
@@ -197,7 +220,7 @@ export default function StudioHero() {
               <div style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '10px',
-                color:         '#3A3530',
+                color:         '#5A5450',
                 letterSpacing: '0.13em',
                 textTransform: 'uppercase' as const,
               }}>
@@ -206,12 +229,13 @@ export default function StudioHero() {
             </div>
           ))}
         </div>
+      </section>
 
-        {/* Services + case study */}
+      {/* ── Below fold: services + case study ── */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '64px 2rem 0' }}>
         <StudioServices activeView={activeView} />
         <MotorsCaseStudy activeView={activeView} />
-
       </div>
-    </section>
+    </>
   )
 }

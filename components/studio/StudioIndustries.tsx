@@ -140,7 +140,7 @@ export default function StudioIndustries() {
                 <p style={{
                   fontFamily: 'var(--font-barlow)',
                   fontSize:   '13px',
-                  color:      isHov ? '#5A5550' : '#3A3530',
+                  color:      isHov ? '#878070' : '#5A5450',
                   lineHeight: 1.6,
                   margin:     0,
                   fontWeight: 300,
