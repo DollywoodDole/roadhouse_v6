@@ -14,25 +14,9 @@ const STATS = [
   { value: 'JSON-LD', label: 'Schema stack' },
 ]
 
-function InventoryCardSkeleton({ amber }: { amber?: boolean }) {
-  return (
-    <div style={{
-      background: '#0F1012',
-      border:     '1px solid #141618',
-      padding:    '8px',
-    }}>
-      <div style={{ height: '28px', background: '#141618', marginBottom: '4px' }} />
-      <div style={{ height: '4px', background: '#1A1C1F', width: '70%', marginBottom: '3px' }} />
-      <div style={{ height: '4px', background: '#1A1C1F', width: '50%', marginBottom: '6px' }} />
-      <div style={{
-        height:     '4px',
-        background: amber ? '#C8861E' : '#1A1C1F',
-        width:      '40%',
-        opacity:    0.8,
-      }} />
-    </div>
-  )
-}
+const VEHICLE_NAMES  = ['2024 RAM 1500', '2023 F-150', '2022 TAHOE', '2024 CIVIC', '2023 RAV4', '2021 EXPLORER']
+const VEHICLE_PRICES = ['$34,900', '$41,500', '$52,000', '$26,800', '$38,400', '$29,900']
+const CARD_BG        = ['#141618', '#1A1C1F', '#111316']
 
 export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView }) {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -213,107 +197,165 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
         {/* Right — simulated browser frame */}
         <div className="motors-cs-right" ref={rightRef}>
           <div style={{
-            border:   '1px solid #1A1C1F',
-            background: '#090A0C',
+            width:         '100%',
+            height:        '420px',
+            background:    '#0A0B0D',
+            border:        '1px solid #1E2024',
+            overflow:      'hidden',
+            display:       'flex',
+            flexDirection: 'column' as const,
           }}>
-            {/* Chrome bar */}
+            {/* Browser chrome bar */}
             <div style={{
-              height:       '32px',
+              padding:      '10px 14px',
               background:   '#111316',
-              borderBottom: '1px solid #1A1C1F',
+              borderBottom: '1px solid #1E2024',
               display:      'flex',
               alignItems:   'center',
-              padding:      '0 12px',
-              gap:          '6px',
+              gap:          '8px',
+              flexShrink:   0,
             }}>
-              {(['#FF5F57', '#FEBC2E', '#28C840'] as const).map((color) => (
-                <div key={color} style={{
-                  width: '8px', height: '8px',
-                  borderRadius: '50%',
-                  background:   color,
-                  opacity:      0.6,
-                }} />
-              ))}
-              <div style={{
-                flex:        1,
-                height:      '16px',
-                background:  '#0C0D10',
-                margin:      '0 10px',
-                display:     'flex',
-                alignItems:  'center',
-                padding:     '0 8px',
-              }}>
-                <span style={{
-                  fontFamily:    'var(--font-dm-mono-studio)',
-                  fontSize:      '9px',
-                  color:         '#2A2520',
-                  letterSpacing: '0.08em',
-                }}>
-                  motors.roadhouse.capital/inventory
-                </span>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', background: '#2A2A28' }} />
+                ))}
               </div>
-              {/* LIVE badge */}
               <div style={{
-                display:    'flex',
-                alignItems: 'center',
-                gap:        '4px',
-                background: '#0F1A0F',
-                border:     '1px solid #1A3020',
-                padding:    '3px 8px',
+                flex:            1,
+                background:      '#1A1C1F',
+                borderRadius:    4,
+                padding:         '3px 10px',
+                display:         'flex',
+                alignItems:      'center',
+                justifyContent:  'space-between',
               }}>
-                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4CAF50' }} />
                 <span style={{
                   fontFamily:    'var(--font-dm-mono-studio)',
-                  fontSize:      '8px',
-                  color:         '#4CAF50',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase' as const,
+                  fontSize:      9,
+                  color:         '#3A3A38',
+                  letterSpacing: '0.06em',
                 }}>
-                  Live
+                  motors.roadhouse.capital
                 </span>
+                <span style={{
+                  width:        6,
+                  height:       6,
+                  borderRadius: '50%',
+                  background:   '#4CAF50',
+                  display:      'inline-block',
+                }} />
               </div>
             </div>
 
-            {/* Simulated inventory nav bar */}
+            {/* Simulated motors nav */}
             <div style={{
-              height:       '36px',
-              background:   '#0C0D0F',
-              borderBottom: '1px solid #141618',
-              display:      'flex',
-              alignItems:   'center',
-              padding:      '0 16px',
-              gap:          '12px',
+              padding:        '8px 14px',
+              background:     '#0D0E10',
+              borderBottom:   '1px solid #141618',
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'space-between',
+              flexShrink:     0,
             }}>
-              <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '14px', color: '#C8861E', letterSpacing: '0.05em' }}>
-                RH MOTORS
-              </div>
-              <div style={{ flex: 1, height: '14px', background: '#111316', display: 'flex', alignItems: 'center', padding: '0 8px', gap: '6px' }}>
-                <div style={{ width: '6px', height: '6px', background: '#1A1C1F' }} />
-                <div style={{ height: '3px', background: '#1E2024', flex: 1 }} />
-              </div>
               <span style={{
-                fontFamily:    'var(--font-dm-mono-studio)',
-                fontSize:      '8px',
+                fontFamily:    'var(--font-bebas)',
+                fontSize:      13,
                 color:         '#C8861E',
                 letterSpacing: '0.1em',
               }}>
-                112 VEHICLES
+                ROADHOUSE MOTORS
               </span>
+              <div style={{ display: 'flex', gap: 12 }}>
+                {['INVENTORY', 'CREDIT', 'TEAM'].map((l) => (
+                  <span key={l} style={{
+                    fontFamily:    'var(--font-dm-mono-studio)',
+                    fontSize:      8,
+                    color:         '#3A3A38',
+                    letterSpacing: '0.08em',
+                  }}>
+                    {l}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* Inventory grid preview */}
+            {/* Inventory grid */}
             <div style={{
-              padding:             '10px',
+              flex:                1,
+              padding:             '10px 12px',
               display:             'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
-              gap:                 '5px',
+              gap:                 8,
+              overflowY:           'hidden' as const,
             }}>
-              <InventoryCardSkeleton amber />
-              <InventoryCardSkeleton />
-              <InventoryCardSkeleton amber />
-              <InventoryCardSkeleton />
-              <InventoryCardSkeleton amber />
-              <InventoryCardSkeleton />
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} style={{
+                  background:   '#111316',
+                  borderRadius: 6,
+                  border:       '1px solid #1E2024',
+                  overflow:     'hidden',
+                }}>
+                  <div style={{
+                    height:         54,
+                    background:     CARD_BG[i % 3],
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                  }}>
+                    <span style={{
+                      fontFamily:    'var(--font-bebas)',
+                      fontSize:      10,
+                      color:         '#2A2A28',
+                      letterSpacing: '0.06em',
+                    }}>
+                      {VEHICLE_NAMES[i]}
+                    </span>
+                  </div>
+                  <div style={{ padding: '6px 8px' }}>
+                    <div style={{
+                      fontFamily:   'var(--font-dm-mono-studio)',
+                      fontSize:     8,
+                      color:        '#C8861E',
+                      marginBottom: 2,
+                    }}>
+                      {VEHICLE_PRICES[i]}
+                    </div>
+                    <div style={{
+                      fontFamily: 'var(--font-dm-mono-studio)',
+                      fontSize:   7,
+                      color:      '#3A3A38',
+                    }}>
+                      Saskatchewan
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom status bar */}
+            <div style={{
+              padding:        '6px 14px',
+              background:     '#0A0B0D',
+              borderTop:      '1px solid #141618',
+              display:        'flex',
+              justifyContent: 'space-between',
+              alignItems:     'center',
+              flexShrink:     0,
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-dm-mono-studio)',
+                fontSize:   8,
+                color:      '#3A3A38',
+              }}>
+                112 vehicles in stock
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-dm-mono-studio)',
+                fontSize:   8,
+                color:      '#4CAF50',
+              }}>
+                ● LIVE
+              </span>
             </div>
           </div>
         </div>

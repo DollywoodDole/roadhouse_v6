@@ -3,7 +3,6 @@
 import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import { heroEntrance } from '@/lib/studio/animations'
-import { StudioWebGLDynamic } from './webgl'
 import StudioServices from './StudioServices'
 import MotorsCaseStudy from './MotorsCaseStudy'
 
@@ -51,22 +50,7 @@ export default function StudioHero() {
           zIndex:    0,
         }}
       >
-        {/* Layer 0: WebGL canvas */}
-        <StudioWebGLDynamic />
-
-        {/* Layer 1: directional gradient veil — text-readable bottom half */}
-        <div
-          aria-hidden="true"
-          style={{
-            position:      'absolute',
-            inset:         0,
-            zIndex:        1,
-            pointerEvents: 'none',
-            background:    'linear-gradient(160deg, rgba(7,8,10,0.15) 0%, rgba(7,8,10,0.45) 40%, rgba(7,8,10,0.85) 70%, rgba(7,8,10,1.0) 100%)',
-          }}
-        />
-
-        {/* Layer 2: text content — bottom-anchored above stats strip */}
+        {/* Text content — bottom-anchored above stats strip */}
         <div
           ref={containerRef}
           style={{

@@ -19,10 +19,10 @@ interface ArmDef {
 }
 
 const ARMS: ArmDef[] = [
-  { id: 'capital', label: 'CAPITAL', sub: 'roadhouse.capital',        r: 3.6, spd: 0.0018, phase: 0,    size: 0.26, bright: true  },
-  { id: 'motors',  label: 'MOTORS',  sub: 'motors.roadhouse.capital', r: 2.5, spd: 0.004,  phase: 2.09, size: 0.18, bright: true  },
-  { id: 'studio',  label: 'STUDIO',  sub: 'studio.roadhouse.capital', r: 1.8, spd: 0.007,  phase: 4.19, size: 0.20, bright: true  },
-  { id: 'faber',   label: 'FABER',   sub: 'faber.roadhouse.capital',  r: 4.8, spd: 0.0012, phase: 1.05, size: 0.13, bright: false },
+  { id: 'capital', label: 'CAPITAL', sub: 'roadhouse.capital',        r: 5.98, spd: 0.0018, phase: 0,    size: 0.43, bright: true  },
+  { id: 'motors',  label: 'MOTORS',  sub: 'motors.roadhouse.capital', r: 4.15, spd: 0.004,  phase: 2.09, size: 0.30, bright: true  },
+  { id: 'studio',  label: 'STUDIO',  sub: 'studio.roadhouse.capital', r: 2.99, spd: 0.007,  phase: 4.19, size: 0.33, bright: true  },
+  { id: 'faber',   label: 'FABER',   sub: 'faber.roadhouse.capital',  r: 7.97, spd: 0.0012, phase: 1.05, size: 0.22, bright: false },
 ]
 
 // ── PraetorianCore ────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ function PraetorianCore() {
   return (
     <group>
       <mesh ref={meshRef}>
-        <icosahedronGeometry args={[0.55, 1]} />
+        <icosahedronGeometry args={[0.91, 1]} />
         <meshStandardMaterial
           color="#C8861E"
           emissive="#C8861E"
@@ -56,7 +56,7 @@ function PraetorianCore() {
       </mesh>
       {/* Outer glow ring */}
       <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.78, 0.008, 8, 64]} />
+        <torusGeometry args={[1.29, 0.008, 8, 64]} />
         <meshBasicMaterial color="#C8861E" transparent opacity={0.4} />
       </mesh>
     </group>
@@ -203,7 +203,7 @@ function ParticleField({ scrollVel }: { scrollVel: MutableRefObject<number> }) {
     for (let i = 0; i < 400; i++) {
       const theta = Math.random() * Math.PI * 2
       const phi   = Math.acos(2 * Math.random() - 1)
-      const r     = 14 * Math.cbrt(Math.random())
+      const r     = 23.24 * Math.cbrt(Math.random())
       pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
       pos[i * 3 + 2] = r * Math.cos(phi)
@@ -262,7 +262,7 @@ export default function StudioScene() {
   return (
     <>
       <ambientLight intensity={0.1} />
-      <pointLight position={[0, 0, 0]}   color="#C8861E" intensity={3} distance={8} />
+      <pointLight position={[0, 0, 0]}   color="#C8861E" intensity={3} distance={13.28} />
       <pointLight position={[8, 6, 4]}   color="#E8E0D0" intensity={0.4} />
       <pointLight position={[-6, -4, -8]} color="#C8861E" intensity={0.2} />
 
