@@ -89,11 +89,11 @@ export default function StudioHero() {
           }
         `}</style>
 
-        {/* Text content — bottom-anchored above stats strip */}
+        {/* Text content — top-anchored below nav */}
         <div
           style={{
             position: 'absolute',
-            bottom:   '112px',
+            top:      '80px',
             left:     0,
             right:    0,
             zIndex:   10,
