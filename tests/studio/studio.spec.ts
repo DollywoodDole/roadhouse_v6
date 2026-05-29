@@ -4,12 +4,13 @@ const URL = '/studio'
 
 test.describe('RoadHouse Studio', () => {
 
-  test('1. Homepage loads — title + OPERATORS hero line', async ({ page }) => {
+  test('1. Homepage loads — title + AFRAID OF / ARE WE. hero lines', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
     await expect(page).toHaveTitle(/RoadHouse Studio/i)
     await expect(page.locator('[data-hero-line]').first()).toBeVisible()
-    await expect(page.locator('[data-hero-line]').first()).toHaveText('OPERATORS')
+    await expect(page.getByText('AFRAID', { exact: false })).toBeVisible()
+    await expect(page.getByText('ARE WE', { exact: false })).toBeVisible()
   })
 
   test('2. Hero section is viewport-height locked', async ({ page }) => {

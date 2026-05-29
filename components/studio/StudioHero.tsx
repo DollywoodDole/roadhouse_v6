@@ -136,9 +136,10 @@ export default function StudioHero() {
                   letterSpacing: '0.01em',
                 }}
               >
-                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('OPERATORS')}</div>
-                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('BUILD')}</div>
-                <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('DIFFERENT.')}</div>
+                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('AFRAID OF')}</div>
+                <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('CHANGE?')}</div>
+                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('NEITHER')}</div>
+                <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('ARE WE.')}</div>
               </div>
             </div>
 

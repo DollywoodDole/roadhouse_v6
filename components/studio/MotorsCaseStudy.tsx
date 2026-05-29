@@ -279,57 +279,30 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
               </div>
             </div>
 
-            {/* Inventory grid */}
+            {/* Feature image */}
             <div style={{
-              flex:                1,
-              padding:             '10px 12px',
-              display:             'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap:                 8,
-              overflowY:           'hidden' as const,
+              flex:      1,
+              overflow:  'hidden',
+              position:  'relative' as const,
+              minHeight: 0,
             }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{
-                  background:   '#111316',
-                  borderRadius: 6,
-                  border:       '1px solid #1E2024',
-                  overflow:     'hidden',
-                }}>
-                  <div style={{
-                    height:         54,
-                    background:     CARD_BG[i % 3],
-                    display:        'flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                  }}>
-                    <span style={{
-                      fontFamily:    'var(--font-bebas)',
-                      fontSize:      10,
-                      color:         '#2A2A28',
-                      letterSpacing: '0.06em',
-                    }}>
-                      {VEHICLE_NAMES[i]}
-                    </span>
-                  </div>
-                  <div style={{ padding: '6px 8px' }}>
-                    <div style={{
-                      fontFamily:   'var(--font-dm-mono-studio)',
-                      fontSize:     8,
-                      color:        '#C8861E',
-                      marginBottom: 2,
-                    }}>
-                      {VEHICLE_PRICES[i]}
-                    </div>
-                    <div style={{
-                      fontFamily: 'var(--font-dm-mono-studio)',
-                      fontSize:   7,
-                      color:      '#3A3A38',
-                    }}>
-                      Saskatchewan
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <img
+                src="/motors/rh_motors_lambo.png"
+                alt="RoadHouse Motors — Saskatchewan dealer platform"
+                style={{
+                  width:          '100%',
+                  height:         '100%',
+                  objectFit:      'cover' as const,
+                  objectPosition: 'center 30%',
+                  display:        'block',
+                }}
+              />
+              <div style={{
+                position:      'absolute' as const,
+                inset:         0,
+                background:    'linear-gradient(to top, rgba(7,8,10,0.75) 0%, transparent 55%)',
+                pointerEvents: 'none',
+              }} />
             </div>
 
             {/* Bottom status bar */}
