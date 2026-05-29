@@ -207,4 +207,28 @@ test.describe('RoadHouse Studio', () => {
 
     await expect(page.locator('canvas').first()).toBeVisible()
   })
+
+  test('18. Progress line — present at right edge, visible after scroll', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    const line = page.locator('[data-progress-line]')
+    await expect(line).toBeAttached()
+
+    await page.evaluate(() => window.scrollBy(0, 500))
+    await page.waitForTimeout(400)
+    await expect(line).toBeVisible()
+  })
+
+  test('19. Audio toggle — visible and toggles SOUND / MUTE', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    const btn = page.locator('[data-studio-audio]')
+    await expect(btn).toBeVisible()
+    await expect(btn).toContainText('SOUND')
+
+    await btn.click()
+    await expect(btn).toContainText('MUTE')
+  })
 })

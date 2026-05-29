@@ -5,6 +5,8 @@ import StudioIndustries      from '@/components/studio/StudioIndustries'
 import StudioTicker          from '@/components/studio/StudioTicker'
 import StudioEngage          from '@/components/studio/StudioEngage'
 import StudioWebGLBackground from '@/components/studio/StudioWebGLBackground'
+import StudioProgressLine    from '@/components/studio/StudioProgressLine'
+import StudioAudio           from '@/components/studio/StudioAudio'
 
 export default function StudioPage() {
   return (
@@ -24,6 +26,10 @@ export default function StudioPage() {
           <StudioEngage />
         </div>
       </div>
+
+      {/* ── Fixed overlays — progress line + ambient audio ── */}
+      <StudioProgressLine />
+      <StudioAudio />
     </main>
   )
 }

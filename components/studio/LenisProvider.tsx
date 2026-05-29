@@ -15,13 +15,11 @@ export default function LenisProvider() {
       smoothWheel: true,
     })
 
-    // Sync ScrollTrigger + emit velocity as CSS var for velocity-reactive components
-    lenis.on('scroll', (e: { velocity: number }) => {
+    // Sync ScrollTrigger + emit velocity and progress as CSS vars
+    lenis.on('scroll', (e: { velocity: number; progress: number }) => {
       ScrollTrigger.update()
-      document.documentElement.style.setProperty(
-        '--scroll-velocity',
-        String(Math.abs(e.velocity))
-      )
+      document.documentElement.style.setProperty('--scroll-velocity', String(Math.abs(e.velocity)))
+      document.documentElement.style.setProperty('--scroll-progress', String(e.progress))
     })
 
     const raf = (time: number) => lenis.raf(time * 1000)
