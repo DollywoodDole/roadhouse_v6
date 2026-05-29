@@ -102,4 +102,33 @@ test.describe('RoadHouse Studio', () => {
     await page.getByRole('button', { name: /for the house/i }).click()
     await expect(page.locator('.studio-services-grid').getByText('SIGNAL', { exact: true })).toBeVisible()
   })
+
+  test('9. WebGL canvas renders', async ({ page }) => {
+    const consoleErrors: string[] = []
+    page.on('console', msg => {
+      if (msg.type() === 'error' && msg.text().toLowerCase().includes('webgl')) {
+        consoleErrors.push(msg.text())
+      }
+    })
+
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    // Wait for the dynamically loaded canvas (SSR disabled, so it loads after hydration)
+    const canvas = page.locator('canvas').first()
+    await canvas.waitFor({ state: 'visible', timeout: 10000 })
+    await expect(canvas).toBeVisible()
+
+    expect(consoleErrors).toHaveLength(0)
+  })
+
+  test('10. Hero section has minimum height for WebGL', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    const hero = page.locator('#work')
+    const box = await hero.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.height).toBeGreaterThanOrEqual(600)
+  })
 })

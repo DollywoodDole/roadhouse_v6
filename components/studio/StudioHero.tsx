@@ -3,16 +3,17 @@
 import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import { heroEntrance } from '@/lib/studio/animations'
+import { StudioWebGLDynamic } from './webgl'
 import StudioServices from './StudioServices'
 import MotorsCaseStudy from './MotorsCaseStudy'
 
 type ActiveView = 'client' | 'house'
 
 const STATS = [
-  { value: '7–21',        label: 'Days to deliver' },
-  { value: 'FIXED',       label: 'Price. No surprises.' },
-  { value: '100%',        label: 'Yours. Always.' },
-  { value: 'LIVE',        label: 'Proof. Motors.' },
+  { value: '7–21',  label: 'Days to deliver' },
+  { value: 'FIXED', label: 'Price. No surprises.' },
+  { value: '100%',  label: 'Yours. Always.' },
+  { value: 'LIVE',  label: 'Proof. Motors.' },
 ]
 
 export default function StudioHero() {
@@ -24,12 +25,36 @@ export default function StudioHero() {
   }, { scope: containerRef })
 
   return (
-    <section id="work" style={{ padding: '80px 0 0' }}>
+    <section
+      id="work"
+      style={{ position: 'relative', minHeight: '100vh', padding: '80px 0 0' }}
+    >
+      {/* ── WebGL canvas ── */}
+      <StudioWebGLDynamic />
+
+      {/* ── Gradient overlay — keeps text readable ── */}
+      <div
+        aria-hidden="true"
+        style={{
+          position:   'absolute',
+          inset:      0,
+          zIndex:     1,
+          background: 'linear-gradient(to bottom, rgba(7,8,10,0.3) 0%, rgba(7,8,10,0.7) 60%, rgba(7,8,10,1) 100%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* ── Content (sits above canvas + overlay) ── */}
       <div
         ref={containerRef}
-        style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1.5rem' }}
+        style={{
+          maxWidth: '1400px',
+          margin:   '0 auto',
+          padding:  '0 1.5rem',
+          position: 'relative',
+          zIndex:   2,
+        }}
       >
-
         {/* Label row */}
         <div style={{
           display:        'flex',
@@ -131,25 +156,19 @@ export default function StudioHero() {
 
         {/* Stats strip */}
         <style>{`
-          .studio-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-          }
+          .studio-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
           @media (max-width: 640px) {
-            .studio-stats-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .studio-stats-grid > div:nth-child(2) {
-              border-right: none !important;
-            }
+            .studio-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .studio-stats-grid > div:nth-child(2) { border-right: none !important; }
           }
         `}</style>
         <div
           className="studio-stats-grid"
           style={{
-            borderTop:    '1px solid #141618',
-            borderBottom: '1px solid #141618',
+            borderTop:    '1px solid rgba(20,22,24,0.7)',
+            borderBottom: '1px solid rgba(20,22,24,0.7)',
             marginBottom: '64px',
+            backdropFilter: 'blur(8px)',
           }}
         >
           {STATS.map((stat, i) => (
@@ -158,7 +177,7 @@ export default function StudioHero() {
               data-stat
               style={{
                 padding:     '28px 24px',
-                borderRight: i < 3 ? '1px solid #141618' : 'none',
+                borderRight: i < 3 ? '1px solid rgba(20,22,24,0.7)' : 'none',
               }}
             >
               <div style={{
