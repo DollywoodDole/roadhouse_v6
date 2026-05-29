@@ -116,6 +116,7 @@ export default function StudioNav() {
             <a
               href="mailto:roadhousesyndicate@gmail.com"
               className="studio-nav-enter"
+              role="button"
               style={{
                 fontFamily:     'var(--font-dm-mono-studio)',
                 fontSize:       '11px',

@@ -280,6 +280,24 @@ export default function StudioEngage() {
           )}
         </div>
       </div>
+
+      {/* Credential strip */}
+      <div style={{
+        maxWidth:      '1400px',
+        margin:        '48px auto 0',
+        padding:       '20px 1.5rem 0',
+        borderTop:     '1px solid #141618',
+      }}>
+        <span style={{
+          fontFamily:    'var(--font-dm-mono-studio)',
+          fontSize:      '10px',
+          color:         '#2A2520',
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase' as const,
+        }}>
+          SK CCPC Incorporated · Vercel Partner Stack · Est. 2026
+        </span>
+      </div>
     </section>
   )
 }

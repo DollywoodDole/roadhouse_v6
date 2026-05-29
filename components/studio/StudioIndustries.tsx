@@ -5,12 +5,12 @@ import { useGSAP } from '@gsap/react'
 import { sectionEntrance, scrambleOnEnter } from '@/lib/studio/animations'
 
 const INDUSTRIES = [
-  { name: 'AUTOMOTIVE',   code: 'AUT', desc: 'Dealer platforms, inventory sync, lead pipelines' },
-  { name: 'AGRICULTURE',  code: 'AGR', desc: 'Equipment management, land ops, cooperative tools' },
-  { name: 'TRADES',       code: 'TRD', desc: 'Service quoting, crew management, client portals' },
-  { name: 'HOSPITALITY',  code: 'HSP', desc: 'Booking infrastructure, event ops, brand systems' },
-  { name: 'RETAIL',       code: 'RTL', desc: 'Inventory, loyalty, and conversion infrastructure' },
-  { name: 'PROFESSIONAL', code: 'PRO', desc: 'Practice sites, client intake, and authority brand' },
+  { name: 'AUTOMOTIVE',   code: 'AUT', count: '01', desc: 'Dealer platforms, inventory sync, lead pipelines' },
+  { name: 'AGRICULTURE',  code: 'AGR', count: '02', desc: 'Equipment management, land ops, cooperative tools' },
+  { name: 'TRADES',       code: 'TRD', count: '03', desc: 'Service quoting, crew management, client portals' },
+  { name: 'HOSPITALITY',  code: 'HSP', count: '04', desc: 'Booking infrastructure, event ops, brand systems' },
+  { name: 'RETAIL',       code: 'RTL', count: '05', desc: 'Inventory, loyalty, and conversion infrastructure' },
+  { name: 'PROFESSIONAL', code: 'PRO', count: '06', desc: 'Practice sites, client intake, and authority brand' },
 ]
 
 export default function StudioIndustries() {
@@ -91,19 +91,39 @@ export default function StudioIndustries() {
                   position:     'relative' as const,
                 }}
               >
-                {/* 3-char code — top right */}
+                {/* 3-char code — top right, rotates on hover */}
                 <div style={{
                   position:      'absolute',
                   top:           '20px',
                   right:         '20px',
-                  fontFamily:    'var(--font-dm-mono-studio)',
-                  fontSize:      '10px',
-                  color:         isHov ? '#C8861E' : '#2A2520',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase' as const,
-                  transition:    'color 0.18s ease',
+                  display:       'flex',
+                  alignItems:    'center',
+                  gap:           '8px',
                 }}>
-                  {ind.code}
+                  {/* Count badge */}
+                  <span style={{
+                    fontFamily:    'var(--font-dm-mono-studio)',
+                    fontSize:      '8px',
+                    color:         isHov ? '#07080A' : 'transparent',
+                    background:    isHov ? '#C8861E' : 'transparent',
+                    letterSpacing: '0.1em',
+                    padding:       '2px 5px',
+                    transition:    'color 0.18s ease, background 0.18s ease',
+                  }}>
+                    {ind.count}
+                  </span>
+                  <span style={{
+                    fontFamily:    'var(--font-dm-mono-studio)',
+                    fontSize:      '10px',
+                    color:         isHov ? '#C8861E' : '#2A2520',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase' as const,
+                    transition:    'color 0.18s ease, transform 0.25s ease',
+                    display:       'inline-block',
+                    transform:     isHov ? 'rotate(90deg)' : 'rotate(0deg)',
+                  }}>
+                    {ind.code}
+                  </span>
                 </div>
 
                 <div style={{

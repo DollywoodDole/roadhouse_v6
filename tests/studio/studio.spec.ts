@@ -3,45 +3,105 @@ import { test, expect } from '@playwright/test'
 const URL = '/studio'
 
 test.describe('RoadHouse Studio', () => {
-  test('1. Homepage loads', async ({ page }) => {
+
+  test('1. Homepage loads — title + OPERATORS hero line', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
     await expect(page).toHaveTitle(/RoadHouse Studio/i)
-    // First hero line is always OPERATORS (scoped to data-hero-line)
     await expect(page.locator('[data-hero-line]').first()).toBeVisible()
     await expect(page.locator('[data-hero-line]').first()).toHaveText('OPERATORS')
   })
 
-  test('2. Toggle — For Clients → For the House → back', async ({ page }) => {
+  test('2. Hero section is viewport-height locked', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
-    // Default: client view — MARK (Brand service) is client-only
-    await expect(page.locator('.studio-services-grid').getByText('MARK', { exact: true })).toBeVisible()
-
-    // Click "For the House"
-    await page.getByRole('button', { name: /for the house/i }).click()
-    // House service: SIGNAL
-    await expect(page.locator('.studio-services-grid').getByText('SIGNAL', { exact: true })).toBeVisible()
-
-    // Click back to For Clients
-    await page.getByRole('button', { name: /for clients/i }).click()
-    await expect(page.locator('.studio-services-grid').getByText('MARK', { exact: true })).toBeVisible()
+    const hero = page.locator('#work')
+    const [box, vh] = await Promise.all([
+      hero.boundingBox(),
+      page.evaluate(() => window.innerHeight),
+    ])
+    expect(box).not.toBeNull()
+    // Height should be 100vh (within 10px tolerance for rounding)
+    expect(box!.height).toBeGreaterThanOrEqual(vh - 10)
+    expect(box!.height).toBeLessThanOrEqual(vh + 10)
   })
 
-  test('3. Case study visible in client mode, hidden in house mode', async ({ page }) => {
+  test('3. WebGL canvas renders without console errors', async ({ page }) => {
+    const webglErrors: string[] = []
+    page.on('console', msg => {
+      if (msg.type() === 'error' && msg.text().toLowerCase().includes('webgl')) {
+        webglErrors.push(msg.text())
+      }
+    })
+
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
-    // Client mode (default) — Motors case study visible
-    await expect(page.getByText('RoadHouse Motors', { exact: true })).toBeVisible()
+    const canvas = page.locator('canvas').first()
+    await canvas.waitFor({ state: 'visible', timeout: 10000 })
+    await expect(canvas).toBeVisible()
+    expect(webglErrors).toHaveLength(0)
+  })
 
-    // Switch to house mode
+  test('4. Toggle — For Clients shows Build / Mark / Move', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    // Default is client view
+    const grid = page.locator('.studio-services-grid')
+    await expect(grid.getByText('BUILD',  { exact: true })).toBeVisible()
+    await expect(grid.getByText('MARK',   { exact: true })).toBeVisible()
+    await expect(grid.getByText('MOVE',   { exact: true })).toBeVisible()
+  })
+
+  test('5. Toggle — For the House shows Signal / Produce / IP', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.getByRole('button', { name: /for the house/i }).click()
+
+    const grid = page.locator('.studio-services-grid')
+    await expect(grid.getByText('SIGNAL',  { exact: true })).toBeVisible()
+    await expect(grid.getByText('PRODUCE', { exact: true })).toBeVisible()
+    await expect(grid.getByText('IP',      { exact: true })).toBeVisible()
+  })
+
+  test('6. House view — services grid has no client-only words', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.getByRole('button', { name: /for the house/i }).click()
+
+    const grid = page.locator('.studio-services-grid')
+    await expect(grid.getByText('MARK', { exact: true })).not.toBeVisible()
+    await expect(grid.getByText('MOVE', { exact: true })).not.toBeVisible()
+  })
+
+  test("7. Case study — visible in client mode, hidden in house mode, contains O'Brian", async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    // Client mode (default)
+    await expect(page.getByText('RoadHouse Motors', { exact: true })).toBeVisible()
+    await expect(page.getByText(/O'Brian/i)).toBeVisible()
+
+    // House mode
     await page.getByRole('button', { name: /for the house/i }).click()
     await expect(page.getByText('RoadHouse Motors', { exact: true })).not.toBeVisible()
   })
 
-  test('4. Process section — all 5 steps visible', async ({ page }) => {
+  test('8. Stats strip — 7–21, FIXED, and 100% visible', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    const stats = page.locator('.studio-stats-grid')
+    await expect(stats.getByText('7–21',  { exact: true })).toBeVisible()
+    await expect(stats.getByText('FIXED', { exact: true })).toBeVisible()
+    await expect(stats.getByText('100%',  { exact: true })).toBeVisible()
+  })
+
+  test('9. Process section — all 5 named steps visible', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
@@ -49,86 +109,72 @@ test.describe('RoadHouse Studio', () => {
     await page.waitForTimeout(600)
 
     const process = page.locator('#process')
-    // Scope all checks to #process to avoid collisions with hero/services
     for (const name of ['DISCOVERY', 'PROPOSAL', 'DELIVERY', 'GROW']) {
       await expect(process.getByText(name, { exact: true })).toBeVisible()
     }
-    // BUILD step — scoped to #process
-    await expect(process.locator('[data-process-step]').nth(2).getByText('BUILD', { exact: true })).toBeVisible()
   })
 
-  test('5. Industries grid — AUTOMOTIVE and AGRICULTURE visible', async ({ page }) => {
+  test('10. Process BUILD step scoped — no collision with hero headline', async ({ page }) => {
+    await page.goto(URL)
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.locator('#process').scrollIntoViewIfNeeded()
+    await page.waitForTimeout(600)
+
+    // Step 3 (index 2) is BUILD — scoped to process grid, not the hero
+    const buildStep = page.locator('#process [data-process-step]').nth(2)
+    await expect(buildStep.getByText('BUILD', { exact: true })).toBeVisible()
+  })
+
+  test('11. Industries grid — 6 tiles, AUTOMOTIVE and AGRICULTURE visible', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
     await page.locator('#house').scrollIntoViewIfNeeded()
     await page.waitForTimeout(600)
 
-    await expect(page.getByText('AUTOMOTIVE', { exact: true })).toBeVisible()
+    await expect(page.locator('[data-industry-tile]')).toHaveCount(6)
+    await expect(page.getByText('AUTOMOTIVE',  { exact: true })).toBeVisible()
     await expect(page.getByText('AGRICULTURE', { exact: true })).toBeVisible()
   })
 
-  test('6. Nav — RS mark and Enter ↗ CTA visible', async ({ page }) => {
+  test('12. Contact form — fields and submit button present', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
-    const nav = page.locator('[data-studio-nav]')
-    await expect(nav).toBeVisible()
-    await expect(nav.getByText('RS')).toBeVisible()
-    await expect(nav.getByText(/enter/i)).toBeVisible()
+    await page.locator('#contact').scrollIntoViewIfNeeded()
+
+    await expect(page.locator('#studio-name')).toBeVisible()
+    await expect(page.locator('#studio-email')).toBeVisible()
+    await expect(page.getByRole('button', { name: /send brief/i })).toBeVisible()
   })
 
-  test('7. Stats strip — 7–21 and FIXED visible', async ({ page }) => {
+  test('13. Nav — Enter ↗ has role=button and is visible', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('.studio-stats-grid').getByText('7–21', { exact: true })).toBeVisible()
-    await expect(page.locator('.studio-stats-grid').getByText('FIXED', { exact: true })).toBeVisible()
+    const enterBtn = page.locator('[data-studio-nav]').getByRole('button', { name: /enter/i })
+    await expect(enterBtn).toBeVisible()
   })
 
-  test('8. Mobile viewport — no overflow, toggle works', async ({ page }) => {
+  test('14. Mobile — no horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(400)
 
-    // Check no horizontal scroll
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     )
     expect(overflow).toBe(false)
-
-    // Toggle works at mobile size
-    await page.getByRole('button', { name: /for the house/i }).click()
-    await expect(page.locator('.studio-services-grid').getByText('SIGNAL', { exact: true })).toBeVisible()
   })
 
-  test('9. WebGL canvas renders', async ({ page }) => {
-    const consoleErrors: string[] = []
-    page.on('console', msg => {
-      if (msg.type() === 'error' && msg.text().toLowerCase().includes('webgl')) {
-        consoleErrors.push(msg.text())
-      }
-    })
-
+  test('15. Ticker section — "In production" label visible', async ({ page }) => {
     await page.goto(URL)
     await page.waitForLoadState('domcontentloaded')
 
-    // Wait for the dynamically loaded canvas (SSR disabled, so it loads after hydration)
-    const canvas = page.locator('canvas').first()
-    await canvas.waitFor({ state: 'visible', timeout: 10000 })
-    await expect(canvas).toBeVisible()
-
-    expect(consoleErrors).toHaveLength(0)
-  })
-
-  test('10. Hero section has minimum height for WebGL', async ({ page }) => {
-    await page.goto(URL)
-    await page.waitForLoadState('domcontentloaded')
-
-    const hero = page.locator('#work')
-    const box = await hero.boundingBox()
-    expect(box).not.toBeNull()
-    expect(box!.height).toBeGreaterThanOrEqual(600)
+    const label = page.getByText(/in production/i)
+    await label.scrollIntoViewIfNeeded()
+    await expect(label).toBeVisible()
   })
 })

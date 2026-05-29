@@ -29,11 +29,11 @@ export default function StudioCursor() {
     }
 
     const onEnterInteractive = () => {
-      gsap.to(ring, { width: 40, height: 40, opacity: 0.5, duration: 0.2, ease: 'power2.out' })
+      gsap.to(ring, { width: 44, height: 44, opacity: 0.5, duration: 0.2, ease: 'power2.out' })
       gsap.to(dot,  { opacity: 0, duration: 0.1 })
     }
     const onLeaveInteractive = () => {
-      gsap.to(ring, { width: 20, height: 20, opacity: 0.8, duration: 0.25, ease: 'power2.out' })
+      gsap.to(ring, { width: 28, height: 28, opacity: 0.8, duration: 0.25, ease: 'power2.out' })
       gsap.to(dot,  { opacity: 1, duration: 0.15 })
     }
 
@@ -70,14 +70,14 @@ export default function StudioCursor() {
           position:      'fixed',
           top:           0,
           left:          0,
-          width:         '20px',
-          height:        '20px',
+          width:         '28px',
+          height:        '28px',
           border:        '1.5px solid #C8861E',
           transform:     'translate(-50%, -50%)',
           pointerEvents: 'none',
           zIndex:        9997,
           opacity:       0.8,
-          borderRadius:  0,
+          borderRadius:  '50%',
         }}
       />
       {/* Dot */}
@@ -88,13 +88,13 @@ export default function StudioCursor() {
           position:      'fixed',
           top:           0,
           left:          0,
-          width:         '5px',
-          height:        '5px',
+          width:         '4px',
+          height:        '4px',
           background:    '#C8861E',
           transform:     'translate(-50%, -50%)',
           pointerEvents: 'none',
           zIndex:        9998,
-          borderRadius:  0,
+          borderRadius:  '50%',
         }}
       />
     </>

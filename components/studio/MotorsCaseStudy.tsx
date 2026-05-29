@@ -66,7 +66,7 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
             textTransform: 'uppercase' as const,
             margin:        '0 0 8px',
           }}>
-            Dealer Platform · Saskatchewan Automotive
+            Dealer Platform · O&apos;Brian&apos;s Auto · Saskatchewan
           </p>
           <h3 style={{
             fontFamily:    'var(--font-bebas)',

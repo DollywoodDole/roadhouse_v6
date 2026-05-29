@@ -122,13 +122,17 @@ export default function StudioProcess() {
               }}
             >
               <div style={{
-                fontFamily:    'var(--font-bebas)',
-                fontSize:      '80px',
-                color:         '#5A3A18',
-                lineHeight:    1,
-                letterSpacing: '0.01em',
-                marginBottom:  '16px',
-                userSelect:    'none',
+                fontFamily:              'var(--font-bebas)',
+                fontSize:                '80px',
+                lineHeight:              1,
+                letterSpacing:           '0.01em',
+                marginBottom:            '16px',
+                userSelect:              'none',
+                background:              'linear-gradient(180deg, #1E2024 0%, #3A2010 55%, #C8861E 100%)',
+                WebkitBackgroundClip:    'text',
+                WebkitTextFillColor:     'transparent',
+                backgroundClip:          'text',
+                color:                   'transparent',
               }}>
                 {step.num}
               </div>

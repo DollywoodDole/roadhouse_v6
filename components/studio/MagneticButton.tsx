@@ -32,7 +32,7 @@ export default function MagneticButton({ children, strength = 0.35, style }: Pro
       x: 0,
       y: 0,
       duration: 0.6,
-      ease: 'elastic.out(1, 0.4)',
+      ease: 'power3.out',
     })
   }
 
