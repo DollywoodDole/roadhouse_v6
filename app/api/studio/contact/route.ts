@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const RESEND_API = 'https://api.resend.com/emails'
 
 export async function POST(req: Request) {
   try {
@@ -17,19 +16,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 })
     }
 
-    await resend.emails.send({
-      from:    'hello@roadhouse.capital',
-      to:      'roadhousesyndicate@gmail.com',
-      subject: `Studio inquiry — ${company?.trim() || name.trim()}`,
-      text: [
-        `Name:    ${name.trim()}`,
-        `Company: ${company?.trim() || '—'}`,
-        `Email:   ${email.trim()}`,
-        '',
-        'Brief:',
-        brief?.trim() || '—',
-      ].join('\n'),
+    const text = [
+      `Name:    ${name.trim()}`,
+      `Company: ${company?.trim() || '—'}`,
+      `Email:   ${email.trim()}`,
+      '',
+      'Brief:',
+      brief?.trim() || '—',
+    ].join('\n')
+
+    const res = await fetch(RESEND_API, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from:    'hello@roadhouse.capital',
+        to:      'roadhousesyndicate@gmail.com',
+        subject: `Studio inquiry — ${company?.trim() || name.trim()}`,
+        text,
+      }),
     })
+
+    if (!res.ok) {
+      console.error('[api/studio/contact] Resend error', res.status, await res.text())
+      return NextResponse.json({ error: 'Failed to send.' }, { status: 500 })
+    }
 
     return NextResponse.json({ ok: true })
   } catch (err) {
