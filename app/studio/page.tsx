@@ -17,7 +17,7 @@ export default function StudioPage() {
         <StudioNav />
         <StudioHero />
         {/* Post-hero content scrolls over the fixed WebGL canvas */}
-        <div style={{ position: 'relative', zIndex: 1, background: '#07080A' }}>
+        <div style={{ position: 'relative', zIndex: 1, background: 'rgba(7,8,10,0.92)' }}>
           <StudioProcess />
           <StudioIndustries />
           <StudioTicker />

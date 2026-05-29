@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const NAV_LINKS = [
   { label: 'Work',    href: '#work' },
@@ -8,9 +8,14 @@ const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ]
 
+const BASE_SHADOW  = '0 0 6px rgba(200,134,30,0.6), 0 0 12px rgba(200,134,30,0.3), 0 0 24px rgba(200,134,30,0.15), inset 0 0 6px rgba(200,134,30,0.1)'
+const HOVER_SHADOW = '0 0 10px rgba(200,134,30,0.9), 0 0 20px rgba(200,134,30,0.5), 0 0 40px rgba(200,134,30,0.25), inset 0 0 10px rgba(200,134,30,0.15)'
+
 export default function StudioNav() {
   const [scrolled,  setScrolled]  = useState(false)
   const [menuOpen,  setMenuOpen]  = useState(false)
+  const rsMarkRef   = useRef<HTMLDivElement>(null)
+  const isHoveredRef = useRef(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -47,6 +52,33 @@ export default function StudioNav() {
     return () => observers.forEach((o) => o.disconnect())
   }, [])
 
+  // Velocity-reactive glow on RS mark — reads --scroll-velocity from Lenis
+  useEffect(() => {
+    let rafId: number
+    const loop = () => {
+      if (rsMarkRef.current) {
+        if (isHoveredRef.current) {
+          rsMarkRef.current.style.boxShadow = HOVER_SHADOW
+        } else {
+          const vel = parseFloat(
+            getComputedStyle(document.documentElement)
+              .getPropertyValue('--scroll-velocity') || '0'
+          )
+          const i = Math.min(Math.abs(vel) * 0.3, 1.0)
+          rsMarkRef.current.style.boxShadow = [
+            `0 0 ${(6 + i * 8).toFixed(1)}px rgba(200,134,30,${(0.6 + i * 0.3).toFixed(2)})`,
+            `0 0 ${(12 + i * 16).toFixed(1)}px rgba(200,134,30,${(0.3 + i * 0.2).toFixed(2)})`,
+            `0 0 ${(24 + i * 20).toFixed(1)}px rgba(200,134,30,0.15)`,
+            'inset 0 0 6px rgba(200,134,30,0.1)',
+          ].join(', ')
+        }
+      }
+      rafId = requestAnimationFrame(loop)
+    }
+    rafId = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(rafId)
+  }, [])
+
   const closeMenu = () => setMenuOpen(false)
 
   return (
@@ -55,19 +87,19 @@ export default function StudioNav() {
       <a
         href="#work"
         style={{
-          position:      'absolute',
-          top:           '-100%',
-          left:          0,
-          padding:       '8px 16px',
-          background:    '#C8861E',
-          color:         '#07080A',
-          fontFamily:    'var(--font-dm-mono-studio)',
-          fontSize:      '11px',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase' as const,
+          position:       'absolute',
+          top:            '-100%',
+          left:           0,
+          padding:        '8px 16px',
+          background:     '#C8861E',
+          color:          '#07080A',
+          fontFamily:     'var(--font-dm-mono-studio)',
+          fontSize:       '11px',
+          letterSpacing:  '0.1em',
+          textTransform:  'uppercase' as const,
           textDecoration: 'none',
-          zIndex:        200,
-          fontWeight:    500,
+          zIndex:         200,
+          fontWeight:     500,
         }}
         onFocus={(e) => { e.currentTarget.style.top = '0' }}
         onBlur={(e)  => { e.currentTarget.style.top = '-100%' }}
@@ -81,11 +113,16 @@ export default function StudioNav() {
           background:           scrolled ? 'rgba(7,8,10,0.92)' : 'transparent',
           backdropFilter:       scrolled ? 'blur(14px)'         : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(14px)'         : 'none',
-          borderBottom:         '1px solid #141618',
-          position:             'sticky',
-          top:                  0,
-          zIndex:               100,
-          transition:           'background 0.3s ease',
+          borderBottom:         scrolled
+            ? '1px solid rgba(200,134,30,0.15)'
+            : '1px solid transparent',
+          boxShadow: scrolled
+            ? '0 1px 0 0 rgba(200,134,30,0.08), 0 4px 12px rgba(7,8,10,0.8)'
+            : 'none',
+          position:   'sticky',
+          top:        0,
+          zIndex:     100,
+          transition: 'background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
         }}
       >
         <div style={{
@@ -98,35 +135,67 @@ export default function StudioNav() {
           justifyContent: 'space-between',
         }}>
 
-          {/* Mark + wordmark */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width:          '32px',
-              height:         '32px',
-              background:     '#C8861E',
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              flexShrink:     0,
-            }}>
+          {/* Mark + logo + wordmark */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+            {/* A: RS box mark — amber neon bloom, velocity-reactive */}
+            <div
+              ref={rsMarkRef}
+              style={{
+                width:           28,
+                height:          28,
+                border:          '1.5px solid #C8861E',
+                borderRadius:    3,
+                display:         'flex',
+                alignItems:      'center',
+                justifyContent:  'center',
+                flexShrink:      0,
+                boxShadow:       BASE_SHADOW,
+                transition:      'box-shadow 0.3s ease',
+                cursor:          'default',
+              }}
+              onMouseEnter={() => { isHoveredRef.current = true }}
+              onMouseLeave={() => { isHoveredRef.current = false }}
+            >
               <span style={{
                 fontFamily:    'var(--font-bebas)',
-                fontSize:      '15px',
-                color:         '#07080A',
-                letterSpacing: '0.05em',
+                fontSize:      13,
+                color:         '#C8861E',
+                letterSpacing: '.04em',
                 lineHeight:    1,
                 userSelect:    'none',
+                textShadow:    '0 0 8px rgba(200,134,30,0.9)',
               }}>RS</span>
             </div>
-            <span style={{
-              fontFamily:    'var(--font-dm-mono-studio)',
-              fontSize:      '11px',
-              color:         '#878070',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase' as const,
+
+            {/* Logo — amber-filtered */}
+            <img
+              src="/studio/rh-logo.png"
+              alt="RoadHouse"
+              style={{
+                height:     20,
+                width:      'auto',
+                opacity:    0.6,
+                filter:     'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(10deg)',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.6' }}
+            />
+
+            {/* B: Wordmark — ROADHOUSE muted, STUDIO glowing */}
+            <div style={{
+              fontFamily:    'var(--font-bebas)',
+              fontSize:      15,
+              letterSpacing: '.14em',
+              lineHeight:    1,
             }}>
-              studio.roadhouse.capital
-            </span>
+              <span style={{ color: '#5A5450' }}>ROADHOUSE </span>
+              <span style={{
+                color:      '#C8861E',
+                textShadow: '0 0 8px rgba(200,134,30,0.9), 0 0 16px rgba(200,134,30,0.5), 0 0 32px rgba(200,134,30,0.25)',
+              }}>STUDIO</span>
+            </div>
           </div>
 
           {/* Desktop nav + CTA */}
@@ -215,13 +284,13 @@ export default function StudioNav() {
       {menuOpen && (
         <div
           style={{
-            position:   'fixed',
-            inset:      0,
-            background: '#07080A',
-            zIndex:     200,
-            display:    'flex',
+            position:      'fixed',
+            inset:         0,
+            background:    '#07080A',
+            zIndex:        200,
+            display:       'flex',
             flexDirection: 'column' as const,
-            padding:    '0 1.5rem',
+            padding:       '0 1.5rem',
           }}
         >
           {/* Top bar */}
@@ -232,26 +301,36 @@ export default function StudioNav() {
             justifyContent: 'space-between',
             borderBottom:   '1px solid #141618',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
-                width: '32px', height: '32px',
-                background: '#C8861E',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width:          28,
+                height:         28,
+                border:         '1.5px solid #C8861E',
+                borderRadius:   3,
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                boxShadow:      BASE_SHADOW,
               }}>
-                <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '15px', color: '#07080A' }}>RS</span>
+                <span style={{
+                  fontFamily: 'var(--font-bebas)',
+                  fontSize:   13,
+                  color:      '#C8861E',
+                  textShadow: '0 0 8px rgba(200,134,30,0.9)',
+                }}>RS</span>
               </div>
             </div>
             <button
               onClick={closeMenu}
               aria-label="Close navigation menu"
               style={{
-                background:  'none',
-                border:      '1px solid #1E1C18',
-                color:       '#878070',
-                cursor:      'pointer',
-                padding:     '6px 14px',
-                fontFamily:  'var(--font-dm-mono-studio)',
-                fontSize:    '10px',
+                background:    'none',
+                border:        '1px solid #1E1C18',
+                color:         '#878070',
+                cursor:        'pointer',
+                padding:       '6px 14px',
+                fontFamily:    'var(--font-dm-mono-studio)',
+                fontSize:      '10px',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase' as const,
               }}

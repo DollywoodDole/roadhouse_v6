@@ -329,7 +329,7 @@ export default function StudioHero() {
       </section>
 
       {/* ── Below fold: services + case study — scrolls over sticky hero ── */}
-      <div style={{ position: 'relative', zIndex: 1, background: '#07080A' }}>
+      <div style={{ position: 'relative', zIndex: 1, background: 'rgba(7,8,10,0.92)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '64px 2rem 0' }}>
           <StudioServices activeView={activeView} />
           <MotorsCaseStudy activeView={activeView} />
