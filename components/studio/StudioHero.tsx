@@ -15,17 +15,19 @@ const STATS = [
   { value: 'LIVE',  label: 'Proof. Motors.' },
 ]
 
-// Split a word into individually-animated character spans
-function splitToChars(word: string) {
-  return word.split('').map((char, i) => (
-    <span
-      key={i}
-      data-char
-      style={{ display: 'inline-block' }}
-    >
-      {char}
-    </span>
-  ))
+// Split text into individually-animated character spans.
+// Space / NBSP chars become fixed-width spacer spans (inline-block space collapses).
+function splitToChars(text: string) {
+  return text.split('').map((char, i) => {
+    if (char === ' ' || char === '\u00A0') {
+      return <span key={i} style={{ display: 'inline-block', width: '0.28em' }} />
+    }
+    return (
+      <span key={i} data-char style={{ display: 'inline-block' }}>
+        {char}
+      </span>
+    )
+  })
 }
 
 export default function StudioHero() {
@@ -136,10 +138,10 @@ export default function StudioHero() {
                   letterSpacing: '0.01em',
                 }}
               >
-                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('AFRAID OF')}</div>
+                <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('AFRAID\u00A0OF')}</div>
                 <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('CHANGE?')}</div>
                 <div data-hero-line style={{ color: '#E8E0D0' }}>{splitToChars('NEITHER')}</div>
-                <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('ARE WE.')}</div>
+                <div data-hero-line style={{ color: '#C8861E' }}>{splitToChars('ARE\u00A0WE.')}</div>
               </div>
             </div>
 

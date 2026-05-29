@@ -25,12 +25,16 @@
 }
 
 html {
+  margin: 0;
+  padding: 0;
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
 
 body {
-  background-color: var(--black);
+  margin: 0;
+  padding: 0;
+  background: #07080A;
   color: var(--text);
   font-family: var(--font-dm-mono);
 }

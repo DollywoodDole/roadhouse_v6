@@ -9,8 +9,9 @@ test.describe('RoadHouse Studio', () => {
     await page.waitForLoadState('domcontentloaded')
     await expect(page).toHaveTitle(/RoadHouse Studio/i)
     await expect(page.locator('[data-hero-line]').first()).toBeVisible()
-    await expect(page.getByText('AFRAID', { exact: false })).toBeVisible()
-    await expect(page.getByText('ARE WE', { exact: false })).toBeVisible()
+    await expect(page.locator('[data-hero-line]')).toHaveCount(4)
+    await expect(page.getByText('AFRAID',  { exact: false })).toBeVisible()
+    await expect(page.getByText('NEITHER', { exact: false })).toBeVisible()
   })
 
   test('2. Hero section is viewport-height locked', async ({ page }) => {
