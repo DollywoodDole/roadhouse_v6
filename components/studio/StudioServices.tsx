@@ -104,7 +104,7 @@ export default function StudioServices({ activeView }: { activeView: ActiveView 
                 <span style={{
                   fontFamily:    'var(--font-dm-mono-studio)',
                   fontSize:      '10px',
-                  color:         isHov ? '#C8861E' : '#5A5450',
+                  color:         isHov ? '#C8861E' : '#878070',
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase' as const,
                   transition:    'color 0.15s ease',

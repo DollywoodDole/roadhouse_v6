@@ -14,7 +14,7 @@ const FIELD: React.CSSProperties = {
   padding:         '12px 14px',
   width:           '100%',
   boxSizing:       'border-box',
-  outline:         'none',
+  outline:         undefined,
   fontWeight:      300,
 }
 
@@ -67,7 +67,7 @@ export default function StudioEngage() {
         <div style={{ minWidth: '260px' }}>
           <div style={{
             fontFamily:    'var(--font-bebas)',
-            fontSize:      'clamp(52px, 8vw, 100px)',
+            fontSize:      'clamp(52px, 8vw, 96px)',
             lineHeight:    0.95,
             letterSpacing: '0.01em',
             color:         '#E8E0D0',
@@ -79,7 +79,7 @@ export default function StudioEngage() {
           <p style={{
             fontFamily:    'var(--font-dm-mono-studio)',
             fontSize:      '11px',
-            color:         '#5A5450',
+            color:         '#878070',
             letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
             marginTop:     '20px',
@@ -171,7 +171,7 @@ export default function StudioEngage() {
               <span style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '10px',
-                color:         '#4A4540',
+                color:         '#878070',
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase' as const,
               }}>
@@ -183,7 +183,7 @@ export default function StudioEngage() {
               <div style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '10px',
-                color:         '#5A5450',
+                color:         '#878070',
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase' as const,
                 paddingBottom: '16px',

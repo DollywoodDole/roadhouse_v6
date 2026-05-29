@@ -98,7 +98,7 @@ export default function StudioNav() {
             <span style={{
               fontFamily:    'var(--font-dm-mono-studio)',
               fontSize:      '11px',
-              color:         '#4A4540',
+              color:         '#878070',
               letterSpacing: '0.12em',
               textTransform: 'uppercase' as const,
             }}>
@@ -252,7 +252,7 @@ export default function StudioNav() {
                 style={{
                   fontFamily:     'var(--font-bebas)',
                   fontSize:       'clamp(52px, 15vw, 80px)',
-                  color:          '#5A5450',
+                  color:          '#878070',
                   letterSpacing:  '0.02em',
                   textDecoration: 'none',
                   lineHeight:     1,
@@ -260,7 +260,7 @@ export default function StudioNav() {
                   display:        'block',
                 }}
                 onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#E8E0D0' }}
-                onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5A5450' }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#878070' }}
               >
                 {label.toUpperCase()}
               </a>

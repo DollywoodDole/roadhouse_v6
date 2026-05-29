@@ -72,9 +72,9 @@ export default function StudioIndustries() {
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   padding:      '40px 36px',
-                  borderRight:  !isHov && (i % 3 < 2) ? '1px solid #141618' : 'none',
-                  borderBottom: !isHov && (i < 3)      ? '1px solid #141618' : 'none',
                   border:       isHov ? '1px solid #C8861E' : undefined,
+                  borderRight:  !isHov ? ((i % 3 < 2) ? '1px solid #141618' : 'none') : undefined,
+                  borderBottom: !isHov ? ((i < 3) ? '1px solid #141618' : 'none') : undefined,
                   transition:   'border-color 0.18s ease, background 0.18s ease',
                   background:   isHov ? '#0C0D0F' : 'transparent',
                   cursor:       'default',
@@ -119,7 +119,7 @@ export default function StudioIndustries() {
                 <div style={{
                   fontFamily:    'var(--font-bebas)',
                   fontSize:      '36px',
-                  color:         isHov ? '#E8E0D0' : '#4A4540',
+                  color:         isHov ? '#E8E0D0' : '#878070',
                   letterSpacing: '0.04em',
                   lineHeight:    1,
                   marginBottom:  '16px',
@@ -130,7 +130,7 @@ export default function StudioIndustries() {
                 <p style={{
                   fontFamily: 'var(--font-barlow)',
                   fontSize:   '13px',
-                  color:      isHov ? '#878070' : '#5A5450',
+                  color:      '#878070',
                   lineHeight: 1.6,
                   margin:     0,
                   fontWeight: 300,

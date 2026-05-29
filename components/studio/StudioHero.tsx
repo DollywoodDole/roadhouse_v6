@@ -84,7 +84,7 @@ export default function StudioHero() {
               <span style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '11px',
-                color:         '#5A5450',
+                color:         '#878070',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase' as const,
               }}>
@@ -95,7 +95,7 @@ export default function StudioHero() {
             {/* Headline */}
             <div style={{
               fontFamily:    'var(--font-bebas)',
-              fontSize:      'clamp(60px, 9.5vw, 136px)',
+              fontSize:      'clamp(60px, 8vw, 96px)',
               lineHeight:    0.9,
               letterSpacing: '0.01em',
             }}>
@@ -220,7 +220,7 @@ export default function StudioHero() {
               <div style={{
                 fontFamily:    'var(--font-dm-mono-studio)',
                 fontSize:      '10px',
-                color:         '#5A5450',
+                color:         '#878070',
                 letterSpacing: '0.13em',
                 textTransform: 'uppercase' as const,
               }}>

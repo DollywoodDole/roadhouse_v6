@@ -58,7 +58,7 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
           <p style={{
             fontFamily:    'var(--font-dm-mono-studio)',
             fontSize:      '10px',
-            color:         '#4A4540',
+            color:         '#878070',
             letterSpacing: '0.15em',
             textTransform: 'uppercase' as const,
             margin:        '0 0 8px',
@@ -201,7 +201,7 @@ export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView
             <div style={{
               fontFamily:    'var(--font-dm-mono-studio)',
               fontSize:      '10px',
-              color:         '#5A5450',
+              color:         '#878070',
               letterSpacing: '0.1em',
               textTransform: 'uppercase' as const,
             }}>
