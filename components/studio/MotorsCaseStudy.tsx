@@ -14,9 +14,6 @@ const STATS = [
   { value: 'JSON-LD', label: 'Schema stack' },
 ]
 
-const VEHICLE_NAMES  = ['2024 RAM 1500', '2023 F-150', '2022 TAHOE', '2024 CIVIC', '2023 RAV4', '2021 EXPLORER']
-const VEHICLE_PRICES = ['$34,900', '$41,500', '$52,000', '$26,800', '$38,400', '$29,900']
-const CARD_BG        = ['#141618', '#1A1C1F', '#111316']
 
 export default function MotorsCaseStudy({ activeView }: { activeView: ActiveView }) {
   const sectionRef = useRef<HTMLDivElement>(null)
