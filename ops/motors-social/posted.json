@@ -37,7 +37,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:25:30.008259+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-05-30T16:07:32.239696+00:00",
+    "reel_fb_success": true
   },
   "5N1DR3BE1RC257175": {
     "title": "2024 Nissan Pathfinder SV 4WD",
@@ -553,7 +555,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T19:31:43.032260+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-05-30T16:06:28.989461+00:00",
+    "reel_fb_success": true
   },
   "3GCUDDED8RG237000": {
     "title": "2024 Chevrolet Silverado 1500 LT",
