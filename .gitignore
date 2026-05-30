@@ -70,3 +70,4 @@ venv/
 # Audit / screenshot artifacts
 audit-*.png
 .playwright-mcp/
+.impeccable
