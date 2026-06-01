@@ -141,6 +141,7 @@ function StandardCard({ branch }: { branch: Branch }) {
 
 function FeaturedCard({ branch }: { branch: Branch }) {
   const isCoconut = branch.num === '04'
+  const isStudio = branch.num === '03'
 
   return (
     <div className="relative bg-rh-card border border-rh-border rounded-lg overflow-hidden card-ambient">
@@ -258,7 +259,7 @@ function FeaturedCard({ branch }: { branch: Branch }) {
                 alt={`${branch.name} website`}
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
-                style={{ objectPosition: isCoconut ? 'center 88%' : 'center 53%' }}
+                style={{ objectPosition: isCoconut ? 'center 88%' : isStudio ? 'center 15%' : 'center 53%' }}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />
             )}
