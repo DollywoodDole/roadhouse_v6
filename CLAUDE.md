@@ -467,26 +467,49 @@ NEXT_PUBLIC_TREASURY_WALLET · NEXT_PUBLIC_MULTISIG_WALLET
 
 ---
 
-## DASHBOARD — component tree + tab map
+## DASHBOARD — component tree + nav map
+
+3-column shell: `52px IconRail · 220px DashboardSidebar · 1fr RoadHouse`
 
 ```
-RoadHouseDashboard.jsx
+RoadHouseDashboard.jsx          ← holds activeNavItem state; passes to RoadHouse
   MemberGate → ConnectPrompt
     Primary CTA: "Join RoadHouse →" → /#membership (click 1) → tier → Stripe (click 2)
     Secondary CTA: "Connect Wallet" (existing members)
-  DashboardHeader (wordmark = <a href="/">)
-  RoadHouse.jsx
-    MY ROADHOUSE  → MemberProfileCard · DailyMissions · tier status · edit profile · contribution feed
-    ECONOMY       → listings:offering + listings:seeking
-    DESCI         → experiment:active + experiment:log + experiment:aggregate
-    GUILD         → bounties:active + bounties:claimed · week indicator · milestone timeline
-    TREASURY      → treasury:snapshot + treasury:votes · reinvestment split
+  IconRail (52px)               ← Tabler icons; section-level nav (home/earn/community/treasury)
+  DashboardSidebar (220px)      ← member identity block · VaultPanel · 4-section nav
+    VaultPanel                  ← $ROAD (prop) · SOL wallet (prop) · Prop P&L (stub)
+  RoadHouse.jsx                 ← page-based routing via activeNavItem prop
+    Topbar                      ← breadcrumb "RoadHouse / {section} / {item}" · $ROAD chip · Phase chip
+    HOME (overview/profile/prop-account)
+      Overview    → summary bar (4 cells) · Next Move (first incomplete mission) · DailyMissions
+                    · HomePropPanel · activity feed · leaderboard stub · RoadLadder
+      Profile     → MyRoadHouseTab (MemberProfileCard · Unlocks · Tracks)
+      Prop Account→ WalletTab
+    EARN (bounties/missions/marketplace/leaderboard)
+      Bounties    → 4 stub cards with guild color tags · claim button
+      Missions    → DailyMissions
+      Marketplace → empty state (Ranch Hand+ gate) + EconomyTab
+      Leaderboard → STUB_LEADERS top-5 table
+    COMMUNITY (war-room/protocol/events/members)
+      War Room    → GuildTab + active members panel (2-col)
+      Protocol    → ProtocolTab
+      Events      → empty state → discord.gg/wwhhKcnQJ3
+      Members     → empty state → M3 wallet verification
+    TREASURY (treasury-overview/governance/nfts/dao-vote)
+      Overview    → 3-cell summary bar (stub) + TreasuryTab + locked note
+      Governance/NFTs/DAO Vote → locked (opacity 0.4, title="Available at M3")
 ```
 
 **Dashboard-only components (RoadHouse.jsx):**
-`ProfileXPBar` · `ProfileStatBar` · `MemberProfileCard` · `DailyMissions` · `Card` · `Label` · `SectionHead` · `Divider`
+`ProfileXPBar` · `ProfileStatBar` · `MemberProfileCard` · `DailyMissions` · `Card` · `Label` · `SectionHead` · `Divider` · `HomePropPanel` · `HomeOverviewPage` · `EarnPage` · `CommunityPage` · `TreasuryPageWrapper`
 
-**Current state:** `memberTier` hardcoded `'founding'` in RoadHouseDashboard.jsx — M3: replace with `getTierFromBalance()` via on-chain SPL balance.
+**Font stack (dashboard):** Space Mono (body/data) · Bebas Neue (headings) · DM Mono (labels 8–11px)
+**Icon rail:** Tabler webfont via CDN (`@tabler/icons-webfont@latest`) — `ti-home ti-coin ti-users ti-safe ti-settings`
+**Mobile:** `.rh-shell` collapses sidebar at `<900px`, rail at `<600px`
+**Dev banner:** renders only when `process.env.NODE_ENV === 'development'` (MemberGate bypassed reminder)
+
+**Current state:** `memberTier` derives from KV via `useMemberProfile()` hook (wallet-linked). M3: replace with `getTierFromBalance()` via on-chain SPL balance.
 
 ---
 
@@ -625,6 +648,34 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 ---
 
 ## CHANGELOG
+
+### DASHBOARD REARCHITECTURE + POLISH — 2026-06-01
+
+**3-column shell (37d7d43):**
+- Replaced 6-tab engine with 3-column grid: 52px IconRail · 220px DashboardSidebar · 1fr RoadHouse
+- `activeNavItem` state lives in RoadHouseDashboard.jsx, passed down as prop
+- IconRail: section-level buttons + RH wordmark vertical
+- DashboardSidebar: member identity block (avatar/name/handle/tier badge) + VaultPanel + 4-section nav with badge counts, reward chips, locked M3 items
+- RoadHouse.jsx: tabs removed → topbar breadcrumb + chips + 4 page sections (Home/Earn/Community/Treasury)
+- Home Overview: summary bar, Next Move card, DailyMissions, HomePropPanel, activity feed, leaderboard, RoadLadder
+- Earn: 4 stub bounties with guild color tags; Marketplace/Missions/Leaderboard sub-tabs
+- Community: War Room (GuildTab 2-col) + Protocol/Events/Members
+- Treasury: 3-cell summary bar + TreasuryTab + locked M3 note
+- Syne font fully replaced with DM Mono
+
+**Polish pass (bb21e15):**
+- Font quoting fixed: all unquoted multi-word font families now properly quoted (`'DM Mono', monospace` etc.)
+- Icon rail: Tabler webfont (ti-home/ti-coin/ti-users/ti-safe/ti-settings) replaces unicode glyphs
+- Tabler CDN loaded via `<link>` tag in dashboard shell
+- Breadcrumb: 2-level for Home/Treasury; 3-level for Earn/Community sub-tabs
+- Locked nav items: `title="Available at M3"` + `preventDefault` onclick
+- Mobile: `.rh-shell` media queries collapse sidebar <900px, rail <600px
+- Next Move card derived from `DAILY_MISSIONS.find(m => !m.done)` + all-complete state
+- Stub comments on Prop P&L / Streak / Guild Rank summary cells
+- "View Tiers →" renamed from "Scale Up" with console.log stub
+- Treasury community bucket: `// TODO: lib/road-monitor.ts` comment
+- Dev mode banner (NODE_ENV=development only)
+- Empty states: Earn > Marketplace (Ranch Hand+ gate), Community > Events (Discord link), Community > Members (M3 note)
 
 ### REPO CLEANUP + STUDIO LAUNCH — 2026-05-28
 
