@@ -27,7 +27,7 @@ import { getTreasurySnapshot, getGovernanceVotes } from '@/lib/gnosis'
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
-const TABS = ['MY ROADHOUSE', 'ECONOMY', 'PROTOCOL', 'GUILD', 'TREASURY']
+const TABS = ['MY ROADHOUSE', 'ECONOMY', 'PROTOCOL', 'GUILD', 'TREASURY', 'WALLET']
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 
@@ -654,6 +654,218 @@ function Tracks() {
   )
 }
 
+// ── PropAccountBlock ──────────────────────────────────────────────────────────
+
+const PROP_TIER_MAP = {
+  'regular':    'Road Hand',
+  'ranch-hand': 'Ranch Hand',
+  'partner':    'Rider',
+  'founding':   'Ranch Hand',
+  'steward':    'Captain',
+  'praetor':    'Praetor',
+}
+
+const PropAccountBlock = ({ memberTier }) => {
+  const propTier = PROP_TIER_MAP[memberTier] ?? 'Road Hand'
+  return (
+    <div style={{
+      background: '#181714', border: '1px solid #1e1e1c',
+      borderRadius: 8, padding: '16px 18px', minWidth: 220,
+      display: 'flex', flexDirection: 'column', gap: 10,
+    }}>
+      <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+        letterSpacing: '.12em', textTransform: 'uppercase', color: '#5a5550' }}>
+        Prop Account
+      </div>
+      <div>
+        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18,
+          letterSpacing: '.1em', color: '#ff5c35' }}>{propTier}</div>
+        <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 22,
+          fontWeight: 700, color: '#ede8dc' }}>$10,000</div>
+        <div style={{ fontSize: 10, color: '#5a5550' }}>Funded Account</div>
+      </div>
+      <div style={{ height: 3, background: '#2a2318', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ width: '68%', height: '100%', background: '#ff5c35', borderRadius: 2 }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 10px',
+        borderRadius: 4, border: '1px solid #2a2318', background: '#0a0a08' }}>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4b7c50', flexShrink: 0 }} />
+        <span style={{ fontSize: 10, color: '#4b7c50' }}>Phase 2 — Evaluation</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 10px',
+        borderRadius: 4, border: '1px solid #2a2318', background: '#0a0a08' }}>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2a2318', flexShrink: 0 }} />
+        <span style={{ fontSize: 10, color: '#5a5550' }}>Profit Target: $800 / $1,200</span>
+      </div>
+    </div>
+  )
+}
+
+// ── RoadLadder ────────────────────────────────────────────────────────────────
+
+const TIER_LADDER = [
+  { key: 'regular',    label: 'Regular',    thresh: 100,   color: '#ede8dc' },
+  { key: 'ranch-hand', label: 'Ranch Hand', thresh: 500,   color: '#e8c84a' },
+  { key: 'partner',    label: 'Partner',    thresh: 2000,  color: '#ff5c35' },
+  { key: 'steward',    label: 'Steward',    thresh: 10000, color: '#4af0c8' },
+  { key: 'praetor',    label: 'Praetor',    thresh: 50000, color: '#e8c84a' },
+]
+
+const RoadLadder = ({ roadBalance = 0 }) => (
+  <div style={{ background: '#111110', border: '1px solid #1e1e1c',
+    borderRadius: 8, padding: '16px 18px', flex: 1 }}>
+    <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 10,
+      letterSpacing: '.1em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
+      $ROAD Ladder
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {TIER_LADDER.map(t => {
+        const done = roadBalance >= t.thresh
+        const pct  = done ? 100 : Math.round((roadBalance / t.thresh) * 100)
+        return (
+          <div key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 4, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Bebas Neue, sans-serif', fontSize: 11,
+              background: done ? t.color + '1a' : '#ffffff06',
+              border: `1px solid ${done ? t.color + '44' : '#2a2318'}`,
+              color: done ? t.color : '#5a5550',
+            }}>
+              {t.thresh >= 1000 ? (t.thresh / 1000) + 'k' : t.thresh}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 10, color: done ? '#ede8dc' : '#5a5550' }}>{t.label}</div>
+              <div style={{ height: 2, background: '#2a2318', borderRadius: 1,
+                marginTop: 4, overflow: 'hidden' }}>
+                <div style={{ width: pct + '%', height: '100%',
+                  background: t.color, opacity: done ? 0.8 : 0.3, borderRadius: 1 }} />
+              </div>
+            </div>
+            <div style={{ fontSize: 11, color: done ? t.color : '#2a2318' }}>
+              {done ? '✓' : '○'}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  </div>
+)
+
+// ── WalletTab ─────────────────────────────────────────────────────────────────
+
+const WalletTab = ({ roadBalance = 0 }) => {
+  const [connected, setConnected] = useState(false)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 520 }}>
+      <div style={{ background: '#111110', border: '1px solid #1e1e1c',
+        borderRadius: 8, padding: '16px 18px' }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 10,
+          letterSpacing: '.1em', textTransform: 'uppercase',
+          color: '#5a5550', marginBottom: 12 }}>Solana Wallet</div>
+
+        {!connected ? (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 8, padding: 22, borderRadius: 8, border: '1px dashed #2a2318',
+              background: '#4af0c806', textAlign: 'center', marginBottom: 14 }}>
+              <div style={{ fontSize: 28, opacity: .3 }}>⬡</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 10,
+                letterSpacing: '.12em', textTransform: 'uppercase', color: '#5a5550' }}>
+                Wallet not connected
+              </div>
+              <div style={{ fontSize: 10, color: '#2a2318' }}>
+                Phantom or Solflare · Solana devnet · @solana/wallet-adapter-react
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button onClick={() => console.log('wallet connect coming M3')}
+                style={{ padding: '10px 12px', borderRadius: 4, cursor: 'pointer',
+                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  letterSpacing: '.08em', textTransform: 'uppercase',
+                  border: '1px solid #e8c84a44', color: '#e8c84a',
+                  background: '#e8c84a08' }}>
+                Connect Phantom
+              </button>
+              <button onClick={() => console.log('wallet connect coming M3')}
+                style={{ padding: '10px 12px', borderRadius: 4, cursor: 'pointer',
+                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  letterSpacing: '.08em', textTransform: 'uppercase',
+                  border: '1px solid #2a2318', color: '#5a5550', background: 'none' }}>
+                Connect Solflare
+              </button>
+            </div>
+          </>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 10,
+              color: '#5a5550', wordBreak: 'break-all' }}>
+              7xM2RkFpXjnQaD3Hv9KtLwSePbzCnYu4VoiT8mgA5Qr
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+                  letterSpacing: '.1em', textTransform: 'uppercase',
+                  color: '#5a5550', marginBottom: 2 }}>$ROAD (KV)</div>
+                <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 14,
+                  fontWeight: 700, color: '#e8c84a' }}>
+                  {roadBalance >= 1000
+                    ? (roadBalance / 1000).toFixed(1) + 'k'
+                    : roadBalance.toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+                  letterSpacing: '.1em', textTransform: 'uppercase',
+                  color: '#5a5550', marginBottom: 2 }}>SOL Balance</div>
+                <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 14,
+                  fontWeight: 700, color: '#4af0c8' }}>—</div>
+                <div style={{ fontSize: 9, color: '#2a2318' }}>devnet not live</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <button onClick={() => console.log('register wallet coming M3')}
+                style={{ flex: 1, padding: '7px 10px', borderRadius: 4, cursor: 'pointer',
+                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  letterSpacing: '.06em', textTransform: 'uppercase',
+                  border: '1px solid #e8c84a44', color: '#e8c84a', background: '#e8c84a08' }}>
+                Register
+              </button>
+              <button onClick={() => setConnected(false)}
+                style={{ flex: 1, padding: '7px 10px', borderRadius: 4, cursor: 'pointer',
+                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  letterSpacing: '.06em', textTransform: 'uppercase',
+                  border: '1px solid #2a2318', color: '#5a5550', background: 'none' }}>
+                Disconnect
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #2a2318' }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+            letterSpacing: '.1em', textTransform: 'uppercase',
+            color: '#5a5550', marginBottom: 8 }}>What unlocks at mainnet</div>
+          {[
+            'On-chain $ROAD SPL balance → replaces KV fallback',
+            'Live tier derivation via getTierFromBalance()',
+            'Founding NFT ownership verification',
+            'Squads multisig co-sign for treasury actions',
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, padding: '5px 0',
+              borderBottom: i < 3 ? '1px solid #2a2318' : 'none' }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%',
+                background: '#4af0c844', flexShrink: 0, marginTop: 4 }} />
+              <span style={{ fontSize: 10, color: '#5a5550' }}>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Format ISO date string "2026-03-24" → "Mar 24"
 function fmtDate(iso) {
   const d = new Date(iso)
@@ -703,15 +915,25 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
       {/* Member profile card — visual layer above tier block; reuses existing profile fetch */}
       {!profileLoading && (
         <>
-          <MemberCardWebGL
-            alias={profile?.alias ?? 'Member'}
-            tier={memberTier}
-            roadBalance={balance}
-            avatarUrl={profile?.avatarUrl ?? null}
-            joinDate={profile?.joinDate ?? null}
-          />
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <MemberCardWebGL
+                alias={profile?.alias ?? 'Member'}
+                tier={memberTier}
+                roadBalance={balance}
+                avatarUrl={profile?.avatarUrl ?? null}
+                joinDate={profile?.joinDate ?? null}
+              />
+            </div>
+            <PropAccountBlock memberTier={memberTier} />
+          </div>
           <Divider />
-          <DailyMissions />
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <DailyMissions />
+            </div>
+            <RoadLadder roadBalance={balance} />
+          </div>
           <Divider />
           <Tracks />
           <Divider />
@@ -1683,7 +1905,7 @@ function TreasuryTab({ memberTier }) {
 
 // ── Root component ───────────────────────────────────────────────────────────
 
-export default function RoadHouse({ memberTier = 'guest', walletAddress = null }) {
+export default function RoadHouse({ memberTier = 'guest', walletAddress = null, roadBalance = 0 }) {
   const [active, setActive] = useState('MY ROADHOUSE')
 
   const tabContent = {
@@ -1692,6 +1914,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
     'PROTOCOL':     <ProtocolTab memberTier={memberTier} />,
     'GUILD':        <GuildTab walletAddress={walletAddress} />,
     'TREASURY':     <TreasuryTab memberTier={memberTier} />,
+    'WALLET':       <WalletTab roadBalance={roadBalance} />,
   }
 
   return (

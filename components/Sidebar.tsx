@@ -218,6 +218,44 @@ export default function Sidebar() {
               </li>
             ))}
           </ul>
+
+          {/* Web3 section */}
+          <div className="mt-4">
+            <div className="px-4 mb-1.5">
+              <span className="text-[9px] tracking-[0.3em] uppercase text-rh-faint font-medium">Web3</span>
+            </div>
+            <ul className="space-y-0.5 px-3">
+              <li>
+                <button
+                  onClick={() => handleNavClick('/dashboard')}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-[12px] tracking-wider transition-colors duration-150 text-white/60 hover:text-white/90 hover:bg-white/5 border border-transparent"
+                >
+                  <span className="w-4 text-center text-sm opacity-70">◈</span>
+                  <span className="uppercase">Wallet</span>
+                </button>
+              </li>
+              <li>
+                <div
+                  style={{ opacity: 0.4, pointerEvents: 'none' }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] tracking-wider text-white/60 border border-transparent"
+                >
+                  <span className="w-4 text-center text-sm opacity-70">◇</span>
+                  <span className="uppercase">NFTs</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 9, color: '#2a2318', letterSpacing: '0.1em' }}>M3</span>
+                </div>
+              </li>
+              <li>
+                <div
+                  style={{ opacity: 0.4, pointerEvents: 'none' }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] tracking-wider text-white/60 border border-transparent"
+                >
+                  <span className="w-4 text-center text-sm opacity-70">⬡</span>
+                  <span className="uppercase">DAO</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 9, color: '#2a2318', letterSpacing: '0.1em' }}>M3</span>
+                </div>
+              </li>
+            </ul>
+          </div>
         </nav>
 
         {/* Member Dashboard link */}

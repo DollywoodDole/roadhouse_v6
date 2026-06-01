@@ -290,7 +290,17 @@ function MemberGate({ isConnected, memberTier, requiredTier, children }) {
 
 // ── Header bar ───────────────────────────────────────────────────────────────
 
-function DashboardHeader({ walletAddress, memberTier, onDisconnect }) {
+const TIER_COLOR_MAP = {
+  'regular': '#ede8dc', 'ranch-hand': '#e8c84a', 'partner': '#ff5c35',
+  'founding': '#e8c84a', 'steward': '#4af0c8', 'praetor': '#e8c84a',
+}
+
+const TIER_LABEL_MAP = {
+  'regular': 'Regular', 'ranch-hand': 'Ranch Hand', 'partner': 'Partner',
+  'founding': 'Founding', 'steward': 'Steward', 'praetor': 'Praetor',
+}
+
+function DashboardHeader({ walletAddress, memberTier, roadBalance, onDisconnect }) {
   return (
     <header style={{
       display: 'flex',
@@ -345,6 +355,34 @@ function DashboardHeader({ walletAddress, memberTier, onDisconnect }) {
         gap: '0.6rem',
         flexWrap: 'wrap',
       }}>
+        {/* $ROAD chip */}
+        <div style={{
+          background: '#111110', border: '1px solid #2a2318',
+          padding: '5px 12px', borderRadius: 4,
+          fontFamily: 'Space Mono, monospace', fontSize: 11,
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 9, letterSpacing: '.08em', color: '#5a5550' }}>$ROAD</span>
+          <span style={{ color: '#e8c84a', fontWeight: 700 }}>
+            {roadBalance >= 1000
+              ? (roadBalance / 1000).toFixed(1) + 'k'
+              : (roadBalance ?? 0).toLocaleString()}
+          </span>
+        </div>
+
+        {/* Tier chip */}
+        <div style={{
+          background: '#111110', border: '1px solid #2a2318',
+          padding: '5px 12px', borderRadius: 4,
+          fontFamily: 'Space Mono, monospace', fontSize: 11,
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 9, letterSpacing: '.08em', color: '#5a5550' }}>Tier</span>
+          <span style={{ color: TIER_COLOR_MAP[memberTier] ?? '#ede8dc', fontWeight: 700 }}>
+            {TIER_LABEL_MAP[memberTier] ?? memberTier}
+          </span>
+        </div>
+
         {/* Wallet address pill — truncated 4…4 format */}
         <span style={{
           fontFamily: 'Space Mono, monospace',
@@ -371,7 +409,7 @@ function DashboardHeader({ walletAddress, memberTier, onDisconnect }) {
           borderRadius: '3px',
           padding: '0.3rem 0.7rem',
         }}>
-          {memberTier}
+          {memberTier.toUpperCase()}
         </span>
 
         {/* Disconnect button */}
@@ -459,7 +497,8 @@ export default function RoadHouseDashboard() {
         <div style={{ minHeight: '100vh', background: '#0a0a08' }}>
           <DashboardHeader
             walletAddress={walletAddress}
-            memberTier={memberTier.toUpperCase()}
+            memberTier={memberTier}
+            roadBalance={roadBalance}
             onDisconnect={handleDisconnect}
           />
           {/* 5-tab main body — memberTier + walletAddress + roadBalance passed through */}
