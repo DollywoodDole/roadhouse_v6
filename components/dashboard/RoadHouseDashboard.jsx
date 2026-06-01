@@ -282,7 +282,8 @@ function MemberGate({ isConnected, memberTier, requiredTier, children }) {
   //   e.g. const balance = await getTokenAccountsByOwner(connection, publicKey, ROAD_MINT_PUBKEY)
   //        const tier = getTierFromBalance(balance)
   //        if (TIER_RANK[tier] < TIER_RANK[requiredTier]) return <ConnectPrompt />
-  if (!isConnected) {
+  // DEV: guest access enabled — remove this comment and restore the gate before launch
+  if (false && !isConnected) {
     return <ConnectPrompt />
   }
   return <>{children}</>
@@ -312,6 +313,8 @@ function DashboardHeader({ walletAddress, memberTier, roadBalance, onDisconnect 
       fontFamily: 'Space Mono, monospace',
       flexWrap: 'wrap',
       gap: '0.75rem',
+      position: 'relative',
+      zIndex: 1,
     }}>
       {/* Left: wordmark → home + back link */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>

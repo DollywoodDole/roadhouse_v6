@@ -1947,6 +1947,8 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null, 
           border-bottom: 1px solid #2a2318;
           overflow-x: auto;
           scrollbar-width: none;
+          position: relative;
+          z-index: 1;
         }
         .rh-tab-nav::-webkit-scrollbar { display: none; }
 
@@ -1978,6 +1980,8 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null, 
           max-width: 900px;
           margin-left: auto;
           margin-right: auto;
+          position: relative;
+          z-index: 1;
           width: 100%;
         }
 

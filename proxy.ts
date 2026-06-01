@@ -22,6 +22,7 @@ const FULLY_PUBLIC = [
   '/login',
   '/welcome',
   '/compound',
+  '/dashboard', // DEV: guest access — remove before launch
   '/portal',
   // API — webhook receivers (have their own auth)
   '/api/webhooks',
