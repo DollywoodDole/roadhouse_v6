@@ -3,17 +3,8 @@
 /**
  * RoadHouse Capital — Member Dashboard
  * ─────────────────────────────────────
- * Wraps the 6-tab RoadHouse component in a MemberGate.
- * Header bar: wordmark · wallet pill · tier badge · disconnect.
- *
- * WALLET GATING:
- *   Connected via useWallet() — Phantom adapter, devnet.
- *   Wallet context is provided by SolanaWalletProvider in app/layout.tsx.
- *   Modal is opened via useWalletModal() from @solana/wallet-adapter-react-ui.
- *
- * TIER GATING:
- *   memberTier is hardcoded "founding" for now.
- *   TODO: derive from $ROAD token balance via getTokenAccountsByOwner
+ * 3-column shell: 52px icon rail · 220px sidebar · 1fr main content
+ * Nav state lives here; passed down as activeNavItem to RoadHouse.jsx
  */
 
 import { useState, useEffect } from 'react'
@@ -25,11 +16,6 @@ import { useSessionRefresh } from '@/lib/use-session-refresh'
 
 /**
  * Fetches member tier and $ROAD balance from KV via wallet address.
- * Uses the wallet:{address} → customerId reverse index written by registerWallet().
- * Falls back to 'guest' if wallet is not linked.
- *
- * Replace with useRoadToken() from @/lib/road-token in M3 when the SPL mint
- * is live on mainnet — same interface, drop-in swap.
  */
 function useMemberProfile() {
   const { publicKey, connected } = useWallet()
@@ -61,7 +47,6 @@ function useMemberProfile() {
       })
       .catch((err) => {
         if (cancelled) return
-        // Wallet not linked yet — show guest tier, not an error state
         setProfile({ tier: 'guest', roadBalance: 0, loading: false, error: null })
         console.error('[useMemberProfile]', err.message)
       })
@@ -73,7 +58,6 @@ function useMemberProfile() {
 }
 
 // ── ConnectPrompt ────────────────────────────────────────────────────────────
-// Rendered by MemberGate when connected === false.
 
 function ConnectPrompt() {
   const { setVisible } = useWalletModal()
@@ -81,7 +65,7 @@ function ConnectPrompt() {
   return (
     <div className="rh-gate-wrapper">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Syne:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
 
         .rh-gate-wrapper {
           min-height: 100vh;
@@ -131,7 +115,6 @@ function ConnectPrompt() {
           color: #8a7d6a;
           margin-bottom: 2rem;
         }
-        /* Primary CTA — join */
         .rh-connect-btn-join {
           display: block;
           width: 100%;
@@ -152,7 +135,6 @@ function ConnectPrompt() {
           box-sizing: border-box;
         }
         .rh-connect-btn-join:hover { opacity: 0.88; }
-        /* Divider */
         .rh-connect-sep {
           display: flex;
           align-items: center;
@@ -170,7 +152,6 @@ function ConnectPrompt() {
           color: #4a4238;
           white-space: nowrap;
         }
-        /* Secondary CTA — connect wallet */
         .rh-connect-btn-wallet {
           display: block;
           width: 100%;
@@ -209,7 +190,6 @@ function ConnectPrompt() {
       `}</style>
 
       <div className="rh-connect-card">
-        {/* Wordmark — links home */}
         <a href="/" className="rh-connect-wordmark">ROADHOUSE CAPITAL</a>
         <div className="rh-connect-tagline">WHERE STANDARDS MATTER</div>
 
@@ -219,34 +199,26 @@ function ConnectPrompt() {
           Membership starts at $19.99/mo.
         </p>
 
-        {/* Primary CTA — 1 click to membership page, 1 click to Stripe checkout */}
         <a href="/#membership" className="rh-connect-btn-join">
           Join RoadHouse →
         </a>
 
-        {/* Divider */}
         <div className="rh-connect-sep">
           <div className="rh-connect-sep-line" />
           <span className="rh-connect-sep-label">ALREADY A MEMBER?</span>
           <div className="rh-connect-sep-line" />
         </div>
 
-        {/* Secondary CTA — existing members connect wallet */}
-        <button
-          className="rh-connect-btn-wallet"
-          onClick={() => setVisible(true)}
-        >
+        <button className="rh-connect-btn-wallet" onClick={() => setVisible(true)}>
           Connect Wallet
         </button>
 
-        {/* Wallet tags */}
         <div className="rh-connect-tags">
           {['Phantom', 'Solflare', 'Solana'].map(tag => (
             <span key={tag} className="rh-connect-tag">{tag}</span>
           ))}
         </div>
 
-        {/* Back link */}
         <a
           href="/"
           style={{
@@ -271,17 +243,8 @@ function ConnectPrompt() {
 }
 
 // ── MemberGate ───────────────────────────────────────────────────────────────
-// Props:
-//   isConnected   (bool)   — wallet connected?
-//   memberTier    (string) — e.g. "founding", "partner", "ranch", "regular"
-//   requiredTier  (string) — minimum tier to access this view
-//   children      — rendered when gate passes
 
 function MemberGate({ isConnected, memberTier, requiredTier, children }) {
-  // TODO: fetch $ROAD token balance from publicKey, map to tier, enforce requiredTier
-  //   e.g. const balance = await getTokenAccountsByOwner(connection, publicKey, ROAD_MINT_PUBKEY)
-  //        const tier = getTierFromBalance(balance)
-  //        if (TIER_RANK[tier] < TIER_RANK[requiredTier]) return <ConnectPrompt />
   // DEV: guest access enabled — remove this comment and restore the gate before launch
   if (false && !isConnected) {
     return <ConnectPrompt />
@@ -289,7 +252,7 @@ function MemberGate({ isConnected, memberTier, requiredTier, children }) {
   return <>{children}</>
 }
 
-// ── Header bar ───────────────────────────────────────────────────────────────
+// ── Tier maps ─────────────────────────────────────────────────────────────────
 
 const TIER_COLOR_MAP = {
   'regular': '#ede8dc', 'ranch-hand': '#e8c84a', 'partner': '#ff5c35',
@@ -301,158 +264,392 @@ const TIER_LABEL_MAP = {
   'founding': 'Founding', 'steward': 'Steward', 'praetor': 'Praetor',
 }
 
-function DashboardHeader({ walletAddress, memberTier, roadBalance, onDisconnect }) {
+// ── Nav data ──────────────────────────────────────────────────────────────────
+
+const PAGE_MAP = {
+  'overview': 'home', 'profile': 'home', 'prop-account': 'home',
+  'bounties': 'earn', 'missions': 'earn', 'marketplace': 'earn', 'leaderboard': 'earn',
+  'war-room': 'community', 'protocol': 'community', 'events': 'community', 'members': 'community',
+  'treasury-overview': 'treasury', 'governance': 'treasury', 'nfts': 'treasury', 'dao-vote': 'treasury',
+}
+
+const PAGE_DEFAULTS = {
+  home: 'overview', earn: 'bounties', community: 'war-room', treasury: 'treasury-overview',
+}
+
+const NAV_SECTIONS = [
+  { key: 'home', label: null, items: [
+    { key: 'overview',     label: 'Overview' },
+    { key: 'profile',      label: 'Profile' },
+    { key: 'prop-account', label: 'Prop Account' },
+  ]},
+  { key: 'earn', label: 'EARN', items: [
+    { key: 'bounties',    label: 'Bounties',    badge: '4' },
+    { key: 'missions',    label: 'Missions',    reward: '+250' },
+    { key: 'marketplace', label: 'Marketplace' },
+    { key: 'leaderboard', label: 'Leaderboard' },
+  ]},
+  { key: 'community', label: 'COMMUNITY', items: [
+    { key: 'war-room', label: 'War Room', badge: '3' },
+    { key: 'protocol', label: 'Protocol' },
+    { key: 'events',   label: 'Events' },
+    { key: 'members',  label: 'Members' },
+  ]},
+  { key: 'treasury', label: 'TREASURY', items: [
+    { key: 'treasury-overview', label: 'Overview' },
+    { key: 'governance', label: 'Governance', locked: true },
+    { key: 'nfts',       label: 'NFTs',       locked: true },
+    { key: 'dao-vote',   label: 'DAO Vote',   locked: true },
+  ]},
+]
+
+// ── IconRail ──────────────────────────────────────────────────────────────────
+
+const RAIL_PAGES = [
+  { key: 'home',      icon: '⌂' },
+  { key: 'earn',      icon: '◈' },
+  { key: 'community', icon: '⬡' },
+  { key: 'treasury',  icon: '◎' },
+]
+
+function IconRail({ activePage, onPageChange }) {
   return (
-    <header style={{
+    <div style={{
+      width: 52,
+      background: '#0d0c0a',
+      borderRight: '1px solid #161513',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0.75rem 1.5rem',
-      background: '#0a0a08',
-      borderBottom: '1px solid #2a2318',
-      fontFamily: 'Space Mono, monospace',
-      flexWrap: 'wrap',
-      gap: '0.75rem',
-      position: 'relative',
-      zIndex: 1,
+      paddingTop: 14,
+      paddingBottom: 14,
+      position: 'sticky',
+      top: 0,
+      height: '100vh',
+      boxSizing: 'border-box',
+      zIndex: 2,
     }}>
-      {/* Left: wordmark → home + back link */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
+      {/* RH wordmark — vertical */}
+      <div style={{
+        fontFamily: 'Bebas Neue, sans-serif',
+        fontSize: 13,
+        letterSpacing: '0.18em',
+        color: '#e8c84a',
+        writingMode: 'vertical-lr',
+        transform: 'rotate(180deg)',
+        marginBottom: 18,
+        userSelect: 'none',
+        lineHeight: 1,
+      }}>
+        RH
+      </div>
+
+      {/* Section buttons */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+        {RAIL_PAGES.map(p => {
+          const isActive = activePage === p.key
+          return (
+            <button
+              key={p.key}
+              title={p.key.charAt(0).toUpperCase() + p.key.slice(1)}
+              onClick={() => onPageChange(p.key)}
+              style={{
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: isActive ? '#e8c84a0f' : 'transparent',
+                border: `1px solid ${isActive ? '#e8c84a1a' : 'transparent'}`,
+                borderRadius: 4,
+                color: isActive ? '#e8c84a' : '#5a5550',
+                fontSize: 16,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = '#ffffff06'
+                  e.currentTarget.style.color = '#ede8dc'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = '#5a5550'
+                }
+              }}
+            >
+              {p.icon}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Settings at bottom */}
+      <button
+        title="Settings"
+        style={{
+          width: 36,
+          height: 36,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'transparent',
+          border: '1px solid transparent',
+          borderRadius: 4,
+          color: '#5a5550',
+          fontSize: 16,
+          cursor: 'pointer',
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = '#ffffff06'
+          e.currentTarget.style.color = '#ede8dc'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = '#5a5550'
+        }}
+      >
+        ⚙
+      </button>
+    </div>
+  )
+}
+
+// ── VaultPanel ────────────────────────────────────────────────────────────────
+
+function VaultPanel({ roadBalance, walletAddress, memberTier }) {
+  const tierColor = TIER_COLOR_MAP[memberTier] ?? '#ede8dc'
+
+  return (
+    <div style={{
+      background: '#1a1814',
+      border: '1px solid #1e1e1c',
+      borderRadius: 6,
+      margin: '10px 10px 0',
+      padding: '10px 12px',
+    }}>
+      {/* $ROAD Balance */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+          $ROAD
+        </span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#e8c84a', fontWeight: 500 }}>
+          {roadBalance >= 1000
+            ? (roadBalance / 1000).toFixed(1) + 'k'
+            : (roadBalance ?? 0).toLocaleString()}
+        </span>
+      </div>
+
+      {/* SOL Wallet */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+          Wallet
+        </span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: walletAddress ? '#8a7d6a' : '#3a3530' }}>
+          {walletAddress ?? 'Not connected'}
+        </span>
+      </div>
+
+      {/* Prop Account */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #1e1e1c' }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+          Prop P&amp;L
+        </span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#4af0c8', fontWeight: 500 }}>
+          +$682
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── DashboardSidebar ──────────────────────────────────────────────────────────
+
+function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance, walletAddress }) {
+  const tierColor = TIER_COLOR_MAP[memberTier] ?? '#ede8dc'
+  const tierLabel = TIER_LABEL_MAP[memberTier] ?? memberTier
+
+  return (
+    <div style={{
+      width: 220,
+      background: '#0f0e0c',
+      borderRight: '1px solid #161513',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'sticky',
+      top: 0,
+      height: '100vh',
+      overflowY: 'auto',
+      boxSizing: 'border-box',
+      zIndex: 2,
+    }}>
+      {/* Member identity block */}
+      <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid #161513' }}>
+        {/* Avatar */}
+        <div style={{
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          background: `linear-gradient(135deg, ${tierColor}22, ${tierColor}08)`,
+          border: `1px solid ${tierColor}44`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 10,
+          fontFamily: 'Bebas Neue, sans-serif',
+          fontSize: 18,
+          color: tierColor,
+          letterSpacing: '0.05em',
+        }}>
+          D
+        </div>
+
+        {/* Name */}
+        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, letterSpacing: '0.06em', color: '#ede8dc', lineHeight: 1, marginBottom: 3 }}>
+          DollywoodDole
+        </div>
+
+        {/* Handle + guild */}
+        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.1em', marginBottom: 8 }}>
+          @dollywooddole · Builder Guild
+        </div>
+
+        {/* Tier badge */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          background: `${tierColor}10`,
+          border: `1px solid ${tierColor}30`,
+          borderRadius: 3,
+          padding: '2px 7px',
+        }}>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: tierColor }}>
+            {tierLabel}
+          </span>
+        </div>
+      </div>
+
+      {/* Vault panel */}
+      <VaultPanel roadBalance={roadBalance} walletAddress={walletAddress} memberTier={memberTier} />
+
+      {/* Nav sections */}
+      <nav style={{ flex: 1, padding: '8px 0 16px', overflowY: 'auto' }}>
+        {NAV_SECTIONS.map(section => (
+          <div key={section.key} style={{ marginTop: section.label ? 16 : 8 }}>
+            {section.label && (
+              <div style={{
+                fontFamily: 'DM Mono, monospace',
+                fontSize: 8,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: '#3a3530',
+                padding: '0 14px',
+                marginBottom: 4,
+              }}>
+                {section.label}
+              </div>
+            )}
+
+            {section.items.map(item => {
+              const isActive = activeNavItem === item.key
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => !item.locked && onNavChange(item.key)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '6px 14px',
+                    background: isActive ? '#e8c84a08' : 'transparent',
+                    border: 'none',
+                    borderLeft: `2px solid ${isActive ? '#e8c84a' : 'transparent'}`,
+                    color: item.locked ? '#3a3530' : isActive ? '#e8c84a' : '#8a7d6a',
+                    cursor: item.locked ? 'default' : 'pointer',
+                    opacity: item.locked ? 0.4 : 1,
+                    textAlign: 'left',
+                    transition: 'all 0.12s',
+                    boxSizing: 'border-box',
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive && !item.locked) {
+                      e.currentTarget.style.background = '#ffffff04'
+                      e.currentTarget.style.color = '#ede8dc'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive && !item.locked) {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#8a7d6a'
+                    }
+                  }}
+                >
+                  <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.04em' }}>
+                    {item.locked ? '⬡ ' : ''}{item.label}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {item.badge && (
+                      <span style={{
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: 9,
+                        color: '#e8c84a',
+                        background: '#e8c84a14',
+                        border: '1px solid #e8c84a20',
+                        borderRadius: 3,
+                        padding: '1px 5px',
+                      }}>
+                        {item.badge}
+                      </span>
+                    )}
+                    {item.reward && (
+                      <span style={{
+                        fontFamily: 'DM Mono, monospace',
+                        fontSize: 9,
+                        color: '#4af0c8',
+                        letterSpacing: '0.05em',
+                      }}>
+                        {item.reward}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        ))}
+      </nav>
+
+      {/* Bottom: disconnect */}
+      <div style={{ padding: '10px 14px', borderTop: '1px solid #161513' }}>
         <a
           href="/"
           style={{
-            fontFamily: 'Bebas Neue, sans-serif',
-            fontSize: '1.25rem',
-            letterSpacing: '0.15em',
-            color: '#e8c84a',
-            textDecoration: 'none',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-        >
-          ROADHOUSE CAPITAL
-        </a>
-        <a
-          href="/"
-          style={{
-            fontFamily: 'Space Mono, monospace',
-            fontSize: '0.6rem',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: 9,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#4a4238',
+            color: '#3a3530',
             textDecoration: 'none',
+            display: 'block',
             transition: 'color 0.2s',
           }}
           onMouseEnter={e => { e.currentTarget.style.color = '#8a7d6a' }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#4a4238' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#3a3530' }}
         >
           ← Home
         </a>
       </div>
-
-      {/* Right: wallet pill + tier badge + disconnect */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.6rem',
-        flexWrap: 'wrap',
-      }}>
-        {/* $ROAD chip */}
-        <div style={{
-          background: '#111110', border: '1px solid #2a2318',
-          padding: '5px 12px', borderRadius: 4,
-          fontFamily: 'Space Mono, monospace', fontSize: 11,
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          <span style={{ fontSize: 9, letterSpacing: '.08em', color: '#5a5550' }}>$ROAD</span>
-          <span style={{ color: '#e8c84a', fontWeight: 700 }}>
-            {roadBalance >= 1000
-              ? (roadBalance / 1000).toFixed(1) + 'k'
-              : (roadBalance ?? 0).toLocaleString()}
-          </span>
-        </div>
-
-        {/* Tier chip */}
-        <div style={{
-          background: '#111110', border: '1px solid #2a2318',
-          padding: '5px 12px', borderRadius: 4,
-          fontFamily: 'Space Mono, monospace', fontSize: 11,
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          <span style={{ fontSize: 9, letterSpacing: '.08em', color: '#5a5550' }}>Tier</span>
-          <span style={{ color: TIER_COLOR_MAP[memberTier] ?? '#ede8dc', fontWeight: 700 }}>
-            {TIER_LABEL_MAP[memberTier] ?? memberTier}
-          </span>
-        </div>
-
-        {/* Wallet address pill — truncated 4…4 format */}
-        <span style={{
-          fontFamily: 'Space Mono, monospace',
-          fontSize: '0.65rem',
-          color: '#8a7d6a',
-          background: '#111009',
-          border: '1px solid #2a2318',
-          borderRadius: '3px',
-          padding: '0.3rem 0.7rem',
-          letterSpacing: '0.05em',
-        }}>
-          {walletAddress}
-        </span>
-
-        {/* Tier badge */}
-        <span style={{
-          fontFamily: 'Space Mono, monospace',
-          fontSize: '0.6rem',
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
-          color: '#4af0c8',
-          background: 'rgba(74,240,200,0.08)',
-          border: '1px solid rgba(74,240,200,0.2)',
-          borderRadius: '3px',
-          padding: '0.3rem 0.7rem',
-        }}>
-          {memberTier.toUpperCase()}
-        </span>
-
-        {/* Disconnect button */}
-        <button
-          onClick={onDisconnect}
-          style={{
-            fontFamily: 'Space Mono, monospace',
-            fontSize: '0.6rem',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: '#4a4238',
-            background: 'transparent',
-            border: '1px solid #2a2318',
-            borderRadius: '3px',
-            padding: '0.3rem 0.7rem',
-            cursor: 'pointer',
-            transition: 'color 0.2s, border-color 0.2s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = '#ff5c35'
-            e.currentTarget.style.borderColor = 'rgba(255,92,53,0.4)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = '#4a4238'
-            e.currentTarget.style.borderColor = '#2a2318'
-          }}
-        >
-          Disconnect
-        </button>
-      </div>
-    </header>
+    </div>
   )
 }
 
 // ── RoadHouseDashboard ───────────────────────────────────────────────────────
 
 export default function RoadHouseDashboard() {
-  // Mounted guard — prevents hydration mismatch from useWallet() returning
-  // different state on server (connected=false) vs client (real wallet state).
-  // All hooks must be called unconditionally first; return null before first render.
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   useSessionRefresh()
@@ -461,26 +658,29 @@ export default function RoadHouseDashboard() {
   const { tier: memberTier, roadBalance, loading } = useMemberProfile()
   const router = useRouter()
 
+  // Nav state — lives here, passed down
+  const [activeNavItem, setActiveNavItem] = useState('overview')
+
   if (!mounted) return null
 
-  // Truncate publicKey to 4…4 display format
   const walletAddress = publicKey
     ? publicKey.toBase58().slice(0, 4) + '...' + publicKey.toBase58().slice(-4)
     : null
 
-  // Clear JWT cookie → disconnect wallet → redirect to login
   const handleDisconnect = async () => {
     try { await fetch('/api/auth/wallet', { method: 'DELETE' }) } catch (_) {}
     disconnect()
     router.replace('/login')
   }
 
+  // When clicking a page button in the rail, jump to that page's default nav item
+  const activePage = PAGE_MAP[activeNavItem] ?? 'home'
+  const handlePageChange = (pageKey) => {
+    setActiveNavItem(PAGE_DEFAULTS[pageKey] ?? activeNavItem)
+  }
+
   return (
-    <MemberGate
-      isConnected={connected}
-      memberTier={memberTier}
-      requiredTier="founding"
-    >
+    <MemberGate isConnected={connected} memberTier={memberTier} requiredTier="founding">
       {connected && loading ? (
         <div style={{
           minHeight: '100vh',
@@ -497,15 +697,22 @@ export default function RoadHouseDashboard() {
           Loading…
         </div>
       ) : (
-        <div style={{ minHeight: '100vh', background: '#0a0a08' }}>
-          <DashboardHeader
-            walletAddress={walletAddress}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '52px 220px 1fr',
+          minHeight: '100vh',
+          background: '#0a0a08',
+        }}>
+          <IconRail activePage={activePage} onPageChange={handlePageChange} />
+          <DashboardSidebar
+            activeNavItem={activeNavItem}
+            onNavChange={setActiveNavItem}
             memberTier={memberTier}
             roadBalance={roadBalance}
-            onDisconnect={handleDisconnect}
+            walletAddress={walletAddress}
           />
-          {/* 5-tab main body — memberTier + walletAddress + roadBalance passed through */}
           <RoadHouse
+            activeNavItem={activeNavItem}
             memberTier={memberTier}
             walletAddress={walletAddress}
             roadBalance={roadBalance}

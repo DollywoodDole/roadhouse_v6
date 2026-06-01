@@ -3,7 +3,7 @@
 /**
  * RoadHouse — 5-Tab Member Dashboard Component
  * ─────────────────────────────────────────────
- * Design system: Space Mono + Bebas Neue + Syne
+ * Design system: Space Mono + Bebas Neue + DM Mono
  * CSS vars scoped to .rh-dash: --bg, --accent (gold), --accent2 (red), --accent3 (teal)
  * Grain overlay inherited from body.grain in globals.css — not re-declared here.
  *
@@ -25,9 +25,14 @@ import { getActiveExperiment, submitDailyEntry, getAggregateStats } from '@/lib/
 import { getActiveBounties, claimBounty } from '@/lib/api/bounties'
 import { getTreasurySnapshot, getGovernanceVotes } from '@/lib/gnosis'
 
-// ── Tab definitions ──────────────────────────────────────────────────────────
+// ── Page routing ──────────────────────────────────────────────────────────────
 
-const TABS = ['MY ROADHOUSE', 'ECONOMY', 'PROTOCOL', 'GUILD', 'TREASURY', 'WALLET']
+const PAGE_LABEL_MAP = {
+  'overview': 'Overview', 'profile': 'Profile', 'prop-account': 'Prop Account',
+  'bounties': 'Bounties', 'missions': 'Missions', 'marketplace': 'Marketplace', 'leaderboard': 'Leaderboard',
+  'war-room': 'War Room', 'protocol': 'Protocol', 'events': 'Events', 'members': 'Members',
+  'treasury-overview': 'Treasury', 'governance': 'Governance', 'nfts': 'NFTs', 'dao-vote': 'DAO Vote',
+}
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 
@@ -419,7 +424,7 @@ function DailyMissions() {
                   {m.label}
                 </div>
                 <div style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "'DM Mono', monospace",
                   fontSize: 10, color: catColor,
                   letterSpacing: '0.2em', fontWeight: 700,
                   marginTop: 2,
@@ -459,7 +464,7 @@ function Unlocks() {
   return (
     <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
       {/* Header */}
-      <div style={{ fontSize: 11, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+      <div style={{ fontSize: 11, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'DM Mono', monospace", fontWeight: 700, marginBottom: 14 }}>
         Access &amp; Unlocks
       </div>
 
@@ -556,7 +561,7 @@ function Tracks() {
   return (
     <div style={{ padding: '1.25rem 1.5rem', background: '#111110', border: '1px solid #1e1e1c', borderRadius: 4 }}>
       {/* Header */}
-      <div style={{ fontSize: 11, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'Syne', sans-serif", fontWeight: 700, marginBottom: 14 }}>
+      <div style={{ fontSize: 11, letterSpacing: '0.35em', textTransform: 'uppercase', color: '#6a6560', fontFamily: "'DM Mono', monospace", fontWeight: 700, marginBottom: 14 }}>
         Tracks &amp; Pathways
       </div>
 
@@ -673,7 +678,7 @@ const PropAccountBlock = ({ memberTier }) => {
       borderRadius: 8, padding: '16px 18px', minWidth: 220,
       display: 'flex', flexDirection: 'column', gap: 10,
     }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9,
         letterSpacing: '.12em', textTransform: 'uppercase', color: '#5a5550' }}>
         Prop Account
       </div>
@@ -714,7 +719,7 @@ const TIER_LADDER = [
 const RoadLadder = ({ roadBalance = 0 }) => (
   <div style={{ background: '#111110', border: '1px solid #1e1e1c',
     borderRadius: 8, padding: '16px 18px', flex: 1 }}>
-    <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 10,
+    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10,
       letterSpacing: '.1em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
       $ROAD Ladder
     </div>
@@ -761,7 +766,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 520 }}>
       <div style={{ background: '#111110', border: '1px solid #1e1e1c',
         borderRadius: 8, padding: '16px 18px' }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 10,
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10,
           letterSpacing: '.1em', textTransform: 'uppercase',
           color: '#5a5550', marginBottom: 12 }}>Solana Wallet</div>
 
@@ -771,7 +776,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
               gap: 8, padding: 22, borderRadius: 8, border: '1px dashed #2a2318',
               background: '#4af0c806', textAlign: 'center', marginBottom: 14 }}>
               <div style={{ fontSize: 28, opacity: .3 }}>⬡</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 10,
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10,
                 letterSpacing: '.12em', textTransform: 'uppercase', color: '#5a5550' }}>
                 Wallet not connected
               </div>
@@ -805,7 +810,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9,
                   letterSpacing: '.1em', textTransform: 'uppercase',
                   color: '#5a5550', marginBottom: 2 }}>$ROAD (KV)</div>
                 <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 14,
@@ -816,7 +821,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
                 </div>
               </div>
               <div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9,
                   letterSpacing: '.1em', textTransform: 'uppercase',
                   color: '#5a5550', marginBottom: 2 }}>SOL Balance</div>
                 <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 14,
@@ -844,7 +849,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
         )}
 
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #2a2318' }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 9,
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9,
             letterSpacing: '.1em', textTransform: 'uppercase',
             color: '#5a5550', marginBottom: 8 }}>What unlocks at mainnet</div>
           {[
@@ -1159,7 +1164,7 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
       <Card accent="teal">
         <Label color="teal">Your Next Move</Label>
         {/* TODO: derive from tier + active guild bounties */}
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: '0.9rem', color: '#e2d9c8', marginTop: '0.25rem' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '0.9rem', color: '#e2d9c8', marginTop: '0.25rem' }}>
           {nextMove}
         </div>
       </Card>
@@ -1676,7 +1681,7 @@ function GuildTab({ walletAddress }) {
       {/* TODO: wire to member profile */}
       <Card>
         <Label>Your Guild</Label>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '1.25rem', color: '#e2d9c8', marginBottom: '0.25rem' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '1.1rem', color: '#e2d9c8', marginBottom: '0.25rem' }}>
           Media Guild
         </div>
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
@@ -1903,30 +1908,350 @@ function TreasuryTab({ memberTier }) {
   )
 }
 
+// ── New page components ───────────────────────────────────────────────────────
+
+const STUB_BOUNTIES = [
+  { id: 1, guild: 'Builder',  title: 'Platform API Documentation',      reward: 800, daysLeft: 3 },
+  { id: 2, guild: 'Media',    title: 'Compound Scouting Week 6 Report', reward: 600, daysLeft: 5 },
+  { id: 3, guild: 'Frontier', title: 'SK Member Outreach — 10 DMs',     reward: 400, daysLeft: 7 },
+  { id: 4, guild: 'Venture',  title: 'Treasury Snapshot Write-up',      reward: 500, daysLeft: 4 },
+]
+
+const GUILD_COLORS = {
+  Builder: '#e8c84a', Media: '#ff5c35', Frontier: '#4af0c8', Venture: '#ede8dc',
+}
+
+const STUB_LEADERS = [
+  { rank: 1, name: 'Talon',   road: '4.2k', guild: 'Venture' },
+  { rank: 2, name: 'Raafat',  road: '3.8k', guild: 'Builder' },
+  { rank: 3, name: 'Matthew', road: '2.1k', guild: 'Media'   },
+  { rank: 4, name: 'You',     road: '1.4k', guild: 'Builder', isYou: true },
+  { rank: 5, name: 'Jordan',  road: '900',  guild: 'Frontier' },
+]
+
+function HomePropPanel() {
+  const metrics = [
+    { label: 'Phase',    value: '2 / 4',  color: '#e8c84a' },
+    { label: 'Win Rate', value: '68%',    color: '#4af0c8' },
+    { label: 'P&L',      value: '+$682',  color: '#4af0c8' },
+    { label: 'Days Left',value: '17',     color: '#ede8dc' },
+  ]
+  return (
+    <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
+        Prop Account
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        {metrics.map(m => (
+          <div key={m.label} style={{ background: '#0a0a08', borderRadius: 4, padding: '10px 12px' }}>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>{m.label}</div>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 20, letterSpacing: '0.04em', color: m.color }}>{m.value}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button style={{ flex: 1, padding: '7px', background: '#e8c84a10', border: '1px solid #e8c84a30', borderRadius: 3, color: '#e8c84a', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>
+          Journal
+        </button>
+        <button style={{ flex: 1, padding: '7px', background: '#4af0c810', border: '1px solid #4af0c830', borderRadius: 3, color: '#4af0c8', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>
+          Scale Up
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
+  const summaryStats = [
+    { label: '$ROAD Balance', value: roadBalance >= 1000 ? (roadBalance / 1000).toFixed(1) + 'k' : (roadBalance ?? 0).toLocaleString(), color: '#e8c84a' },
+    { label: 'Prop P&L',     value: '+$682',  color: '#4af0c8' },
+    { label: 'Streak',       value: '14d',    color: '#ff5c35' },
+    { label: 'Guild Rank',   value: '#4',     color: '#ede8dc' },
+  ]
+
+  return (
+    <div>
+      {/* Summary bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+        {summaryStats.map(s => (
+          <div key={s.label} style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5, padding: '12px 14px' }}>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 22, letterSpacing: '0.04em', color: s.color }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Two-col row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, marginBottom: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Next Move card */}
+          <div style={{ background: '#111110', border: '1px solid #e8c84a20', borderRadius: 6, padding: '14px 16px', borderLeft: '3px solid #e8c84a' }}>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#e8c84a', marginBottom: 8 }}>
+              Next Move
+            </div>
+            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: '#ede8dc', marginBottom: 6 }}>
+              Submit Compound Scouting Report by Thursday
+            </div>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#5a5550' }}>
+              +600 $ROAD · Frontier Guild · 7 days left
+            </div>
+          </div>
+          <DailyMissions />
+        </div>
+        <HomePropPanel />
+      </div>
+
+      {/* Three-col bottom */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+        {/* Activity feed */}
+        <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Activity</div>
+          {[
+            { label: 'Bounty claimed', time: '2h ago', color: '#e8c84a' },
+            { label: 'Profile updated', time: '1d ago', color: '#5a5550' },
+            { label: 'Mission complete', time: '2d ago', color: '#4af0c8' },
+            { label: '$ROAD accrued', time: '3d ago', color: '#e8c84a' },
+          ].map((a, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #1a1a18' }}>
+              <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: a.color }}>{a.label}</span>
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#3a3530' }}>{a.time}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Guild leaderboard */}
+        <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Guild Board</div>
+          {STUB_LEADERS.map(l => (
+            <div key={l.rank} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid #1a1a18' }}>
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#3a3530', width: 14 }}>#{l.rank}</span>
+              <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: l.isYou ? '#e8c84a' : '#ede8dc', flex: 1 }}>{l.name}</span>
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: GUILD_COLORS[l.guild] ?? '#5a5550' }}>{l.road}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Road Ladder */}
+        <RoadLadder roadBalance={roadBalance} />
+      </div>
+    </div>
+  )
+}
+
+function EarnPage({ activeNavItem, walletAddress }) {
+  const [earnTab, setEarnTab] = useState(activeNavItem === 'marketplace' ? 'marketplace' : activeNavItem === 'leaderboard' ? 'leaderboard' : activeNavItem === 'missions' ? 'missions' : 'bounties')
+
+  // Sync sub-tab if activeNavItem changes
+  useEffect(() => {
+    if (['bounties', 'missions', 'marketplace', 'leaderboard'].includes(activeNavItem)) {
+      setEarnTab(activeNavItem)
+    }
+  }, [activeNavItem])
+
+  return (
+    <div>
+      {/* Sub-tab bar */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1e1e1c', marginBottom: 20 }}>
+        {[
+          { key: 'bounties',    label: 'Bounties' },
+          { key: 'missions',    label: 'Missions' },
+          { key: 'marketplace', label: 'Marketplace' },
+          { key: 'leaderboard', label: 'Leaderboard' },
+        ].map(t => (
+          <button
+            key={t.key}
+            onClick={() => setEarnTab(t.key)}
+            style={{
+              padding: '8px 16px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `2px solid ${earnTab === t.key ? '#e8c84a' : 'transparent'}`,
+              color: earnTab === t.key ? '#e8c84a' : '#5a5550',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {earnTab === 'bounties' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {STUB_BOUNTIES.map(b => {
+            const gc = GUILD_COLORS[b.guild] ?? '#5a5550'
+            return (
+              <div key={b.id} style={{
+                background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5,
+                padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
+                borderLeft: `3px solid ${gc}`,
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: '#ede8dc', marginBottom: 5 }}>{b.title}</div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: gc, background: `${gc}12`, border: `1px solid ${gc}25`, borderRadius: 2, padding: '2px 6px', letterSpacing: '0.12em' }}>
+                      {b.guild}
+                    </span>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550' }}>{b.daysLeft}d left</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, color: '#e8c84a', letterSpacing: '0.04em' }}>{b.reward}</div>
+                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, color: '#5a5550' }}>$ROAD</div>
+                </div>
+                <button style={{ padding: '7px 14px', background: '#e8c84a10', border: '1px solid #e8c84a30', borderRadius: 3, color: '#e8c84a', fontFamily: 'DM Mono, monospace', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  Claim
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {earnTab === 'missions' && (
+        <DailyMissions />
+      )}
+
+      {earnTab === 'marketplace' && (
+        <EconomyTab walletAddress={walletAddress} />
+      )}
+
+      {earnTab === 'leaderboard' && (
+        <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '20px' }}>
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 16 }}>Guild Leaderboard</div>
+          {STUB_LEADERS.map(l => (
+            <div key={l.rank} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #1a1a18' }}>
+              <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, color: '#3a3530', width: 24 }}>{l.rank}</span>
+              <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: l.isYou ? '#e8c84a' : '#ede8dc', flex: 1, fontWeight: l.isYou ? 700 : 400 }}>{l.name}{l.isYou ? ' (you)' : ''}</span>
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: GUILD_COLORS[l.guild] ?? '#5a5550' }}>{l.guild}</span>
+              <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 16, color: '#e8c84a' }}>{l.road}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CommunityPage({ activeNavItem, memberTier }) {
+  const [commTab, setCommTab] = useState(activeNavItem === 'protocol' ? 'protocol' : activeNavItem === 'events' ? 'events' : activeNavItem === 'members' ? 'members' : 'war-room')
+
+  useEffect(() => {
+    if (['war-room', 'protocol', 'events', 'members'].includes(activeNavItem)) {
+      setCommTab(activeNavItem)
+    }
+  }, [activeNavItem])
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1e1e1c', marginBottom: 20 }}>
+        {[
+          { key: 'war-room', label: 'War Room' },
+          { key: 'protocol', label: 'Protocol' },
+          { key: 'events',   label: 'Events' },
+          { key: 'members',  label: 'Members' },
+        ].map(t => (
+          <button
+            key={t.key}
+            onClick={() => setCommTab(t.key)}
+            style={{
+              padding: '8px 16px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `2px solid ${commTab === t.key ? '#e8c84a' : 'transparent'}`,
+              color: commTab === t.key ? '#e8c84a' : '#5a5550',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {(commTab === 'war-room' || commTab === 'events' || commTab === 'members') && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <GuildTab walletAddress={null} />
+          </div>
+          <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '20px' }}>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
+              {commTab === 'members' ? 'Members' : commTab === 'events' ? 'Events' : 'Active Now'}
+            </div>
+            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 11, color: '#5a5550', lineHeight: 1.8 }}>
+              {commTab === 'events' ? (
+                <>Compound Phase 2 · Jul 12–18<br/>Summit 2026 · Aug 3–4<br/>Frontier Weekend · Sep 6</>
+              ) : (
+                <>Talon · Raafat · Matthew · Jordan<br/><br/>
+                <span style={{ fontSize: 10, color: '#3a3530' }}>4 members online</span></>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {commTab === 'protocol' && (
+        <ProtocolTab memberTier={memberTier} />
+      )}
+    </div>
+  )
+}
+
+function TreasuryPageWrapper({ memberTier }) {
+  const summaryBuckets = [
+    { label: 'Community Bucket', value: '23.4M $ROAD', color: '#e8c84a' },
+    { label: 'Treasury SOL',     value: '~142 SOL',    color: '#4af0c8' },
+    { label: 'Squads Multisig',  value: '3 of 5',      color: '#ede8dc' },
+  ]
+
+  return (
+    <div>
+      {/* Summary bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+        {summaryBuckets.map(s => (
+          <div key={s.label} style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5, padding: '12px 14px' }}>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, letterSpacing: '0.04em', color: s.color }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <TreasuryTab memberTier={memberTier} />
+
+      <div style={{ marginTop: 16, padding: '10px 14px', background: '#1a1814', border: '1px solid #1e1e1c', borderRadius: 4 }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#3a3530', letterSpacing: '0.12em' }}>
+          Governance, NFTs, and DAO Vote unlock at Steward tier (10,000 $ROAD)
+        </span>
+      </div>
+    </div>
+  )
+}
+
 // ── Root component ───────────────────────────────────────────────────────────
 
-export default function RoadHouse({ memberTier = 'guest', walletAddress = null, roadBalance = 0 }) {
-  const [active, setActive] = useState('MY ROADHOUSE')
-
-  const tabContent = {
-    'MY ROADHOUSE': <MyRoadHouseTab memberTier={memberTier} walletAddress={walletAddress} />,
-    'ECONOMY':      <EconomyTab walletAddress={walletAddress} />,
-    'PROTOCOL':     <ProtocolTab memberTier={memberTier} />,
-    'GUILD':        <GuildTab walletAddress={walletAddress} />,
-    'TREASURY':     <TreasuryTab memberTier={memberTier} />,
-    'WALLET':       <WalletTab roadBalance={roadBalance} />,
-  }
+export default function RoadHouse({ activeNavItem = 'overview', memberTier = 'guest', walletAddress = null, roadBalance = 0 }) {
+  const pageLabel = PAGE_LABEL_MAP[activeNavItem] ?? 'Dashboard'
+  const pageSection = activeNavItem.includes('treasury') || activeNavItem === 'governance' || activeNavItem === 'nfts' || activeNavItem === 'dao-vote'
+    ? 'Treasury'
+    : activeNavItem === 'overview' || activeNavItem === 'profile' || activeNavItem === 'prop-account'
+      ? 'Home'
+      : activeNavItem === 'bounties' || activeNavItem === 'missions' || activeNavItem === 'marketplace' || activeNavItem === 'leaderboard'
+        ? 'Earn'
+        : 'Community'
 
   return (
     <div className="rh-dash">
       <WebGLBackground />
-      {/*
-       * Scoped font import + CSS variable declarations.
-       * Variables are scoped to .rh-dash — they do not bleed into the rest of the app.
-       * Grain overlay is inherited from body.grain in globals.css — not re-declared.
-       */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
         .rh-dash {
           --bg:      #0a0a08;
@@ -1940,49 +2265,46 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null, 
           min-height: 100vh;
         }
 
-        /* Tab nav */
-        .rh-tab-nav {
+        /* Topbar */
+        .rh-topbar {
           display: flex;
-          gap: 0;
-          border-bottom: 1px solid #2a2318;
-          overflow-x: auto;
-          scrollbar-width: none;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 20px;
+          border-bottom: 1px solid #161513;
           position: relative;
           z-index: 1;
+          background: rgba(10,10,8,0.85);
         }
-        .rh-tab-nav::-webkit-scrollbar { display: none; }
-
-        .rh-tab-btn {
-          padding: 0.9rem 1.4rem;
-          font-family: 'Space Mono', monospace;
-          font-size: 0.75rem;
+        .rh-breadcrumb {
+          font-family: 'DM Mono', monospace;
+          font-size: 10px;
           letter-spacing: 0.12em;
+          color: #5a5550;
           text-transform: uppercase;
-          color: #8a7d6a;
-          background: transparent;
-          border: none;
-          border-bottom: 2px solid transparent;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: color 0.2s, border-color 0.2s;
         }
-        .rh-tab-btn:hover {
-          color: #e2d9c8;
+        .rh-breadcrumb-sep { color: #2a2318; margin: 0 6px; }
+        .rh-breadcrumb-page { color: #ede8dc; }
+        .rh-chip {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: #111110;
+          border: 1px solid #1e1e1c;
+          border-radius: 4px;
+          padding: 4px 10px;
+          font-family: 'DM Mono', monospace;
         }
-        .rh-tab-btn.rh-active {
-          color: var(--accent);
-          border-bottom-color: var(--accent);
-        }
+        .rh-chip-label { font-size: 8px; letter-spacing: 0.15em; color: #5a5550; text-transform: uppercase; }
+        .rh-chip-gold { font-size: 11px; color: #e8c84a; font-weight: 500; }
+        .rh-chip-teal { font-size: 11px; color: #4af0c8; }
 
-        /* Content area */
-        .rh-tab-body {
-          padding: 2rem;
-          max-width: 900px;
-          margin-left: auto;
-          margin-right: auto;
+        /* Page body */
+        .rh-page-body {
+          padding: 20px;
           position: relative;
           z-index: 1;
-          width: 100%;
+          overflow-y: auto;
         }
 
         /* Typography */
@@ -2158,31 +2480,59 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null, 
         .rh-milestone-item { font-size: 0.7rem; color: #8a7d6a; }
 
         /* Responsive */
-        @media (max-width: 640px) {
-          .rh-tab-body { padding: 1.25rem; }
+        @media (max-width: 900px) {
+          .rh-page-body { padding: 14px; }
           .rh-stack-name { min-width: 130px; }
-          .rh-tab-btn { padding: 0.75rem 1rem; font-size: 0.65rem; }
         }
       `}</style>
 
-      {/* Tab navigation */}
-      <nav className="rh-tab-nav" role="tablist">
-        {TABS.map(tab => (
-          <button
-            key={tab}
-            role="tab"
-            aria-selected={active === tab}
-            className={`rh-tab-btn${active === tab ? ' rh-active' : ''}`}
-            onClick={() => setActive(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
+      {/* Topbar */}
+      <div className="rh-topbar">
+        <span className="rh-breadcrumb">
+          RoadHouse
+          <span className="rh-breadcrumb-sep">/</span>
+          <span className="rh-breadcrumb-page">{pageSection}</span>
+          {pageSection !== pageLabel && (
+            <>
+              <span className="rh-breadcrumb-sep">/</span>
+              {pageLabel}
+            </>
+          )}
+        </span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <div className="rh-chip">
+            <span className="rh-chip-label">$ROAD</span>
+            <span className="rh-chip-gold">
+              {roadBalance >= 1000 ? (roadBalance / 1000).toFixed(1) + 'k' : (roadBalance ?? 0).toLocaleString()}
+            </span>
+          </div>
+          <div className="rh-chip">
+            <span className="rh-chip-label">Phase</span>
+            <span className="rh-chip-teal">M3</span>
+          </div>
+        </div>
+      </div>
 
-      {/* Active tab content */}
-      <div role="tabpanel">
-        {tabContent[active]}
+      {/* Page content */}
+      <div className="rh-page-body">
+        {activeNavItem === 'overview' && (
+          <HomeOverviewPage memberTier={memberTier} walletAddress={walletAddress} roadBalance={roadBalance} />
+        )}
+        {activeNavItem === 'profile' && (
+          <MyRoadHouseTab memberTier={memberTier} walletAddress={walletAddress} />
+        )}
+        {activeNavItem === 'prop-account' && (
+          <WalletTab roadBalance={roadBalance} />
+        )}
+        {(activeNavItem === 'bounties' || activeNavItem === 'missions' || activeNavItem === 'marketplace' || activeNavItem === 'leaderboard') && (
+          <EarnPage activeNavItem={activeNavItem} walletAddress={walletAddress} />
+        )}
+        {(activeNavItem === 'war-room' || activeNavItem === 'protocol' || activeNavItem === 'events' || activeNavItem === 'members') && (
+          <CommunityPage activeNavItem={activeNavItem} memberTier={memberTier} />
+        )}
+        {(activeNavItem === 'treasury-overview' || activeNavItem === 'governance' || activeNavItem === 'nfts' || activeNavItem === 'dao-vote') && (
+          <TreasuryPageWrapper memberTier={memberTier} />
+        )}
       </div>
     </div>
   )
