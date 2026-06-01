@@ -683,9 +683,9 @@ const PropAccountBlock = ({ memberTier }) => {
         Prop Account
       </div>
       <div>
-        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18,
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18,
           letterSpacing: '.1em', color: '#ff5c35' }}>{propTier}</div>
-        <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 22,
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22,
           fontWeight: 700, color: '#ede8dc' }}>$10,000</div>
         <div style={{ fontSize: 10, color: '#5a5550' }}>Funded Account</div>
       </div>
@@ -732,7 +732,7 @@ const RoadLadder = ({ roadBalance = 0 }) => (
             <div style={{
               width: 28, height: 28, borderRadius: 4, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Bebas Neue, sans-serif', fontSize: 11,
+              fontFamily: "'Bebas Neue', sans-serif", fontSize: 11,
               background: done ? t.color + '1a' : '#ffffff06',
               border: `1px solid ${done ? t.color + '44' : '#2a2318'}`,
               color: done ? t.color : '#5a5550',
@@ -787,7 +787,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button onClick={() => console.log('wallet connect coming M3')}
                 style={{ padding: '10px 12px', borderRadius: 4, cursor: 'pointer',
-                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  fontFamily: "'Space Mono', monospace", fontSize: 10,
                   letterSpacing: '.08em', textTransform: 'uppercase',
                   border: '1px solid #e8c84a44', color: '#e8c84a',
                   background: '#e8c84a08' }}>
@@ -795,7 +795,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
               </button>
               <button onClick={() => console.log('wallet connect coming M3')}
                 style={{ padding: '10px 12px', borderRadius: 4, cursor: 'pointer',
-                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  fontFamily: "'Space Mono', monospace", fontSize: 10,
                   letterSpacing: '.08em', textTransform: 'uppercase',
                   border: '1px solid #2a2318', color: '#5a5550', background: 'none' }}>
                 Connect Solflare
@@ -804,7 +804,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
           </>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 10,
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10,
               color: '#5a5550', wordBreak: 'break-all' }}>
               7xM2RkFpXjnQaD3Hv9KtLwSePbzCnYu4VoiT8mgA5Qr
             </div>
@@ -813,7 +813,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9,
                   letterSpacing: '.1em', textTransform: 'uppercase',
                   color: '#5a5550', marginBottom: 2 }}>$ROAD (KV)</div>
-                <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 14,
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14,
                   fontWeight: 700, color: '#e8c84a' }}>
                   {roadBalance >= 1000
                     ? (roadBalance / 1000).toFixed(1) + 'k'
@@ -824,7 +824,7 @@ const WalletTab = ({ roadBalance = 0 }) => {
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9,
                   letterSpacing: '.1em', textTransform: 'uppercase',
                   color: '#5a5550', marginBottom: 2 }}>SOL Balance</div>
-                <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 14,
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14,
                   fontWeight: 700, color: '#4af0c8' }}>—</div>
                 <div style={{ fontSize: 9, color: '#2a2318' }}>devnet not live</div>
               </div>
@@ -832,14 +832,14 @@ const WalletTab = ({ roadBalance = 0 }) => {
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <button onClick={() => console.log('register wallet coming M3')}
                 style={{ flex: 1, padding: '7px 10px', borderRadius: 4, cursor: 'pointer',
-                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  fontFamily: "'Space Mono', monospace", fontSize: 10,
                   letterSpacing: '.06em', textTransform: 'uppercase',
                   border: '1px solid #e8c84a44', color: '#e8c84a', background: '#e8c84a08' }}>
                 Register
               </button>
               <button onClick={() => setConnected(false)}
                 style={{ flex: 1, padding: '7px 10px', borderRadius: 4, cursor: 'pointer',
-                  fontFamily: 'Space Mono, monospace', fontSize: 10,
+                  fontFamily: "'Space Mono', monospace", fontSize: 10,
                   letterSpacing: '.06em', textTransform: 'uppercase',
                   border: '1px solid #2a2318', color: '#5a5550', background: 'none' }}>
                 Disconnect
@@ -958,7 +958,7 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
         <Card>
           <Label color="gold">Tier Status</Label>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-            <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.06em' }}>
               {tierName}
             </span>
             <span className="rh-muted" style={{ fontSize: '0.68rem' }}>
@@ -1277,7 +1277,7 @@ function EconomyTab({ walletAddress }) {
         role="button"
         style={{
           border: '1px solid var(--accent)', borderRadius: 3, padding: '0.75rem',
-          textAlign: 'center', cursor: 'pointer', fontFamily: 'Space Mono, monospace',
+          textAlign: 'center', cursor: 'pointer', fontFamily: "'Space Mono', monospace",
           fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase',
           color: 'var(--accent)', marginTop: '0.75rem', transition: 'background 0.2s',
         }}
@@ -1669,7 +1669,7 @@ function GuildTab({ walletAddress }) {
     <div className="rh-tab-body">
       {/* Live week indicator */}
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '4rem', lineHeight: 1, color: 'var(--accent)', letterSpacing: '0.04em' }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '4rem', lineHeight: 1, color: 'var(--accent)', letterSpacing: '0.04em' }}>
           WEEK {currentWeek} OF 8
         </div>
         <div className="rh-muted" style={{ fontSize: '0.72rem', marginTop: '0.25rem' }}>
@@ -1733,7 +1733,7 @@ function GuildTab({ walletAddress }) {
           role="button"
           style={{
             border: '1px solid #2a2318', borderRadius: 3, padding: '0.6rem',
-            textAlign: 'center', cursor: 'pointer', fontFamily: 'Space Mono, monospace',
+            textAlign: 'center', cursor: 'pointer', fontFamily: "'Space Mono', monospace",
             fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase',
             color: '#8a7d6a',
           }}
@@ -1753,7 +1753,7 @@ function GuildTab({ walletAddress }) {
         return (
           <Card key={m.label}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-              <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.1rem', letterSpacing: '0.05em', color: titleColor }}>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.1rem', letterSpacing: '0.05em', color: titleColor }}>
                 {prefix}{m.label}
               </span>
               <span className="rh-label" style={{ color: titleColor, marginBottom: 0 }}>{m.period}</span>
@@ -1885,7 +1885,7 @@ function TreasuryTab({ memberTier }) {
                 { label: 'Founder',      pct: '10%' },
               ].map(s => (
                 <div key={s.label} style={{ textAlign: 'center', padding: '0.5rem', background: '#0a0a08', borderRadius: 3 }}>
-                  <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.4rem', color: 'var(--accent)', letterSpacing: '0.04em' }}>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.4rem', color: 'var(--accent)', letterSpacing: '0.04em' }}>
                     {s.pct}
                   </div>
                   <div style={{ fontSize: '0.6rem', color: '#4a4238', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -1938,23 +1938,26 @@ function HomePropPanel() {
   ]
   return (
     <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
         Prop Account
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
         {metrics.map(m => (
           <div key={m.label} style={{ background: '#0a0a08', borderRadius: 4, padding: '10px 12px' }}>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>{m.label}</div>
-            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 20, letterSpacing: '0.04em', color: m.color }}>{m.value}</div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>{m.label}</div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.04em', color: m.color }}>{m.value}</div>
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button style={{ flex: 1, padding: '7px', background: '#e8c84a10', border: '1px solid #e8c84a30', borderRadius: 3, color: '#e8c84a', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>
+        <button style={{ flex: 1, padding: '7px', background: '#e8c84a10', border: '1px solid #e8c84a30', borderRadius: 3, color: '#e8c84a', fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>
           Journal
         </button>
-        <button style={{ flex: 1, padding: '7px', background: '#4af0c810', border: '1px solid #4af0c830', borderRadius: 3, color: '#4af0c8', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}>
-          Scale Up
+        <button
+          style={{ flex: 1, padding: '7px', background: '#4af0c810', border: '1px solid #4af0c830', borderRadius: 3, color: '#4af0c8', fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer' }}
+          onClick={() => console.log('prop tier upgrade — coming M3')}
+        >
+          View Tiers →
         </button>
       </div>
     </div>
@@ -1964,10 +1967,13 @@ function HomePropPanel() {
 function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
   const summaryStats = [
     { label: '$ROAD Balance', value: roadBalance >= 1000 ? (roadBalance / 1000).toFixed(1) + 'k' : (roadBalance ?? 0).toLocaleString(), color: '#e8c84a' },
-    { label: 'Prop P&L',     value: '+$682',  color: '#4af0c8' },
-    { label: 'Streak',       value: '14d',    color: '#ff5c35' },
-    { label: 'Guild Rank',   value: '#4',     color: '#ede8dc' },
+    { label: 'Prop P&L',     value: '+$682',  color: '#4af0c8' }, // stub — wire lib/road-monitor.ts M3
+    { label: 'Streak',       value: '14d',    color: '#ff5c35' }, // stub — wire road:{customerId}.streak M3
+    { label: 'Guild Rank',   value: '#4',     color: '#ede8dc' }, // stub — wire guild leaderboard M3
   ]
+
+  // Derive Next Move from first incomplete daily mission
+  const nextMission = DAILY_MISSIONS.find(m => !m.done)
 
   return (
     <div>
@@ -1975,8 +1981,8 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
         {summaryStats.map(s => (
           <div key={s.label} style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5, padding: '12px 14px' }}>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
-            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 22, letterSpacing: '0.04em', color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '0.04em', color: s.color }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -1984,17 +1990,30 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
       {/* Two-col row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, marginBottom: 20 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Next Move card */}
+          {/* Next Move card — derived from first incomplete mission */}
           <div style={{ background: '#111110', border: '1px solid #e8c84a20', borderRadius: 6, padding: '14px 16px', borderLeft: '3px solid #e8c84a' }}>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#e8c84a', marginBottom: 8 }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#e8c84a', marginBottom: 8 }}>
               Next Move
             </div>
-            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: '#ede8dc', marginBottom: 6 }}>
-              Submit Compound Scouting Report by Thursday
-            </div>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#5a5550' }}>
-              +600 $ROAD · Frontier Guild · 7 days left
-            </div>
+            {nextMission ? (
+              <>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: '#ede8dc', marginBottom: 6 }}>
+                  {nextMission.label}
+                </div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#5a5550' }}>
+                  +{nextMission.xp} XP · {nextMission.category}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: '#5a5550', marginBottom: 6 }}>
+                  All operations complete
+                </div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#3a3530' }}>
+                  Next cycle begins tomorrow
+                </div>
+              </>
+            )}
           </div>
           <DailyMissions />
         </div>
@@ -2005,7 +2024,7 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
         {/* Activity feed */}
         <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Activity</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Activity</div>
           {[
             { label: 'Bounty claimed', time: '2h ago', color: '#e8c84a' },
             { label: 'Profile updated', time: '1d ago', color: '#5a5550' },
@@ -2013,20 +2032,20 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
             { label: '$ROAD accrued', time: '3d ago', color: '#e8c84a' },
           ].map((a, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #1a1a18' }}>
-              <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: a.color }}>{a.label}</span>
-              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#3a3530' }}>{a.time}</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: a.color }}>{a.label}</span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#3a3530' }}>{a.time}</span>
             </div>
           ))}
         </div>
 
         {/* Guild leaderboard */}
         <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Guild Board</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Guild Board</div>
           {STUB_LEADERS.map(l => (
             <div key={l.rank} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid #1a1a18' }}>
-              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#3a3530', width: 14 }}>#{l.rank}</span>
-              <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: l.isYou ? '#e8c84a' : '#ede8dc', flex: 1 }}>{l.name}</span>
-              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: GUILD_COLORS[l.guild] ?? '#5a5550' }}>{l.road}</span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#3a3530', width: 14 }}>#{l.rank}</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: l.isYou ? '#e8c84a' : '#ede8dc', flex: 1 }}>{l.name}</span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: GUILD_COLORS[l.guild] ?? '#5a5550' }}>{l.road}</span>
             </div>
           ))}
         </div>
@@ -2067,7 +2086,7 @@ function EarnPage({ activeNavItem, walletAddress }) {
               border: 'none',
               borderBottom: `2px solid ${earnTab === t.key ? '#e8c84a' : 'transparent'}`,
               color: earnTab === t.key ? '#e8c84a' : '#5a5550',
-              fontFamily: 'DM Mono, monospace',
+              fontFamily: "'DM Mono', monospace",
               fontSize: 10,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
@@ -2091,19 +2110,19 @@ function EarnPage({ activeNavItem, walletAddress }) {
                 borderLeft: `3px solid ${gc}`,
               }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: '#ede8dc', marginBottom: 5 }}>{b.title}</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: '#ede8dc', marginBottom: 5 }}>{b.title}</div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: gc, background: `${gc}12`, border: `1px solid ${gc}25`, borderRadius: 2, padding: '2px 6px', letterSpacing: '0.12em' }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: gc, background: `${gc}12`, border: `1px solid ${gc}25`, borderRadius: 2, padding: '2px 6px', letterSpacing: '0.12em' }}>
                       {b.guild}
                     </span>
-                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550' }}>{b.daysLeft}d left</span>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550' }}>{b.daysLeft}d left</span>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, color: '#e8c84a', letterSpacing: '0.04em' }}>{b.reward}</div>
-                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, color: '#5a5550' }}>$ROAD</div>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, color: '#e8c84a', letterSpacing: '0.04em' }}>{b.reward}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: '#5a5550' }}>$ROAD</div>
                 </div>
-                <button style={{ padding: '7px 14px', background: '#e8c84a10', border: '1px solid #e8c84a30', borderRadius: 3, color: '#e8c84a', fontFamily: 'DM Mono, monospace', fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <button style={{ padding: '7px 14px', background: '#e8c84a10', border: '1px solid #e8c84a30', borderRadius: 3, color: '#e8c84a', fontFamily: "'DM Mono', monospace", fontSize: 10, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Claim
                 </button>
               </div>
@@ -2117,18 +2136,34 @@ function EarnPage({ activeNavItem, walletAddress }) {
       )}
 
       {earnTab === 'marketplace' && (
-        <EconomyTab walletAddress={walletAddress} />
+        <div>
+          <div style={{
+            border: '1px dashed #2a2318',
+            borderRadius: 8,
+            padding: 32,
+            textAlign: 'center',
+            marginBottom: 16,
+          }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#5a5550', marginBottom: 8 }}>
+              Marketplace is live for Ranch Hand+ members
+            </div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#3a3530' }}>
+              Upgrade your tier to post and browse listings
+            </div>
+          </div>
+          <EconomyTab walletAddress={walletAddress} />
+        </div>
       )}
 
       {earnTab === 'leaderboard' && (
         <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '20px' }}>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 16 }}>Guild Leaderboard</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 16 }}>Guild Leaderboard</div>
           {STUB_LEADERS.map(l => (
             <div key={l.rank} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #1a1a18' }}>
-              <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, color: '#3a3530', width: 24 }}>{l.rank}</span>
-              <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: l.isYou ? '#e8c84a' : '#ede8dc', flex: 1, fontWeight: l.isYou ? 700 : 400 }}>{l.name}{l.isYou ? ' (you)' : ''}</span>
-              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: GUILD_COLORS[l.guild] ?? '#5a5550' }}>{l.guild}</span>
-              <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 16, color: '#e8c84a' }}>{l.road}</span>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, color: '#3a3530', width: 24 }}>{l.rank}</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: l.isYou ? '#e8c84a' : '#ede8dc', flex: 1, fontWeight: l.isYou ? 700 : 400 }}>{l.name}{l.isYou ? ' (you)' : ''}</span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: GUILD_COLORS[l.guild] ?? '#5a5550' }}>{l.guild}</span>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, color: '#e8c84a' }}>{l.road}</span>
             </div>
           ))}
         </div>
@@ -2164,7 +2199,7 @@ function CommunityPage({ activeNavItem, memberTier }) {
               border: 'none',
               borderBottom: `2px solid ${commTab === t.key ? '#e8c84a' : 'transparent'}`,
               color: commTab === t.key ? '#e8c84a' : '#5a5550',
-              fontFamily: 'DM Mono, monospace',
+              fontFamily: "'DM Mono', monospace",
               fontSize: 10,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
@@ -2177,23 +2212,46 @@ function CommunityPage({ activeNavItem, memberTier }) {
         ))}
       </div>
 
-      {(commTab === 'war-room' || commTab === 'events' || commTab === 'members') && (
+      {commTab === 'war-room' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div>
             <GuildTab walletAddress={null} />
           </div>
           <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '20px' }}>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
-              {commTab === 'members' ? 'Members' : commTab === 'events' ? 'Events' : 'Active Now'}
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>
+              Active Now
             </div>
-            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 11, color: '#5a5550', lineHeight: 1.8 }}>
-              {commTab === 'events' ? (
-                <>Compound Phase 2 · Jul 12–18<br/>Summit 2026 · Aug 3–4<br/>Frontier Weekend · Sep 6</>
-              ) : (
-                <>Talon · Raafat · Matthew · Jordan<br/><br/>
-                <span style={{ fontSize: 10, color: '#3a3530' }}>4 members online</span></>
-              )}
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: '#5a5550', lineHeight: 1.8 }}>
+              Talon · Raafat · Matthew · Jordan<br />
+              <span style={{ fontSize: 10, color: '#3a3530' }}>4 members online</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {commTab === 'events' && (
+        <div style={{ border: '1px dashed #2a2318', borderRadius: 8, padding: 32, textAlign: 'center' }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#5a5550', marginBottom: 8 }}>
+            Events announced in Discord
+          </div>
+          <a
+            href="https://discord.gg/wwhhKcnQJ3"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#e8c84a', textDecoration: 'none' }}
+          >
+            Join discord.gg/wwhhKcnQJ3 →
+          </a>
+        </div>
+      )}
+
+      {commTab === 'members' && (
+        <div style={{ border: '1px dashed #2a2318', borderRadius: 8, padding: 32, textAlign: 'center' }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#5a5550', marginBottom: 8 }}>
+            Member directory coming M3
+          </div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#3a3530' }}>
+            Requires wallet verification
           </div>
         </div>
       )}
@@ -2207,6 +2265,7 @@ function CommunityPage({ activeNavItem, memberTier }) {
 
 function TreasuryPageWrapper({ memberTier }) {
   const summaryBuckets = [
+    // TODO: lib/road-monitor.ts — wire community bucket balance + depletion countdown (M3 required)
     { label: 'Community Bucket', value: '23.4M $ROAD', color: '#e8c84a' },
     { label: 'Treasury SOL',     value: '~142 SOL',    color: '#4af0c8' },
     { label: 'Squads Multisig',  value: '3 of 5',      color: '#ede8dc' },
@@ -2218,8 +2277,8 @@ function TreasuryPageWrapper({ memberTier }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
         {summaryBuckets.map(s => (
           <div key={s.label} style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5, padding: '12px 14px' }}>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
-            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, letterSpacing: '0.04em', color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.04em', color: s.color }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -2227,7 +2286,7 @@ function TreasuryPageWrapper({ memberTier }) {
       <TreasuryTab memberTier={memberTier} />
 
       <div style={{ marginTop: 16, padding: '10px 14px', background: '#1a1814', border: '1px solid #1e1e1c', borderRadius: 4 }}>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#3a3530', letterSpacing: '0.12em' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#3a3530', letterSpacing: '0.12em' }}>
           Governance, NFTs, and DAO Vote unlock at Steward tier (10,000 $ROAD)
         </span>
       </div>
@@ -2239,13 +2298,14 @@ function TreasuryPageWrapper({ memberTier }) {
 
 export default function RoadHouse({ activeNavItem = 'overview', memberTier = 'guest', walletAddress = null, roadBalance = 0 }) {
   const pageLabel = PAGE_LABEL_MAP[activeNavItem] ?? 'Dashboard'
-  const pageSection = activeNavItem.includes('treasury') || activeNavItem === 'governance' || activeNavItem === 'nfts' || activeNavItem === 'dao-vote'
-    ? 'Treasury'
-    : activeNavItem === 'overview' || activeNavItem === 'profile' || activeNavItem === 'prop-account'
-      ? 'Home'
-      : activeNavItem === 'bounties' || activeNavItem === 'missions' || activeNavItem === 'marketplace' || activeNavItem === 'leaderboard'
-        ? 'Earn'
-        : 'Community'
+
+  // Breadcrumb: Home items show "RoadHouse / {item}" (2-level).
+  // Earn/Community sub-tabs show "RoadHouse / {section} / {item}" (3-level).
+  // Treasury always shows "RoadHouse / Treasury" (2-level).
+  const isHomeItem      = ['overview', 'profile', 'prop-account'].includes(activeNavItem)
+  const isEarnItem      = ['bounties', 'missions', 'marketplace', 'leaderboard'].includes(activeNavItem)
+  const isCommunityItem = ['war-room', 'protocol', 'events', 'members'].includes(activeNavItem)
+  const isTreasuryItem  = ['treasury-overview', 'governance', 'nfts', 'dao-vote'].includes(activeNavItem)
 
   return (
     <div className="rh-dash">
@@ -2491,12 +2551,25 @@ export default function RoadHouse({ activeNavItem = 'overview', memberTier = 'gu
         <span className="rh-breadcrumb">
           RoadHouse
           <span className="rh-breadcrumb-sep">/</span>
-          <span className="rh-breadcrumb-page">{pageSection}</span>
-          {pageSection !== pageLabel && (
+          {isEarnItem && (
             <>
+              Earn
               <span className="rh-breadcrumb-sep">/</span>
-              {pageLabel}
+              <span className="rh-breadcrumb-page">{pageLabel}</span>
             </>
+          )}
+          {isCommunityItem && (
+            <>
+              Community
+              <span className="rh-breadcrumb-sep">/</span>
+              <span className="rh-breadcrumb-page">{pageLabel}</span>
+            </>
+          )}
+          {isHomeItem && (
+            <span className="rh-breadcrumb-page">{pageLabel}</span>
+          )}
+          {isTreasuryItem && (
+            <span className="rh-breadcrumb-page">Treasury</span>
           )}
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -2515,6 +2588,24 @@ export default function RoadHouse({ activeNavItem = 'overview', memberTier = 'gu
 
       {/* Page content */}
       <div className="rh-page-body">
+        {/* DEV MODE banner — hidden in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div style={{
+            background: '#ff5c3511',
+            borderBottom: '1px solid #ff5c3522',
+            padding: '6px 20px',
+            marginBottom: 16,
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 9,
+            color: '#ff5c35',
+            letterSpacing: '0.12em',
+            position: 'relative',
+            zIndex: 1,
+          }}>
+            DEV MODE — MemberGate bypassed · Remove FULLY_PUBLIC before launch
+          </div>
+        )}
+
         {activeNavItem === 'overview' && (
           <HomeOverviewPage memberTier={memberTier} walletAddress={walletAddress} roadBalance={roadBalance} />
         )}
@@ -2524,13 +2615,13 @@ export default function RoadHouse({ activeNavItem = 'overview', memberTier = 'gu
         {activeNavItem === 'prop-account' && (
           <WalletTab roadBalance={roadBalance} />
         )}
-        {(activeNavItem === 'bounties' || activeNavItem === 'missions' || activeNavItem === 'marketplace' || activeNavItem === 'leaderboard') && (
+        {isEarnItem && (
           <EarnPage activeNavItem={activeNavItem} walletAddress={walletAddress} />
         )}
-        {(activeNavItem === 'war-room' || activeNavItem === 'protocol' || activeNavItem === 'events' || activeNavItem === 'members') && (
+        {isCommunityItem && (
           <CommunityPage activeNavItem={activeNavItem} memberTier={memberTier} />
         )}
-        {(activeNavItem === 'treasury-overview' || activeNavItem === 'governance' || activeNavItem === 'nfts' || activeNavItem === 'dao-vote') && (
+        {isTreasuryItem && (
           <TreasuryPageWrapper memberTier={memberTier} />
         )}
       </div>

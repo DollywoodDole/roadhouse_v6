@@ -306,10 +306,10 @@ const NAV_SECTIONS = [
 // ── IconRail ──────────────────────────────────────────────────────────────────
 
 const RAIL_PAGES = [
-  { key: 'home',      icon: '⌂' },
-  { key: 'earn',      icon: '◈' },
-  { key: 'community', icon: '⬡' },
-  { key: 'treasury',  icon: '◎' },
+  { key: 'home',      icon: 'ti-home'     },
+  { key: 'earn',      icon: 'ti-coin'     },
+  { key: 'community', icon: 'ti-users'    },
+  { key: 'treasury',  icon: 'ti-safe'     },
 ]
 
 function IconRail({ activePage, onPageChange }) {
@@ -331,7 +331,7 @@ function IconRail({ activePage, onPageChange }) {
     }}>
       {/* RH wordmark — vertical */}
       <div style={{
-        fontFamily: 'Bebas Neue, sans-serif',
+        fontFamily: "'Bebas Neue', sans-serif",
         fontSize: 13,
         letterSpacing: '0.18em',
         color: '#e8c84a',
@@ -363,7 +363,6 @@ function IconRail({ activePage, onPageChange }) {
                 border: `1px solid ${isActive ? '#e8c84a1a' : 'transparent'}`,
                 borderRadius: 4,
                 color: isActive ? '#e8c84a' : '#5a5550',
-                fontSize: 16,
                 cursor: 'pointer',
                 transition: 'all 0.15s',
               }}
@@ -380,7 +379,7 @@ function IconRail({ activePage, onPageChange }) {
                 }
               }}
             >
-              {p.icon}
+              <i className={`ti ${p.icon}`} style={{ fontSize: 18 }} />
             </button>
           )
         })}
@@ -399,7 +398,6 @@ function IconRail({ activePage, onPageChange }) {
           border: '1px solid transparent',
           borderRadius: 4,
           color: '#5a5550',
-          fontSize: 16,
           cursor: 'pointer',
           transition: 'all 0.15s',
         }}
@@ -412,7 +410,7 @@ function IconRail({ activePage, onPageChange }) {
           e.currentTarget.style.color = '#5a5550'
         }}
       >
-        ⚙
+        <i className="ti ti-settings" style={{ fontSize: 18 }} />
       </button>
     </div>
   )
@@ -433,10 +431,10 @@ function VaultPanel({ roadBalance, walletAddress, memberTier }) {
     }}>
       {/* $ROAD Balance */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
           $ROAD
         </span>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#e8c84a', fontWeight: 500 }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#e8c84a', fontWeight: 500 }}>
           {roadBalance >= 1000
             ? (roadBalance / 1000).toFixed(1) + 'k'
             : (roadBalance ?? 0).toLocaleString()}
@@ -445,20 +443,20 @@ function VaultPanel({ roadBalance, walletAddress, memberTier }) {
 
       {/* SOL Wallet */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
           Wallet
         </span>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: walletAddress ? '#8a7d6a' : '#3a3530' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: walletAddress ? '#8a7d6a' : '#3a3530' }}>
           {walletAddress ?? 'Not connected'}
         </span>
       </div>
 
       {/* Prop Account */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #1e1e1c' }}>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
           Prop P&amp;L
         </span>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#4af0c8', fontWeight: 500 }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#4af0c8', fontWeight: 500 }}>
           +$682
         </span>
       </div>
@@ -499,7 +497,7 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 10,
-          fontFamily: 'Bebas Neue, sans-serif',
+          fontFamily: "'Bebas Neue', sans-serif",
           fontSize: 18,
           color: tierColor,
           letterSpacing: '0.05em',
@@ -508,12 +506,12 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
         </div>
 
         {/* Name */}
-        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 18, letterSpacing: '0.06em', color: '#ede8dc', lineHeight: 1, marginBottom: 3 }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.06em', color: '#ede8dc', lineHeight: 1, marginBottom: 3 }}>
           DollywoodDole
         </div>
 
         {/* Handle + guild */}
-        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#5a5550', letterSpacing: '0.1em', marginBottom: 8 }}>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.1em', marginBottom: 8 }}>
           @dollywooddole · Builder Guild
         </div>
 
@@ -526,7 +524,7 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
           borderRadius: 3,
           padding: '2px 7px',
         }}>
-          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: tierColor }}>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: tierColor }}>
             {tierLabel}
           </span>
         </div>
@@ -541,7 +539,7 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
           <div key={section.key} style={{ marginTop: section.label ? 16 : 8 }}>
             {section.label && (
               <div style={{
-                fontFamily: 'DM Mono, monospace',
+                fontFamily: "'DM Mono', monospace",
                 fontSize: 8,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
@@ -558,7 +556,8 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
               return (
                 <button
                   key={item.key}
-                  onClick={() => !item.locked && onNavChange(item.key)}
+                  title={item.locked ? 'Available at M3' : undefined}
+                  onClick={item.locked ? e => e.preventDefault() : () => onNavChange(item.key)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -588,13 +587,13 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
                     }
                   }}
                 >
-                  <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.04em' }}>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: '0.04em' }}>
                     {item.locked ? '⬡ ' : ''}{item.label}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     {item.badge && (
                       <span style={{
-                        fontFamily: 'DM Mono, monospace',
+                        fontFamily: "'DM Mono', monospace",
                         fontSize: 9,
                         color: '#e8c84a',
                         background: '#e8c84a14',
@@ -607,7 +606,7 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
                     )}
                     {item.reward && (
                       <span style={{
-                        fontFamily: 'DM Mono, monospace',
+                        fontFamily: "'DM Mono', monospace",
                         fontSize: 9,
                         color: '#4af0c8',
                         letterSpacing: '0.05em',
@@ -628,7 +627,7 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
         <a
           href="/"
           style={{
-            fontFamily: 'DM Mono, monospace',
+            fontFamily: "'DM Mono', monospace",
             fontSize: 9,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
@@ -681,6 +680,38 @@ export default function RoadHouseDashboard() {
 
   return (
     <MemberGate isConnected={connected} memberTier={memberTier} requiredTier="founding">
+      {/* Tabler icons webfont — used by IconRail */}
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+      />
+      {/* Responsive shell: collapse sidebar at <900px, collapse rail at <600px */}
+      <style>{`
+        .rh-shell {
+          display: grid;
+          grid-template-columns: 52px 220px 1fr;
+          min-height: 100vh;
+          background: #0a0a08;
+        }
+        @media (max-width: 900px) {
+          .rh-shell {
+            grid-template-columns: 52px 1fr;
+          }
+          .rh-shell > :nth-child(2) {
+            display: none;
+          }
+        }
+        @media (max-width: 600px) {
+          /* TODO: add hamburger / bottom nav to replace rail at this breakpoint */
+          .rh-shell {
+            grid-template-columns: 1fr;
+          }
+          .rh-shell > :first-child {
+            display: none;
+          }
+        }
+      `}</style>
+
       {connected && loading ? (
         <div style={{
           minHeight: '100vh',
@@ -688,7 +719,7 @@ export default function RoadHouseDashboard() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: 'Space Mono, monospace',
+          fontFamily: "'Space Mono', monospace",
           fontSize: '0.65rem',
           letterSpacing: '0.2em',
           color: '#4a4238',
@@ -697,12 +728,7 @@ export default function RoadHouseDashboard() {
           Loading…
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '52px 220px 1fr',
-          minHeight: '100vh',
-          background: '#0a0a08',
-        }}>
+        <div className="rh-shell">
           <IconRail activePage={activePage} onPageChange={handlePageChange} />
           <DashboardSidebar
             activeNavItem={activeNavItem}
