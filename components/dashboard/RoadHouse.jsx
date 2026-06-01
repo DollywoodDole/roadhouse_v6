@@ -11,6 +11,8 @@
  */
 
 import { useState, useEffect } from 'react'
+import WebGLBackground from '@/components/dashboard/WebGLBackground'
+import MemberCardWebGL from '@/components/dashboard/MemberCardWebGL'
 import {
   getProfile,
   updateProfile,
@@ -701,13 +703,12 @@ function MyRoadHouseTab({ memberTier, walletAddress }) {
       {/* Member profile card — visual layer above tier block; reuses existing profile fetch */}
       {!profileLoading && (
         <>
-          <MemberProfileCard
-            profile={profile}
-            balance={balance}
-            tier={tier}
-            tierName={tierName}
-            nextTier={nextTier}
-            nextBalance={nextBalance}
+          <MemberCardWebGL
+            alias={profile?.alias ?? 'Member'}
+            tier={memberTier}
+            roadBalance={balance}
+            avatarUrl={profile?.avatarUrl ?? null}
+            joinDate={profile?.joinDate ?? null}
           />
           <Divider />
           <DailyMissions />
@@ -1695,6 +1696,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
 
   return (
     <div className="rh-dash">
+      <WebGLBackground />
       {/*
        * Scoped font import + CSS variable declarations.
        * Variables are scoped to .rh-dash — they do not bleed into the rest of the app.
@@ -1708,6 +1710,7 @@ export default function RoadHouse({ memberTier = 'guest', walletAddress = null }
           --accent:  #e8c84a;
           --accent2: #ff5c35;
           --accent3: #4af0c8;
+          position:  relative;
           background: var(--bg);
           color: #e2d9c8;
           font-family: 'Space Mono', monospace;
