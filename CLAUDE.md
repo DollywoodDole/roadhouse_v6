@@ -634,11 +634,11 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 
 ---
 
-## BRANCH STATE — 2026-05-28
+## BRANCH STATE — 2026-06-01
 
 | Branch | Status | Notes |
 |---|---|---|
-| `main` | Live · clean | All features merged through this session |
+| `main` | Live · clean | Dashboard rearchitecture + polish verified on roadhouse.capital |
 | `multi-dealer-wip` | 4 commits ahead | Multi-dealer architecture; do NOT touch until explicitly scoped |
 | `feature/roadhouse-studio` | Merged → main | f2d90fb · deleted after merge |
 | `chore/repo-cleanup` | Merged → main | c7eabc8 · deleted after merge |
