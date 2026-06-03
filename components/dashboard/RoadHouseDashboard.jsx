@@ -309,7 +309,7 @@ const RAIL_PAGES = [
   { key: 'home',      icon: 'ti-home'     },
   { key: 'earn',      icon: 'ti-coin'     },
   { key: 'community', icon: 'ti-users'    },
-  { key: 'treasury',  icon: 'ti-safe'     },
+  { key: 'treasury',  icon: 'ti-vault'    },
 ]
 
 function IconRail({ activePage, onPageChange }) {
@@ -362,7 +362,7 @@ function IconRail({ activePage, onPageChange }) {
                 background: isActive ? '#e8c84a0f' : 'transparent',
                 border: `1px solid ${isActive ? '#e8c84a1a' : 'transparent'}`,
                 borderRadius: 4,
-                color: isActive ? '#e8c84a' : '#5a5550',
+                color: isActive ? '#e8c84a' : '#8a7d6a',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
               }}
@@ -375,7 +375,7 @@ function IconRail({ activePage, onPageChange }) {
               onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.color = '#5a5550'
+                  e.currentTarget.style.color = '#8a7d6a'
                 }
               }}
             >
@@ -397,7 +397,7 @@ function IconRail({ activePage, onPageChange }) {
           background: 'transparent',
           border: '1px solid transparent',
           borderRadius: 4,
-          color: '#5a5550',
+          color: '#8a7d6a',
           cursor: 'pointer',
           transition: 'all 0.15s',
         }}
@@ -407,7 +407,7 @@ function IconRail({ activePage, onPageChange }) {
         }}
         onMouseLeave={e => {
           e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = '#5a5550'
+          e.currentTarget.style.color = '#8a7d6a'
         }}
       >
         <i className="ti ti-settings" style={{ fontSize: 18 }} />
@@ -745,7 +745,7 @@ export default function RoadHouseDashboard() {
           background: transparent;
           border: 1px solid transparent;
           border-radius: 4px;
-          color: #5a5550;
+          color: #8a7d6a;
           cursor: pointer;
           transition: all 0.15s;
         }
