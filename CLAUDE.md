@@ -505,7 +505,7 @@ RoadHouseDashboard.jsx          ← holds activeNavItem state; passes to RoadHou
 `ProfileXPBar` · `ProfileStatBar` · `MemberProfileCard` · `DailyMissions` · `Card` · `Label` · `SectionHead` · `Divider` · `HomePropPanel` · `HomeOverviewPage` · `EarnPage` · `CommunityPage` · `TreasuryPageWrapper`
 
 **Font stack (dashboard):** Space Mono (body/data) · Bebas Neue (headings) · DM Mono (labels 8–11px)
-**Icon rail:** Tabler webfont via CDN (`@tabler/icons-webfont@latest`) — `ti-home ti-coin ti-users ti-safe ti-settings`
+**Icon rail:** Tabler webfont via CDN (`@tabler/icons-webfont@latest`) — `ti-home ti-coin ti-users ti-wallet ti-settings (note: ti-safe & ti-vault missing from webfont; use ti-wallet for treasury)`
 **Mobile:** `.rh-shell` collapses sidebar at `<900px`, rail at `<600px`
 **Dev banner:** renders only when `process.env.NODE_ENV === 'development'` (MemberGate bypassed reminder)
 
@@ -665,7 +665,7 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 
 **Polish pass (bb21e15):**
 - Font quoting fixed: all unquoted multi-word font families now properly quoted (`'DM Mono', monospace` etc.)
-- Icon rail: Tabler webfont (ti-home/ti-coin/ti-users/ti-safe/ti-settings) replaces unicode glyphs
+- Icon rail: Tabler webfont (ti-home/ti-coin/ti-users/ti-wallet/ti-settings) replaces unicode glyphs
 - Tabler CDN loaded via `<link>` tag in dashboard shell
 - Breadcrumb: 2-level for Home/Treasury; 3-level for Earn/Community sub-tabs
 - Locked nav items: `title="Available at M3"` + `preventDefault` onclick
