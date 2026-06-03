@@ -254,7 +254,7 @@ function MemberProfileCard({ profile, balance, tier, tierName, nextTier, nextBal
 
       {/* Stat bars — TODO: wire body/wealth/network/style from KV */}
       <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid #1e1e1c' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0 24px' }}>
+        <div className="rh-stat-bars">
           <ProfileStatBar label="BODY"    value={68} color="#4b7c50" />
           <ProfileStatBar label="WEALTH"  value={74} color="var(--accent)" />
           <ProfileStatBar label="NETWORK" value={55} color="#3a5a7c" />
@@ -1877,7 +1877,7 @@ function TreasuryTab({ memberTier }) {
           {/* Reinvestment split */}
           <Card>
             <Label>Reinvestment Split</Label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '0.25rem' }}>
+            <div className="rh-reinvest">
               {[
                 { label: 'DAO Treasury', pct: '50%' },
                 { label: 'Operations',   pct: '25%' },
@@ -1978,7 +1978,7 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
   return (
     <div>
       {/* Summary bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+      <div className="rh-summary-bar">
         {summaryStats.map(s => (
           <div key={s.label} style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5, padding: '12px 14px' }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
@@ -1988,7 +1988,7 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
       </div>
 
       {/* Two-col row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, marginBottom: 20 }}>
+      <div className="rh-home-mid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Next Move card — derived from first incomplete mission */}
           <div style={{ background: '#111110', border: '1px solid #e8c84a20', borderRadius: 6, padding: '14px 16px', borderLeft: '3px solid #e8c84a' }}>
@@ -2021,7 +2021,7 @@ function HomeOverviewPage({ memberTier, walletAddress, roadBalance }) {
       </div>
 
       {/* Three-col bottom */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+      <div className="rh-home-bottom">
         {/* Activity feed */}
         <div style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 6, padding: '14px 16px' }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5a5550', marginBottom: 12 }}>Activity</div>
@@ -2274,7 +2274,7 @@ function TreasuryPageWrapper({ memberTier }) {
   return (
     <div>
       {/* Summary bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+      <div className="rh-treasury-bar">
         {summaryBuckets.map(s => (
           <div key={s.label} style={{ background: '#111110', border: '1px solid #1e1e1c', borderRadius: 5, padding: '12px 14px' }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
@@ -2539,10 +2539,28 @@ export default function RoadHouse({ activeNavItem = 'overview', memberTier = 'gu
         .rh-milestone-items { display: flex; flex-direction: column; gap: 0.3rem; }
         .rh-milestone-item { font-size: 0.7rem; color: #8a7d6a; }
 
+        /* Mobile layout classes — responsive overrides for inline-styled grids */
+        .rh-summary-bar  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .rh-home-mid     { display: grid; grid-template-columns: 1fr 280px; gap: 14px; margin-bottom: 20px; }
+        .rh-home-bottom  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+        .rh-stat-bars    { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 24px; }
+        .rh-treasury-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .rh-reinvest     { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.25rem; }
+
         /* Responsive */
         @media (max-width: 900px) {
           .rh-page-body { padding: 14px; }
           .rh-stack-name { min-width: 130px; }
+        }
+        @media (max-width: 640px) {
+          .rh-page-body    { padding: 12px; }
+          .rh-topbar       { padding: 8px 12px; }
+          .rh-summary-bar  { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+          .rh-home-mid     { grid-template-columns: 1fr; }
+          .rh-home-bottom  { grid-template-columns: 1fr; gap: 10px; }
+          .rh-stat-bars    { grid-template-columns: repeat(2, 1fr); gap: 0 16px; }
+          .rh-treasury-bar { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+          .rh-reinvest     { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
 

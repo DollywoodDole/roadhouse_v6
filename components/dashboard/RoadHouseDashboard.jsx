@@ -314,7 +314,7 @@ const RAIL_PAGES = [
 
 function IconRail({ activePage, onPageChange }) {
   return (
-    <div style={{
+    <div className="rh-rail" style={{
       width: 52,
       background: '#0d0c0a',
       borderRight: '1px solid #161513',
@@ -329,8 +329,8 @@ function IconRail({ activePage, onPageChange }) {
       boxSizing: 'border-box',
       zIndex: 2,
     }}>
-      {/* RH wordmark — vertical */}
-      <div style={{
+      {/* RH wordmark — vertical (hidden on mobile bottom bar) */}
+      <div className="rh-rail-wordmark" style={{
         fontFamily: "'Bebas Neue', sans-serif",
         fontSize: 13,
         letterSpacing: '0.18em',
@@ -697,17 +697,35 @@ export default function RoadHouseDashboard() {
           .rh-shell {
             grid-template-columns: 52px 1fr;
           }
+          /* !important required — sidebar has inline display:flex which beats CSS selectors */
           .rh-shell > :nth-child(2) {
-            display: none;
+            display: none !important;
           }
         }
         @media (max-width: 600px) {
-          /* TODO: add hamburger / bottom nav to replace rail at this breakpoint */
           .rh-shell {
             grid-template-columns: 1fr;
+            padding-bottom: 52px;
           }
-          .rh-shell > :first-child {
-            display: none;
+          /* Rail becomes a fixed bottom tab bar — override all inline styles */
+          .rh-rail {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: auto !important;
+            width: 100% !important;
+            height: 52px !important;
+            flex-direction: row !important;
+            justify-content: space-around !important;
+            align-items: center !important;
+            padding: 0 8px !important;
+            border-right: none !important;
+            border-top: 1px solid #161513;
+            z-index: 100;
+          }
+          .rh-rail-wordmark {
+            display: none !important;
           }
         }
       `}</style>
