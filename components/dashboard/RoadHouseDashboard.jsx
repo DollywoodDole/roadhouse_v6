@@ -726,20 +726,8 @@ export default function RoadHouseDashboard() {
             display: none !important;
           }
         }
-        @media (max-width: 600px) {
-          .rh-shell {
-            grid-template-columns: 1fr;
-            padding-bottom: 52px;
-          }
-          /* !important required — rail has inline display:flex */
-          .rh-shell > :first-child {
-            display: none !important;
-          }
-          .rh-mobile-nav {
-            display: flex;
-          }
-        }
-        /* Mobile bottom nav — hidden at desktop, shown via media query above */
+        /* Mobile bottom nav — base: hidden at desktop. Must come BEFORE the media
+           query override so cascade order doesn't clobber the display:flex. */
         .rh-mobile-nav {
           display: none;
           position: fixed;
@@ -765,6 +753,19 @@ export default function RoadHouseDashboard() {
           background: #e8c84a0f;
           border-color: #e8c84a1a;
           color: #e8c84a;
+        }
+        @media (max-width: 600px) {
+          .rh-shell {
+            grid-template-columns: 1fr;
+            padding-bottom: 52px;
+          }
+          /* !important required — rail has inline display:flex */
+          .rh-shell > :first-child {
+            display: none !important;
+          }
+          .rh-mobile-nav {
+            display: flex;
+          }
         }
       `}</style>
 
