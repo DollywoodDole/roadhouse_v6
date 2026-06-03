@@ -416,6 +416,30 @@ function IconRail({ activePage, onPageChange }) {
   )
 }
 
+// ── MobileBottomNav ───────────────────────────────────────────────────────────
+// Separate fixed component — avoids inline-style specificity battles with rail.
+// Hidden at desktop via CSS; shown at ≤600px.
+
+function MobileBottomNav({ activePage, onPageChange }) {
+  return (
+    <nav className="rh-mobile-nav">
+      {RAIL_PAGES.map(p => {
+        const isActive = activePage === p.key
+        return (
+          <button
+            key={p.key}
+            title={p.key.charAt(0).toUpperCase() + p.key.slice(1)}
+            onClick={() => onPageChange(p.key)}
+            className={`rh-mobile-nav-btn${isActive ? ' rh-mobile-nav-btn--active' : ''}`}
+          >
+            <i className={`ti ${p.icon}`} style={{ fontSize: 20 }} />
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
 // ── VaultPanel ────────────────────────────────────────────────────────────────
 
 function VaultPanel({ roadBalance, walletAddress, memberTier }) {
@@ -431,7 +455,7 @@ function VaultPanel({ roadBalance, walletAddress, memberTier }) {
     }}>
       {/* $ROAD Balance */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#7a7570', textTransform: 'uppercase' }}>
           $ROAD
         </span>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#e8c84a', fontWeight: 500 }}>
@@ -443,17 +467,17 @@ function VaultPanel({ roadBalance, walletAddress, memberTier }) {
 
       {/* SOL Wallet */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#7a7570', textTransform: 'uppercase' }}>
           Wallet
         </span>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: walletAddress ? '#8a7d6a' : '#3a3530' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: walletAddress ? '#8a7d6a' : '#5a5550' }}>
           {walletAddress ?? 'Not connected'}
         </span>
       </div>
 
       {/* Prop Account */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #1e1e1c' }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#5a5550', textTransform: 'uppercase' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #2a2420' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#7a7570', textTransform: 'uppercase' }}>
           Prop P&amp;L
         </span>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#4af0c8', fontWeight: 500 }}>
@@ -707,26 +731,40 @@ export default function RoadHouseDashboard() {
             grid-template-columns: 1fr;
             padding-bottom: 52px;
           }
-          /* Rail becomes a fixed bottom tab bar — override all inline styles */
-          .rh-rail {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            top: auto !important;
-            width: 100% !important;
-            height: 52px !important;
-            flex-direction: row !important;
-            justify-content: space-around !important;
-            align-items: center !important;
-            padding: 0 8px !important;
-            border-right: none !important;
-            border-top: 1px solid #161513;
-            z-index: 100;
-          }
-          .rh-rail-wordmark {
+          /* !important required — rail has inline display:flex */
+          .rh-shell > :first-child {
             display: none !important;
           }
+          .rh-mobile-nav {
+            display: flex;
+          }
+        }
+        /* Mobile bottom nav — hidden at desktop, shown via media query above */
+        .rh-mobile-nav {
+          display: none;
+          position: fixed;
+          bottom: 0; left: 0; right: 0;
+          height: 52px;
+          background: #0d0c0a;
+          border-top: 1px solid #161513;
+          align-items: center;
+          justify-content: space-around;
+          z-index: 100;
+        }
+        .rh-mobile-nav-btn {
+          width: 44px; height: 44px;
+          display: flex; align-items: center; justify-content: center;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          color: #5a5550;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .rh-mobile-nav-btn--active {
+          background: #e8c84a0f;
+          border-color: #e8c84a1a;
+          color: #e8c84a;
         }
       `}</style>
 
@@ -746,22 +784,25 @@ export default function RoadHouseDashboard() {
           Loading…
         </div>
       ) : (
-        <div className="rh-shell">
-          <IconRail activePage={activePage} onPageChange={handlePageChange} />
-          <DashboardSidebar
-            activeNavItem={activeNavItem}
-            onNavChange={setActiveNavItem}
-            memberTier={memberTier}
-            roadBalance={roadBalance}
-            walletAddress={walletAddress}
-          />
-          <RoadHouse
-            activeNavItem={activeNavItem}
-            memberTier={memberTier}
-            walletAddress={walletAddress}
-            roadBalance={roadBalance}
-          />
-        </div>
+        <>
+          <div className="rh-shell">
+            <IconRail activePage={activePage} onPageChange={handlePageChange} />
+            <DashboardSidebar
+              activeNavItem={activeNavItem}
+              onNavChange={setActiveNavItem}
+              memberTier={memberTier}
+              roadBalance={roadBalance}
+              walletAddress={walletAddress}
+            />
+            <RoadHouse
+              activeNavItem={activeNavItem}
+              memberTier={memberTier}
+              walletAddress={walletAddress}
+              roadBalance={roadBalance}
+            />
+          </div>
+          <MobileBottomNav activePage={activePage} onPageChange={handlePageChange} />
+        </>
       )}
     </MemberGate>
   )
