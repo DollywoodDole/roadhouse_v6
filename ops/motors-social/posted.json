@@ -487,7 +487,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T15:10:20.858390+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-03T18:46:49.629547+00:00",
+    "reel_fb_success": true
   },
   "1FTBR1C86PKA68470": {
     "title": "2023 Ford Transit Cargo Van T-250 130 Med Rf 9070 GVWR RWD",
@@ -569,7 +571,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T19:33:16.981117+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-03T18:45:39.749844+00:00",
+    "reel_fb_success": true
   },
   "H0JAGRA33S0000215": {
     "title": "2025 AODES Pathcross 1000 S ATV",
