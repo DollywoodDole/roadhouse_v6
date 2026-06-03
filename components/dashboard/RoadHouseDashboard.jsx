@@ -309,7 +309,7 @@ const RAIL_PAGES = [
   { key: 'home',      icon: 'ti-home'     },
   { key: 'earn',      icon: 'ti-coin'     },
   { key: 'community', icon: 'ti-users'    },
-  { key: 'treasury',  icon: 'ti-vault'    },
+  { key: 'treasury',  icon: 'ti-wallet'   },
 ]
 
 function IconRail({ activePage, onPageChange }) {
