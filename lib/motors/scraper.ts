@@ -137,12 +137,18 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     group.push(url)
     batchGroups.set(key, group)
   }
-  // First batch key encountered = vehicle's own gallery (appears before "similar" section)
-  const firstKey = cleanImgs.length > 0
-    ? (cleanImgs[0].split('/').pop() ?? '').split('_')[0].slice(0, 18)
-    : null
-  const firstGroup = firstKey ? (batchGroups.get(firstKey) ?? []) : []
-  const images = firstGroup.length >= 3 ? firstGroup : []
+  // Walk batches in appearance order and pick the first with ≥ 3 images.
+  // The vehicle's own gallery precedes the "similar vehicles" section, so the
+  // first qualifying batch is always the correct one. A leading batch of 1-2
+  // images (e.g. a hero thumbnail) is skipped until the full gallery is found.
+  const seenKeys = new Set<string>()
+  const orderedKeys: string[] = []
+  for (const url of cleanImgs) {
+    const key = (url.split('/').pop() ?? '').split('_')[0].slice(0, 18)
+    if (!seenKeys.has(key)) { seenKeys.add(key); orderedKeys.push(key) }
+  }
+  const firstQualifying = orderedKeys.find(k => (batchGroups.get(k) ?? []).length >= 3) ?? null
+  const images = firstQualifying ? (batchGroups.get(firstQualifying) ?? []) : []
 
   const body_style = bodyRaw || specs['Body'] || 'Vehicle'
   const engine     = specs['Engine'] || ''
