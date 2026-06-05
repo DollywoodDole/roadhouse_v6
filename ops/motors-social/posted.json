@@ -47,7 +47,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:25:55.201941+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-05T17:20:45.296100+00:00",
+    "reel_fb_success": true
   },
   "1VWBA7A37MC012185": {
     "title": "2021 Volkswagen Passat Highline",
@@ -87,7 +89,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:34:26.994617+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-05T17:21:48.233872+00:00",
+    "reel_fb_success": true
   },
   "1C4HJXDN7JW135036": {
     "title": "2018 Jeep Wrangler Unlimited Sport",
