@@ -40,10 +40,7 @@ export default function VehicleGallery({ images, alt, status }: VehicleGalleryPr
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-        {/* Cover dealer watermark in top-right of CDN photos */}
-        <div className="absolute top-0 right-0 w-[42%] h-[40%] bg-gradient-to-bl from-black via-black/70 to-transparent pointer-events-none" />
-
-        {/* RH watermark */}
+        {/* Watermark */}
         <div className="absolute bottom-4 left-4 opacity-25">
           <Image src="/motors/rh-logo.png" alt="RoadHouse" width={96} height={33} className="object-contain" unoptimized />
         </div>
