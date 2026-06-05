@@ -71,3 +71,5 @@ venv/
 audit-*.png
 .playwright-mcp/
 .impeccable
+
+.env*.local
