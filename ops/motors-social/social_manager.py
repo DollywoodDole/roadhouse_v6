@@ -560,27 +560,35 @@ def post_to_instagram(caption: str, image_urls: list[str]) -> bool:
         print("  IG:  Skipped — no images")
         return False
 
-    # Publish the container
-    r = requests.post(
-        f"{GRAPH_URL}/{IG_USER_ID}/media_publish",
-        data={
-            "creation_id":  creation_id,
-            "access_token": FB_PAGE_TOKEN,
-        },
-        timeout=30,
-    )
-    result = r.json()
-    if "id" in result:
-        print(f"  IG:  Published ({len(images)} photo{'s' if len(images) > 1 else ''}): post id {result['id']}")
-        return True
-    err = result.get("error", {})
-    code = err.get("code")
-    # Codes 4 and 9007 are confirmed false negatives — Meta returns the error
-    # but the post publishes successfully. Treat as success.
-    if code in (4, 9007):
-        print(f"  IG:  Published (confirmed false negative [{code}]: {err.get('message', '')})")
-        return True
-    print(f"  IG:  Failed [{code}]: {err.get('message', result)}")
+    # Publish the container — retry on 9007 (container not ready yet) with
+    # progressive waits: 0s, +10s, +20s, +30s (total up to ~60s extra)
+    publish_data = {"creation_id": creation_id, "access_token": FB_PAGE_TOKEN}
+    retry_waits = [0, 10, 20, 30]
+    for attempt, extra_wait in enumerate(retry_waits):
+        if extra_wait:
+            print(f"  IG:  Container not ready (9007) — waiting {extra_wait}s before retry {attempt}/{len(retry_waits)-1}...")
+            time.sleep(extra_wait)
+        r = requests.post(
+            f"{GRAPH_URL}/{IG_USER_ID}/media_publish",
+            data=publish_data,
+            timeout=30,
+        )
+        result = r.json()
+        if "id" in result:
+            print(f"  IG:  Published ({len(images)} photo{'s' if len(images) > 1 else ''}): post id {result['id']}")
+            return True
+        err = result.get("error", {})
+        code = err.get("code")
+        if code == 9007:
+            continue  # retry
+        # Code 4 is a confirmed false negative — Meta returns the error but the
+        # post publishes successfully.
+        if code == 4:
+            print(f"  IG:  Published (confirmed false negative [4]: {err.get('message', '')})")
+            return True
+        print(f"  IG:  Failed [{code}]: {err.get('message', result)}")
+        return False
+    print(f"  IG:  Failed — container still not ready after retries (9007)")
     return False
 
 
