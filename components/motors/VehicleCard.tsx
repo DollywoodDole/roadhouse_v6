@@ -58,7 +58,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
         {/* Cover dealer watermark in top-right of CDN photos */}
-        <div className="absolute top-0 right-0 w-[38%] h-[36%] bg-gradient-to-bl from-black/80 via-black/40 to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[42%] h-[40%] bg-gradient-to-bl from-black via-black/70 to-transparent pointer-events-none" />
 
         {/* RoadHouse watermark — hidden on mobile to save space */}
         <div className="absolute bottom-2 left-2 opacity-25 group-hover:opacity-45 transition-opacity hidden sm:block">
