@@ -68,12 +68,20 @@ const SESSION_OPTIONAL = [
 
 export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
-  const host = req.headers.get('host') ?? '';
+  // On Vercel's edge network, domain aliases forward the client-facing hostname
+  // in x-forwarded-host; the host header may reflect an internal deployment URL
+  // (e.g. roadhouse-v6-xxxx.vercel.app). Check x-forwarded-host first, fall
+  // back to host. Strip port — present in local dev, absent in production HTTPS.
+  const rawHost =
+    req.headers.get('x-forwarded-host') ??
+    req.headers.get('host') ??
+    '';
+  const hostname = rawHost.split(':')[0].toLowerCase();
 
   // motors.roadhouse.capital/* → /motors/*
   // If pathname already starts with /motors (e.g. browser following a redirect),
   // pass through directly — prevents /motors/motors/... double-prefix.
-  if (host.startsWith('motors.')) {
+  if (hostname.startsWith('motors.')) {
     if (
       pathname.startsWith('/motors') ||
       pathname.startsWith('/_next') ||
@@ -90,7 +98,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // studio.roadhouse.capital/* → /studio/*
-  if (host.startsWith('studio.')) {
+  if (hostname.startsWith('studio.')) {
     if (
       pathname.startsWith('/studio') ||
       pathname.startsWith('/_next') ||
