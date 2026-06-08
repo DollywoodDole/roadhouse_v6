@@ -124,6 +124,24 @@ export async function POST(req: NextRequest) {
       : '')
   const message = (body.message ?? body.notes) || undefined
 
+  // Rate limit: 60s per phone number (matches /api/motors/lead pattern)
+  const cleanPhone = phone.replace(/\s+/g, '')
+  try {
+    const redis    = getRedis()
+    const rateKey  = `leads:ratelimit:${cleanPhone}`
+    const existing = await redis.get(rateKey)
+    if (existing) {
+      return NextResponse.json(
+        { error: 'Request already submitted. Please wait a moment before trying again.' },
+        { status: 429 }
+      )
+    }
+    await redis.set(rateKey, '1', { ex: 60 })
+  } catch (err) {
+    // KV failure is non-blocking
+    console.error('[motors/leads] KV rate limit check failed:', err)
+  }
+
   const id: string = globalThis.crypto.randomUUID()
   const lead: MotorsLead = {
     id,
