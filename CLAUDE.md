@@ -16,7 +16,13 @@
 | `studio.roadhouse.capital` | Creative + build arm — client work + house IP | Live (scaffold) |
 | `faber.roadhouse.capital` | Future branch — TBD | Planned |
 
-**Subdomain routing:** all handled in `proxy.ts` (not middleware.ts). Each subdomain rewrites to its `/app/{name}/` directory before auth logic runs.
+**Subdomain routing:** all handled in `proxy.ts` (not middleware.ts). Each subdomain rewrites to its `/app/{name}/` directory before auth logic runs. See PROXY.TS section.
+
+Each arm has its own CLAUDE.md:
+- `app/motors/CLAUDE.md` — motors routes, components, KV keys, sync, constraints
+- `app/studio/CLAUDE.md` — studio components, design system, animation system
+- `ops/motors-social/CLAUDE.md` — Python social automation, CLI args, GitHub Actions
+- `ops/google-sheets/CLAUDE.md` — Apps Script OS layer, clasp, npm scripts
 
 ---
 
@@ -65,6 +71,8 @@ colors: {
 fonts: { cormorant: ['var(--font-cormorant)', 'Georgia', 'serif'], mono: ['var(--font-dm-mono)', 'Courier New', 'monospace'] }
 ```
 
+**Root layout fonts:** Loaded via `<link>` Google Fonts CDN tag in `app/layout.tsx` (Cormorant Garamond, DM Mono, Roboto) — NOT via next/font. Root layout wraps all children in `SolanaWalletProvider`. `<body className="grain">`.
+
 ### Dashboard design system (`RoadHouse.jsx` layer) — separate, do NOT merge into Tailwind
 ```css
 /* Scoped to .rh-dash — use CSS vars, no hardcoded hex */
@@ -76,20 +84,9 @@ panel: #111110   border: #1e1e1c   warm: #ede8dc   muted: #5a5550   green: #4b7c
 Fonts: `Space Mono` (data/body) · `Bebas Neue` (headings) · `DM Mono` (labels 8–11px)
 Rules: inline styles only in dashboard; no Tailwind; all three fonts must stay loaded; grain overlay preserved.
 
-### Studio design system (`app/studio/` layer) — inline styles only, no Tailwind
-```css
-bg: #07080A   surface: #0E1012   border: #141618   amber: #C8861E
-text-warm: #E8E0D0   text-muted: #5A5550   text-dark: #2A2520
-```
-Fonts (CSS vars via next/font/google on wrapper div in `app/studio/layout.tsx`):
-- `--font-bebas` → Bebas_Neue — headlines
-- `--font-dm-mono-studio` → DM_Mono — labels, nav, meta
-- `--font-barlow` → Barlow (weight 300/400/500) — body copy
-Rules: inline styles only; no Tailwind on studio components; amber `#C8861E` is the single accent.
-
 ---
 
-## FILE STRUCTURE — key files only
+## FILE STRUCTURE — main app + shared lib
 
 ```
 /app
@@ -115,123 +112,27 @@ Rules: inline styles only; no Tailwind on studio components; amber `#C8861E` is 
   TokenGate.tsx           ← tier gate; href? prop routes upgrade CTA cross-page
 
 /lib/
-  stripe.ts · membership.ts · discord.ts · email.ts · wallet.ts · road-token.ts
-  road-balance.ts    ← KV $ROAD CRUD, normaliseTier(), ACCRUAL map
-  profile.ts         ← getProfile(), updateProfile(), TIER_THRESHOLDS, TIER_DISPLAY, getNextTier()
-  solana.ts          ← ROAD_MINT_PUBKEY, getTierFromBalance(), getConnection()
+  stripe.ts               ← lazy Stripe singleton; APP_URL from NEXT_PUBLIC_APP_URL; API version 2023-10-16
+  membership.ts           ← getMembershipTier(), getProductType(), TIER_META
+                             product types: membership/merch/digital/event/adventure/sponsorship
+  discord.ts · email.ts · wallet.ts · road-token.ts
+  road-balance.ts         ← KV $ROAD CRUD; normaliseTier(); ACCRUAL map; COMMUNITY_CAP_KEY='road:community-bucket'
+                             registerWallet() includes orphan cleanup (deletes stale reverse index)
+  profile.ts              ← getProfile(), updateProfile(), TIER_THRESHOLDS, TIER_DISPLAY, getNextTier()
+                             MemberProfile type; MemberTier defined inline (avoids circular import with road-balance.ts)
+  solana.ts               ← ROAD_MINT_PUBKEY, getTierFromBalance(), getConnection() (lazy, browser-only)
+                             returns 'ranchHand' (camelCase) — normaliseTier() maps → 'ranch-hand'
+  wallet-session.ts       ← verifyWalletSession() — JWT verify with NEXTAUTH_SECRET
+                             returns { publicKey, customerId, isMember, tier, provider: 'wallet' }
   treasury.ts · nft-mint.ts
   api/listings.ts · api/experiments.ts · api/bounties.ts · gnosis.ts
 
 /docs/  stripe-products.md · tokenomics.md · governance-spec.md · multisig-spec.md
         founding-nft-spec.md · membership-model.md · guild-economy.md · compound-node-model.md
-
-/ops/google-sheets/              ← standalone ops layer — NOT part of Next.js app
-  src/  Config.js · RoadHouseOS.js · WalletRegistry.js · MotorsInventory.js · appsscript.json
-  scripts/  bootstrap.js · create-sheet.js · create-form.js · gauth.js · finalize.js
-            distribute-road-tokens.js · test-discord-webhook.js
-  scoring.json · bootstrap.config.example.json · docs/AUDIT.md
-
-  Key IDs (Praetorian account):
-    Spreadsheet: 1AyMQbzOPHiceZEqjtZTlr8xnVgYCh2v-3E5SaA9cCHY
-    Form:        1Gh3sBchYq7LHVYtKz1RCJxEuO7-d3hwguOLCR1QMMHE
-    Script:      1DQauYe9yB-Z539gEITvBXV8sFVfOqxAZ2q1hz_CiizQTZqbjZtwpZY1T
-    Drive folder: 1bMJUoKQ0GUL9XpgEpCi8DPAImND_dWik
-
-/ops/motors-social/              ← standalone Python tool — NOT part of Next.js app
-  social_manager.py · compliance.py · watermark.py · reels.py · posted.json
-  tests/test_compliance.py · MARKETPLACE_SETUP.md
 ```
 
 **Nav rule:** No Nav.tsx / Header.tsx. Navigation = Sidebar.tsx only.
 `/compound` and `/partners` in sidebar. `/partners` is sidebar-only (gated content).
-
----
-
-### Motors subdomain (`motors.roadhouse.capital`)
-
-```
-/app/motors/
-  layout.tsx              ← isolated layout; OG/Twitter metadata; AutoDealer + Organization JSON-LD; phone (306) 381-8222; footer DL331386
-  page.tsx                ← redirect → /motors/inventory
-  /inventory/page.tsx     ← server component; KV inventory; filters + sort; ActiveFilterChips; ItemList JSON-LD
-  /vehicle/[vin]/page.tsx ← VDP; PaymentEstimator; VehicleLeadForm; StickyCallBar; ReviewCarousel (gated)
-                             if vehicle null → SoldVehiclePage (noindex) instead of hard 404
-  /used/page.tsx          ← SEO hub "Used Vehicles Saskatchewan"; city links; ItemList JSON-LD
-  /[city]/page.tsx        ← geo pages: saskatoon · regina · prince-albert · moose-jaw; LocalBusiness JSON-LD
-  /credit/page.tsx        ← pre-qualification form → /api/motors/leads → KV + Resend
-  /admin/page.tsx         ← lead admin panel; ?token={CRON_SECRET} gated
-  /team/page.tsx          ← Meet the Team; 2-col hero + team grid
-
-/components/motors/
-  VehicleCard.tsx · VehicleGallery.tsx · VehicleImage.tsx (unoptimized; onError → rh-coming-soon.svg)
-  VehicleLeadForm.tsx · StickyCallBar.tsx · InventoryGrid.tsx
-  FilterSidebar.tsx       ← make/model/year/price/status/body_type/fuel_type/transmission/km; mobile drawer
-  ActiveFilterChips.tsx · HeroSection.tsx · PaymentEstimator.tsx · CreditForm.tsx
-  ReviewCarousel.tsx      ← returns null when REVIEWS_ENABLED=false (REVIEWS.length < 3)
-
-/lib/motors/
-  storage.ts              ← Upstash Redis CRUD; exports DEALER_ID='obrians'
-  scraper.ts              ← Scrapes obrians.ca Webflow CMS; fetchInventorySlugs(), parseListing()
-  team.ts · reviews.ts · normalize.ts
-                             drivetrain NOT available in Vehicle schema — not scraped from obrians.ca
-
-/types/inventory.ts       ← Vehicle · InventoryFilters · MotorsLead interfaces
-
-/app/api/motors/
-  seed/route.ts · credit/route.ts  ← both 410 Gone (deprecated)
-  sync/route.ts           ← POST (Bearer CRON_SECRET) scrape+sync; maxDuration=300; Vercel cron 9am CST
-  lead/route.ts           ← POST (public); → Resend roadhousesyndicate@gmail.com; 60s KV rate limit/phone
-  leads/route.ts          ← POST (public) credit form → KV + Resend; GET (CRON_SECRET) all leads
-  leads/[id]/route.ts     ← PATCH (CRON_SECRET) update lead status
-  feed/route.ts           ← GET (Bearer CRON_SECRET) JSON + AAMVA XML export
-  feed/catalog/route.ts   ← GET (Bearer CRON_SECRET) RFC 4180 CSV for FB Marketplace
-```
-
-**Motors KV key pattern:**
-```
-motors:inventory:obrians:{vin}   → Vehicle JSON
-motors:index:obrians             → Redis SET of VINs
-motors:leads:{id}                → MotorsLead JSON
-motors:leads:index               → Redis SET of lead IDs
-```
-
-**Motors sync:** Vercel cron `0 15 * * *` (9am CST) → `POST /api/motors/sync`. Scrapes obrians.ca Webflow CMS; parses `#listing-info` div; skips `formPrice=1000`; upserts valid vehicles; removes sold VINs. ~116 priced vehicles, $5,900–$96,900. Manual trigger: `POST /api/motors/sync` with `Authorization: Bearer {CRON_SECRET}`.
-
-**CRON_SECRET note:** Must have NO trailing whitespace — use `printf` not `echo` when setting via Vercel CLI.
-
-**Motors constraints (permanent):**
-- Zero $ROAD, Web3, Solana, or RoadHouse Capital branding on any motors page
-- No O'Brian's phone numbers, logos, or dealer name in scraped content displayed to users
-- Subdomain isolated — no nav links from main roadhouse.capital site
-- All motors routes are FULLY_PUBLIC in proxy.ts
-- `next/image` in motors: always use `unoptimized` prop — optimizer causes rendering failures
-
-**Motors assets:** `/public/motors/` — `rh-motors-header.svg` · `rh-motors-header.jpg` (OG) · `rh-logo.png` (30% watermark on cards) · `rh-coming-soon.svg` · `team/dalton.png`
-
-**Admin panel:** `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}`
-
----
-
-### Studio subdomain (`studio.roadhouse.capital`)
-
-```
-/app/studio/
-  layout.tsx              ← nested layout; Bebas_Neue + DM_Mono + Barlow via next/font/google
-                             CSS vars: --font-bebas · --font-dm-mono-studio · --font-barlow
-  page.tsx                ← mounts StudioNav · StudioHero · StudioTicker · StudioEngage
-
-/components/studio/
-  StudioNav.tsx · StudioTicker.tsx · StudioEngage.tsx
-  StudioHero.tsx          ← activeView: 'client'|'house' toggle state
-  StudioServices.tsx      ← client: Build/Mark/Move · house: Signal/Produce/IP
-  MotorsCaseStudy.tsx     ← returns null when activeView !== 'client'
-                             TODO: replace hardcoded stats with getInventoryCount('obrians')
-                             Blocked on multi-dealer-wip merge to main
-
-/lib/studio/index.ts · /types/studio.ts
-```
-
-**Studio constraints:** Inline styles only — no Tailwind. All studio routes FULLY_PUBLIC in proxy.ts. No membership branding, no $ROAD, no wallet UI.
 
 ---
 
@@ -243,10 +144,10 @@ motors:leads:index               → Redis SET of lead IDs
 2. `host.startsWith('studio.')` → rewrite `/studio/*`; passthrough if already prefixed
 3. Static file fast path
 4. `FULLY_PUBLIC` array → immediate passthrough (includes `/motors`, `/studio`, all API routes)
-5. Session resolution (wallet JWT)
-6. `SESSION_OPTIONAL` → resolve session, set headers, never redirect
+5. Session resolution — JWT cookie: `rh-wallet-session`; secret: `NEXTAUTH_SECRET`
+6. `SESSION_OPTIONAL` (`/` and `/partners`) → resolve session, set headers, never redirect
 7. Auth gate → redirect `/login?from=...`
-8. `/dashboard` → requires `isMember`
+8. `/dashboard` → additionally requires `isMember`
 
 ---
 
@@ -265,23 +166,7 @@ STRIPE_SECRET_KEY=sk_live_... npx ts-node --project tsconfig.scripts.json script
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-### ops/google-sheets (cd ops/google-sheets first)
-
-```bash
-npm run auth          # OAuth2 desktop flow → token.json (re-run if scopes change)
-npm run bootstrap     # Full 7-step idempotent setup
-npm run push          # clasp push → deploy Apps Script
-npm run logs          # clasp logs --watch
-```
-
-### ops/motors-social (cd ops/motors-social first)
-
-```bash
-venv\Scripts\python social_manager.py           # dry run
-venv\Scripts\python social_manager.py --live    # live post (10-20 min, do NOT background)
-venv\Scripts\python social_manager.py --live --feed-only
-# Manual GitHub Actions: Actions tab → "RoadHouse Motors — Daily Social Post" → Run workflow
-```
+See `ops/google-sheets/CLAUDE.md` and `ops/motors-social/CLAUDE.md` for ops-layer commands.
 
 ---
 
@@ -297,6 +182,7 @@ DISCORD_ROLE_REGULAR · DISCORD_ROLE_RANCH_HAND · DISCORD_ROLE_PARTNER
 DISCORD_PUBLIC_KEY · DISCORD_APP_ID
 DISCORD_VERIFY_SECRET · DISCORD_ADMIN_SECRET
 CRON_SECRET
+NEXTAUTH_SECRET
 
 # Stripe price IDs (run scripts/create-stripe-prices.ts once to generate)
 NEXT_PUBLIC_STRIPE_SUB_REGULAR          # $19.99/mo CAD
@@ -328,10 +214,6 @@ NEXT_PUBLIC_NFT_FOUNDING_COLLECTION · REGULAR · RANCH · PARTNER
 NEXT_PUBLIC_TREASURY_WALLET · NEXT_PUBLIC_MULTISIG_WALLET
 ```
 
-**GitHub secrets (motors-social workflow):** `CRON_SECRET` · `ANTHROPIC_API_KEY` · `FB_PAGE_ACCESS_TOKEN`
-**GitHub vars:** `FB_PAGE_ID=1047748735096733` · `IG_USER_ID=17841417177506354` · `ENABLE_REELS=true` · `REELS_AUDIO_DIR`
-**Meta App ID:** `915612138190380`
-
 ---
 
 ## MEMBERSHIP TIERS
@@ -350,7 +232,10 @@ NEXT_PUBLIC_TREASURY_WALLET · NEXT_PUBLIC_MULTISIG_WALLET
 |---|---|---|---|---|---|
 | 0 | 100 | 500 | 2,000 | 10,000 | 50,000 |
 
-**Tier format:** canonical string `'ranch-hand'` everywhere. `lib/solana.ts` returns `'ranchHand'` (devnet only); `normaliseTier()` in `lib/road-balance.ts` maps all variants → `'ranch-hand'`.
+**Tier format:** canonical string `'ranch-hand'` everywhere.
+- `lib/solana.ts` returns `'ranchHand'` (devnet only)
+- KV may contain `'ranch'` (legacy)
+- `normaliseTier()` in `lib/road-balance.ts` maps all variants → `'ranch-hand'`
 
 ---
 
@@ -383,10 +268,8 @@ NEXT_PUBLIC_TREASURY_WALLET · NEXT_PUBLIC_MULTISIG_WALLET
 | `treasury:snapshot` | `TreasurySnapshot` | DAO balances (5-min TTL cache) |
 | `treasury:votes` | `GovernanceVote[]` | Snapshot proposals |
 | `missions:{customerId}` | `Mission[]` | Daily missions (M3 — placeholder) |
-| `motors:inventory:obrians:{vin}` | Vehicle JSON | Single vehicle record |
-| `motors:index:obrians` | Redis SET of VINs | Efficient bulk reads |
-| `motors:leads:{id}` | MotorsLead JSON | Lead/pre-qualification submission |
-| `motors:leads:index` | Redis SET of lead IDs | Lead list |
+
+Motors KV keys documented in `app/motors/CLAUDE.md`.
 
 ---
 
@@ -522,7 +405,7 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 
 ---
 
-## BRANCH STATE — 2026-06-01
+## BRANCH STATE — 2026-06-08
 
 | Branch | Status | Notes |
 |---|---|---|
@@ -535,14 +418,14 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 
 ## CHANGELOG
 
+- **2026-06-08** — CLAUDE.md architecture split: 4 subdirectory files created (app/motors/, app/studio/, ops/motors-social/, ops/google-sheets/); root stripped to cross-cutting content only.
 - **2026-06-03** — Mobile audit: MobileBottomNav (`position: fixed; bottom: 0`), sidebar/rail CSS `!important` hide fixes, responsive grid breakpoints in RoadHouse.jsx, `ti-wallet` for treasury icon.
 - **2026-06-01** — Dashboard rearchitecture: 3-col shell (IconRail + DashboardSidebar + RoadHouse), page-based nav, DM Mono replaces Syne, Tabler icons via CDN. (37d7d43 · bb21e15)
-- **2026-05-28** — Studio launch + repo cleanup: ops/ consolidated, Studio subdomain scaffolded + launched. (f2d90fb · c7eabc8)
-- **2026-05-25** — Frontend audit: 21 UX/a11y fixes across motors + main. 5 security patches (road/balance PII, contributions unauth write, discord assign-role fail-open, wallet re-bind squatting, sync GET unauthed).
-- **2026-05-21** — Social manager upgrades: FCAA linter (31 tests), platform-differentiated captions, Reels pipeline. IG Reels blocked (error 2207076 — needs Vercel Blob).
-- **2026-05-09** — Motors live: ~116 vehicles, daily sync, lead pipeline, PaymentEstimator, admin panel, FB Marketplace catalog, AAMVA XML.
-- **2026-03-31** — RoadHouse OS bootstrapped: Google Sheets OS, Apps Script triggers, wallet registry, Discord webhooks.
-- **2026-03-27** — M2 complete: dashboard KV wiring, /compound + /partners, governance/multisig/founding-nft docs.
+- **2026-05-28** — Studio launch + repo cleanup: ops/ consolidated, Studio subdomain scaffolded + launched.
+- **2026-05-25** — Frontend audit: 21 UX/a11y fixes across motors + main. 5 security patches.
+- **2026-05-21** — Social manager upgrades: FCAA linter (31 tests), platform-differentiated captions, Reels pipeline.
+- **2026-05-09** — Motors live: ~116 vehicles, daily sync, lead pipeline, PaymentEstimator, admin panel.
+- **2026-03-31** — RoadHouse OS bootstrapped: Google Sheets OS, Apps Script triggers, wallet registry.
 
 ---
 
@@ -558,7 +441,7 @@ Dependency chain: steward verification → $ROAD release → contribution record
 5. **Metaplex NFT** — `lib/metaplex.ts` (create): `mintFoundingNFT()`, `verifyFoundingNFTOwnership()`, `getAssetsByOwner()`
 6. **Road monitor** — `lib/road-monitor.ts` (create): community bucket balance, months to depletion, 30-day notification trigger
 7. **Public profile** — `/profile/[wallet]` page
-8. **Wallet orphan cleanup** — `registerWallet()`: delete `wallet:{prev}` before writing new reverse index
+8. **Wallet orphan cleanup** — `registerWallet()`: delete `wallet:{prev}` before writing new reverse index ✅ done in road-balance.ts
 9. **Listings auth** — `createListing()`: verify wallet matches + tier check; pagination + `createdAt desc` sort
 10. **DeSci cross-member** — `submitDailyEntry()`: aggregate across `experiment:log:*` keys; admin route for new experiments
 11. **Guild admin** — admin route to post new bounties per guild
@@ -566,8 +449,8 @@ Dependency chain: steward verification → $ROAD release → contribution record
 13. **Devnet deploys** — Candy Machine · Squads multisig · Snapshot space + Aragon DAO
 14. **GitHub Pages dashboard** — public: treasury + member count + $ROAD + guilds
 15. **Missions KV** — wire `missions:{customerId}`; streak from `road:{customerId}.streak`
-16. **Studio live inventory** — merge `multi-dealer-wip` → wire `getInventoryCount('obrians')` into `MotorsCaseStudy.tsx`
-17. **IG Reels** — `PUT /api/motors/reels/upload` → Vercel Blob → public URL → IG `video_url`
+
+Arm-specific M3: see `app/motors/CLAUDE.md` (#17 IG Reels) and `app/studio/CLAUDE.md` (#16 live inventory).
 
 ---
 
