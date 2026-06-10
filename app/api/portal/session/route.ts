@@ -14,6 +14,37 @@ import { stripe, APP_URL } from '@/lib/stripe'
 import { getMembershipTier, TIER_META } from '@/lib/membership'
 import { getRoadBalance } from '@/lib/road-balance'
 
+// 5 lookups per IP per hour — prevents brute-force email enumeration
+const RATE_LIMIT  = 5
+const RATE_WINDOW = 60 * 60
+
+async function checkPortalRateLimit(ip: string): Promise<boolean> {
+  const url   = process.env.KV_REST_API_URL
+  const token = process.env.KV_REST_API_TOKEN
+  // Intentionally fail-open: portal must remain accessible even if KV is down
+  if (!url || !token) return true
+  try {
+    const key     = `portal:rl:${ip}`
+    const incrRes = await fetch(`${url}/incr/${encodeURIComponent(key)}`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+    })
+    if (!incrRes.ok) return true
+    const { result: count } = await incrRes.json()
+    if (count === 1) {
+      await fetch(`${url}/expire/${encodeURIComponent(key)}/${RATE_WINDOW}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+      })
+    }
+    return count <= RATE_LIMIT
+  } catch {
+    return true
+  }
+}
+
+// Single error string for all "not found" cases — prevents distinguishing
+// "email not in Stripe" from "email exists but no active sub" via message text.
+const NOT_FOUND_ERR = 'No active membership found for that email. Check your email or subscribe at roadhouse.capital.'
+
 export async function POST(req: NextRequest) {
   let body: { email?: string }
   try {
@@ -27,13 +58,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   }
 
+  const ip      = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const allowed = await checkPortalRateLimit(ip)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait an hour and try again.' },
+      { status: 429 }
+    )
+  }
+
   // Find Stripe customer by email
   const customers = await stripe.customers.list({ email, limit: 5 })
   if (customers.data.length === 0) {
-    return NextResponse.json(
-      { error: 'No membership found for that email. Subscribe at roadhouse.capital.' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: NOT_FOUND_ERR }, { status: 404 })
   }
 
   const customer = customers.data[0]

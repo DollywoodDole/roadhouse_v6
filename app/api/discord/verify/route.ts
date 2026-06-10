@@ -18,6 +18,36 @@ import { stripe } from '@/lib/stripe'
 import { getMembershipTier } from '@/lib/membership'
 import { grantMembershipRole } from '@/lib/discord'
 
+// 3 attempts per IP per 15 minutes — matches magic link token TTL
+const VERIFY_RATE_LIMIT  = 3
+const VERIFY_RATE_WINDOW = 15 * 60
+
+async function checkVerifyRateLimit(ip: string): Promise<boolean> {
+  const url   = process.env.KV_REST_API_URL
+  const token = process.env.KV_REST_API_TOKEN
+  if (!url || !token) return true
+  try {
+    const key     = `discord:verify:rl:${ip}`
+    const incrRes = await fetch(`${url}/incr/${encodeURIComponent(key)}`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+    })
+    if (!incrRes.ok) return true
+    const { result: count } = await incrRes.json()
+    if (count === 1) {
+      await fetch(`${url}/expire/${encodeURIComponent(key)}/${VERIFY_RATE_WINDOW}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+      })
+    }
+    return count <= VERIFY_RATE_LIMIT
+  } catch {
+    return true
+  }
+}
+
+// Uniform error for both "no customer" and "no active subscription" —
+// prevents distinguishing whether an email exists in Stripe via response text
+const NO_SUB_ERR = 'No active subscription found for that email. Check your email or subscribe at roadhouse.capital.'
+
 // ── GET — serve verification form ─────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -66,13 +96,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const ip      = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const allowed = await checkVerifyRateLimit(ip)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please wait 15 minutes and try again.' },
+      { status: 429 }
+    )
+  }
+
   // Find Stripe customer by email
   const customers = await stripe.customers.list({ email: email.toLowerCase().trim(), limit: 5 })
   if (customers.data.length === 0) {
-    return NextResponse.json(
-      { error: 'No subscription found for that email address. Check your email or join at roadhouse.capital.' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: NO_SUB_ERR }, { status: 404 })
   }
 
   // Use the most recent customer record
@@ -87,10 +123,7 @@ export async function POST(req: NextRequest) {
 
   const activeSub = subscriptions.data[0]
   if (!activeSub) {
-    return NextResponse.json(
-      { error: 'No active subscription found. Visit roadhouse.capital to subscribe.' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: NO_SUB_ERR }, { status: 404 })
   }
 
   // Save discord_user_id to Stripe customer metadata

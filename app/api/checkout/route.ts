@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, APP_URL } from '@/lib/stripe'
+import { getProductType } from '@/lib/membership'
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,6 +8,10 @@ export async function POST(req: NextRequest) {
 
     if (!priceId) {
       return NextResponse.json({ error: 'priceId is required' }, { status: 400 })
+    }
+
+    if (!getProductType(priceId)) {
+      return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 })
     }
 
     const session = await stripe.checkout.sessions.create({
