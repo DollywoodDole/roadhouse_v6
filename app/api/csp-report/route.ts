@@ -17,14 +17,27 @@ import { NextRequest, NextResponse } from 'next/server'
 const KV_LIST_KEY = 'csp:violations'
 const MAX_STORED  = 500
 
+// Real browser CSP reports are ~0.5–2 KB. Reject anything larger to prevent
+// memory exhaustion from malicious large bodies hitting this public endpoint.
+const MAX_BODY_BYTES = 4096
+
 export async function POST(req: NextRequest) {
   const kvUrl   = process.env.KV_REST_API_URL
   const kvToken = process.env.KV_REST_API_TOKEN
 
+  // Body size guard — check Content-Length header first (fast path), then
+  // fall back to reading as text so we can measure before parsing JSON.
+  const contentLength = parseInt(req.headers.get('content-length') ?? '0', 10)
+  if (contentLength > MAX_BODY_BYTES) {
+    return new NextResponse(null, { status: 204 })
+  }
+
   // Parse violation — browsers send application/csp-report or application/json
   let report: unknown
   try {
-    report = await req.json()
+    const text = await req.text()
+    if (text.length > MAX_BODY_BYTES) return new NextResponse(null, { status: 204 })
+    report = JSON.parse(text)
   } catch {
     return new NextResponse(null, { status: 204 })
   }
