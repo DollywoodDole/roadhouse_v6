@@ -106,6 +106,10 @@ const ENV_SCHEMA: EnvVar[] = [
   { key: 'RESEND_API_KEY',    required: false, serverOnly: true, description: 'Resend API key — enables the contact form POST endpoint', example: 're_...' },
   { key: 'RESEND_FROM_EMAIL', required: false, serverOnly: true, description: 'Verified sender address in Resend (default: noreply@roadhouse.capital)', example: 'noreply@roadhouse.capital' },
 
+  // ── Vercel KV (Upstash Redis) ──────────────────────────────────────────────
+  { key: 'KV_REST_API_URL',   required: false, serverOnly: true, description: 'Upstash Redis REST endpoint — rate limiting, $ROAD balances, caching. Auto-set by Vercel KV integration.', example: 'https://*.upstash.io' },
+  { key: 'KV_REST_API_TOKEN', required: false, serverOnly: true, description: 'Upstash Redis REST token. Auto-set by Vercel KV integration.', example: 'AXxx...' },
+
   // ── Discord ─────────────────────────────────────────────────────────────────
   { key: 'DISCORD_BOT_TOKEN',       required: false, serverOnly: true, description: 'Discord bot token for role automation' },
   { key: 'DISCORD_APP_ID',         required: false, description: 'Discord Application ID (from Developer Portal)' },

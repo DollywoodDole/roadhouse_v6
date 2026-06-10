@@ -1,6 +1,14 @@
 import { headers } from 'next/headers'
+import { unstable_cache } from 'next/cache'
 import { siteConfig } from '@/lib/site-config'
 import { getInventory } from '@/lib/motors/storage'
+
+// Cache the motors showcase for 5 minutes — updated by daily cron, not on demand
+const getShowcaseVehicles = unstable_cache(
+  () => getInventory('obrians', { status: 'available' }).then(v => v.sort((a, b) => b.price - a.price).slice(0, 3)),
+  ['motors-showcase'],
+  { revalidate: 300 }
+)
 import Sidebar from '@/components/Sidebar'
 import Hero from '@/components/sections/Hero'
 import KickStream from '@/components/sections/KickStream'
@@ -24,9 +32,7 @@ export default async function Home() {
   const isMember          = memberHeader === '1'
   const showUpgradePrompt = isAuthenticated && !isMember
 
-  const showcaseVehicles = await getInventory('obrians', { status: 'available' })
-    .then(v => v.sort((a, b) => b.price - a.price).slice(0, 3))
-    .catch(() => [])
+  const showcaseVehicles = await getShowcaseVehicles().catch(() => [])
 
   return (
     <div className="flex min-h-screen bg-rh-black">

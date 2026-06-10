@@ -14,9 +14,24 @@ export async function POST(req: Request) {
 
   const start = Date.now()
 
-  const existingVins = await getIndexedVins(DEALER_ID)
+  let existingVins: Set<string>
+  let vehicles: Awaited<ReturnType<typeof scrapeObriansInventory>>['vehicles']
+  let removed:  string[]
+  let errors:   unknown[]
 
-  const { vehicles, removed, errors } = await scrapeObriansInventory(existingVins)
+  try {
+    existingVins = await getIndexedVins(DEALER_ID)
+    ;({ vehicles, removed, errors } = await scrapeObriansInventory(existingVins))
+  } catch (err) {
+    console.error(JSON.stringify({ evt: 'motors.sync.scraper_fatal', dealer: DEALER_ID, error: String(err) }))
+    return NextResponse.json({ ok: false, error: 'Scraper threw — inventory unchanged', detail: String(err) }, { status: 500 })
+  }
+
+  // Guard against silent scraper failure wiping the whole inventory
+  if (vehicles.length === 0 && existingVins.size > 0) {
+    console.error(JSON.stringify({ evt: 'motors.sync.zero_vehicles', dealer: DEALER_ID, existing: existingVins.size }))
+    return NextResponse.json({ ok: false, error: 'Scraper returned 0 vehicles — inventory unchanged to prevent data loss', existing: existingVins.size }, { status: 500 })
+  }
 
   // Upsert all successfully scraped vehicles
   if (vehicles.length > 0) {
