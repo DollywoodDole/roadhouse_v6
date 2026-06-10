@@ -65,8 +65,6 @@ function ConnectPrompt() {
   return (
     <div className="rh-gate-wrapper">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
-
         .rh-gate-wrapper {
           min-height: 100vh;
           background: #0a0a08;
@@ -283,13 +281,13 @@ const NAV_SECTIONS = [
     { key: 'prop-account', label: 'Prop Account' },
   ]},
   { key: 'earn', label: 'EARN', items: [
-    { key: 'bounties',    label: 'Bounties',    badge: '4' },
+    { key: 'bounties',    label: 'Bounties' },
     { key: 'missions',    label: 'Missions',    reward: '+250' },
     { key: 'marketplace', label: 'Marketplace' },
     { key: 'leaderboard', label: 'Leaderboard' },
   ]},
   { key: 'community', label: 'COMMUNITY', items: [
-    { key: 'war-room', label: 'War Room', badge: '3' },
+    { key: 'war-room', label: 'War Room' },
     { key: 'protocol', label: 'Protocol' },
     { key: 'events',   label: 'Events' },
     { key: 'members',  label: 'Members' },
@@ -474,13 +472,13 @@ function VaultPanel({ roadBalance, walletAddress, memberTier }) {
         </span>
       </div>
 
-      {/* Prop Account */}
+      {/* Prop Account — stub until live data is wired */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #2a2420' }}>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.15em', color: '#7a7570', textTransform: 'uppercase' }}>
           Prop P&amp;L
         </span>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#4af0c8', fontWeight: 500 }}>
-          +$682
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#3a3530', fontWeight: 500 }}>
+          Coming M3
         </span>
       </div>
     </div>
@@ -525,17 +523,17 @@ function DashboardSidebar({ activeNavItem, onNavChange, memberTier, roadBalance,
           color: tierColor,
           letterSpacing: '0.05em',
         }}>
-          D
+          {walletAddress ? walletAddress.slice(0, 1).toUpperCase() : '?'}
         </div>
 
         {/* Name */}
         <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.06em', color: '#ede8dc', lineHeight: 1, marginBottom: 3 }}>
-          DollywoodDole
+          {walletAddress ?? 'Member'}
         </div>
 
-        {/* Handle + guild */}
+        {/* Handle */}
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#5a5550', letterSpacing: '0.1em', marginBottom: 8 }}>
-          @dollywooddole · Builder Guild
+          {walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : '—'}
         </div>
 
         {/* Tier badge */}
@@ -703,11 +701,6 @@ export default function RoadHouseDashboard() {
 
   return (
     <MemberGate isConnected={connected} memberTier={memberTier} requiredTier="founding">
-      {/* Tabler icons webfont — used by IconRail */}
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
-      />
       {/* Responsive shell: collapse sidebar at <900px, collapse rail at <600px */}
       <style>{`
         .rh-shell {

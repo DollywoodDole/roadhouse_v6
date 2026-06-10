@@ -48,13 +48,11 @@ export default function TokenGate({
   // ── Locked state ─────────────────────────────────────────────────────────
   return (
     <div className="relative overflow-hidden rounded-lg border border-rh-border bg-rh-card">
-      {/* Blurred preview of children */}
-      <div className="pointer-events-none select-none blur-sm opacity-30 max-h-48 overflow-hidden">
-        {children}
-      </div>
+      {/* Solid placeholder — intentionally opaque to prevent content leaking through blur */}
+      <div className="pointer-events-none select-none h-48 bg-gradient-to-b from-rh-elevated to-rh-card" />
 
       {/* Lock overlay */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-rh-black/70 backdrop-blur-sm">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
         <div className="flex items-center justify-center w-12 h-12 rounded-full border border-gold/30 bg-rh-elevated">
           <Lock size={20} className="text-gold" />
         </div>
