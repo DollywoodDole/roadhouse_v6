@@ -366,6 +366,33 @@ export async function sendOffboardingEmail(params: {
   })
 }
 
+// ── Billing portal access link — to customer ──────────────────────────────────
+
+export async function sendPortalAccessEmail(params: {
+  customerEmail: string
+  customerName:  string
+  portalUrl:     string
+}): Promise<void> {
+  await send({
+    to:      params.customerEmail,
+    subject: 'RoadHouse — Billing Portal Access',
+    text: [
+      `${params.customerName || 'Hey'},`,
+      ``,
+      `Click the link below to access your billing portal.`,
+      `Manage your membership, payment method, and invoices.`,
+      ``,
+      `${params.portalUrl}`,
+      ``,
+      `This link expires after use. Do not share it — it grants direct access to your billing settings.`,
+      ``,
+      `Questions? ${adminEmail()}`,
+      ``,
+      `— RoadHouse Capital`,
+    ].join('\n'),
+  })
+}
+
 // ── Payment failed ─────────────────────────────────────────────────────────────
 
 export async function sendPaymentFailedEmail(params: {
