@@ -78,15 +78,36 @@ const nextConfig = {
 
   // ── Security headers ───────────────────────────────────────────────────────
   async headers() {
+    // CSP is Report-Only — collect violations for 1–2 weeks before enforcing.
+    // Review via: GET /api/csp-report (Authorization: Bearer CRON_SECRET)
+    // Tighten script-src / connect-src once Phantom + Stripe violations are mapped.
+    const cspDirectives = [
+      "default-src 'self'",
+      // 'unsafe-inline' required for wallet adapters (Phantom/Solflare inject inline scripts)
+      // 'unsafe-eval' required by some Solana/WASM dependencies — audit before removing
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.jsdelivr.net https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+      "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
+      // Stripe, Solana RPC, Upstash KV (server-side only but harmless to list), Discord, Resend
+      "connect-src 'self' https://api.stripe.com https://*.upstash.io wss://*.helius-rpc.com https://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://discord.com https://api.resend.com",
+      // Stripe payment iframe + Phantom popup
+      "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+      "img-src 'self' data: blob: https:",
+      "media-src 'self' https://player.kick.com https://*.kick.com",
+      "worker-src 'self' blob:",
+      "report-uri /api/csp-report",
+    ].join('; ')
+
     return [
       {
         source: '/(.*)',
         headers: [
-          { key: 'X-Content-Type-Options',  value: 'nosniff' },
-          { key: 'X-Frame-Options',          value: 'DENY' },
-          { key: 'X-XSS-Protection',         value: '1; mode=block' },
-          { key: 'Referrer-Policy',          value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy',       value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'X-Content-Type-Options',               value: 'nosniff' },
+          { key: 'X-Frame-Options',                       value: 'DENY' },
+          { key: 'X-XSS-Protection',                      value: '1; mode=block' },
+          { key: 'Referrer-Policy',                       value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy',                    value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Content-Security-Policy-Report-Only',   value: cspDirectives },
         ],
       },
       {

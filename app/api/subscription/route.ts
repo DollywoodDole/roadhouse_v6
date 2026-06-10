@@ -52,25 +52,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET: Redirect to Stripe Customer Portal for managing subscriptions
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const customerId = searchParams.get('customer_id')
-
-    if (!customerId) {
-      return NextResponse.json({ error: 'customer_id is required' }, { status: 400 })
-    }
-
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: APP_URL,
-    })
-
-    return NextResponse.redirect(portalSession.url)
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to create portal session'
-    console.error(JSON.stringify({ evt: 'portal.error', error: message }))
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
+// GET removed — was unauthenticated and unreferenced.
+// The portal page uses /api/portal/session (POST) which returns a signed one-time URL.
+// Stripe customer IDs are guessable (cus_xxx format) so an open portal redirect
+// on any customer_id is a billing-management attack surface for every member.
+export async function GET() {
+  return NextResponse.json({ error: 'Not found' }, { status: 404 })
 }
