@@ -419,7 +419,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-20T21:51:09.606179+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-10T17:58:28.343751+00:00",
+    "reel_fb_success": true
   },
   "2HKRW2H85NH213905": {
     "title": "2022 Honda CR-V EX-L AWD",
@@ -437,7 +439,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T15:10:55.498223+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-10T17:59:36.713624+00:00",
+    "reel_fb_success": true
   },
   "JA4AJVAW2RU608412": {
     "title": "2024 Mitsubishi RVR SE",
