@@ -8,16 +8,10 @@
   ],
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/rpc/:path*",
-      "destination": "https://api.devnet.solana.com/:path*"
-    }
-  ],
   "redirects": [
     {
       "source": "/join",
-      "destination": "/#mint",
+      "destination": "/#membership",
       "permanent": false
     },
     {
@@ -47,27 +41,6 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/rpc/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://roadhouse.capital"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
         }
       ]
     },

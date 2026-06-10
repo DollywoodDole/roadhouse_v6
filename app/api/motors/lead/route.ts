@@ -4,6 +4,14 @@ import { Redis } from '@upstash/redis'
 const RESEND_API = 'https://api.resend.com/emails'
 const TO_EMAIL   = 'roadhousesyndicate@gmail.com'
 
+function esc(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function getRedis(): Redis {
   const url   = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN
@@ -42,11 +50,11 @@ async function sendLeadEmail(params: {
   const html = `
     <p><strong>New lead from motors.roadhouse.capital</strong></p>
     <table cellpadding="4" style="border-collapse:collapse;font-family:monospace;font-size:14px">
-      <tr><td style="color:#888">Name</td><td>${params.name}</td></tr>
-      <tr><td style="color:#888">Phone</td><td><a href="tel:${params.phone}">${params.phone}</a></td></tr>
-      <tr><td style="color:#888">Vehicle Interest</td><td>${params.vehicleInterest}</td></tr>
-      <tr><td style="color:#888">VIN</td><td>${params.vin}</td></tr>
-      <tr><td style="color:#888">Timestamp</td><td>${params.timestamp}</td></tr>
+      <tr><td style="color:#888">Name</td><td>${esc(params.name)}</td></tr>
+      <tr><td style="color:#888">Phone</td><td><a href="tel:${esc(params.phone)}">${esc(params.phone)}</a></td></tr>
+      <tr><td style="color:#888">Vehicle Interest</td><td>${esc(params.vehicleInterest)}</td></tr>
+      <tr><td style="color:#888">VIN</td><td>${esc(params.vin)}</td></tr>
+      <tr><td style="color:#888">Timestamp</td><td>${esc(params.timestamp)}</td></tr>
       <tr><td style="color:#888">Source</td><td>motors.roadhouse.capital</td></tr>
     </table>
     <p style="color:#888;font-size:12px;margin-top:16px">DL#331386</p>

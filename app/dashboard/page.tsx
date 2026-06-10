@@ -19,10 +19,9 @@ export default async function DashboardPage() {
   const headersList = await headers();
   const isMember    = headersList.get('x-rh-member') === '1';
 
-  // DEV: guest access enabled — restore this gate before launch
-  // if (!isMember) {
-  //   redirect('/?upgrade=1');
-  // }
+  if (!isMember) {
+    redirect('/?upgrade=1');
+  }
 
   return <RoadHouseDashboard />;
 }

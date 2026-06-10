@@ -245,8 +245,7 @@ function ConnectPrompt() {
 // ── MemberGate ───────────────────────────────────────────────────────────────
 
 function MemberGate({ isConnected, memberTier, requiredTier, children }) {
-  // DEV: guest access enabled — remove this comment and restore the gate before launch
-  if (false && !isConnected) {
+  if (!isConnected) {
     return <ConnectPrompt />
   }
   return <>{children}</>

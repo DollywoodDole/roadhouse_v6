@@ -116,6 +116,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return NextResponse.json({ error: 'Valid email address required' }, { status: 400 })
+  }
+
   const vehicleInterest = body.vehicleInterest || undefined
   const creditRange     = body.creditRange ?? body.creditRating ?? ''
   const monthlyIncome   = body.monthlyIncome ??

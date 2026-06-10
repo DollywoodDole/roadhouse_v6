@@ -28,6 +28,14 @@ interface TradeInPayload {
   email?: string
 }
 
+function esc(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function row(label: string, value: string): string {
   return `<tr><td style="color:#888;padding:4px 12px 4px 0;white-space:nowrap">${label}</td><td style="padding:4px 0">${value}</td></tr>`
 }
@@ -68,17 +76,17 @@ async function sendTradeInEmail(p: TradeInPayload & { timestamp: string }): Prom
   const html = `
     <p><strong>New trade-in lead from motors.roadhouse.capital</strong></p>
     <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:monospace;font-size:14px">
-      ${row('Name', p.name)}
-      ${row('Phone', `<a href="tel:${p.phone}">${p.phone}</a>`)}
-      ${p.email ? row('Email', `<a href="mailto:${p.email}">${p.email}</a>`) : ''}
-      ${row('Vehicle', vehicle)}
-      ${row('Category', p.category)}
-      ${row('Mileage', `${p.mileage} km`)}
-      ${row('Condition', p.condition)}
-      ${row('Ownership', p.ownership)}
-      ${p.postalCode ? row('Postal code', p.postalCode) : ''}
-      ${p.notes      ? row('Notes', p.notes.replace(/\n/g, '<br>')) : ''}
-      ${p.upgrade    ? row('Upgrade to', p.upgrade) : ''}
+      ${row('Name', esc(p.name))}
+      ${row('Phone', `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`)}
+      ${p.email ? row('Email', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`) : ''}
+      ${row('Vehicle', esc(vehicle))}
+      ${row('Category', esc(p.category))}
+      ${row('Mileage', `${esc(p.mileage)} km`)}
+      ${row('Condition', esc(p.condition))}
+      ${row('Ownership', esc(p.ownership))}
+      ${p.postalCode ? row('Postal code', esc(p.postalCode)) : ''}
+      ${p.notes      ? row('Notes', esc(p.notes).replace(/\n/g, '<br>')) : ''}
+      ${p.upgrade    ? row('Upgrade to', esc(p.upgrade)) : ''}
       ${row('Timestamp', p.timestamp)}
       ${row('Source', '/motors/trade-in')}
     </table>
