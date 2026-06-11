@@ -55,11 +55,12 @@ export async function POST(req: Request) {
   let existingVins: Set<string>
   let vehicles: Awaited<ReturnType<typeof scrapeObriansInventory>>['vehicles']
   let removed:  string[]
+  let gone:     string[]
   let scrapeErrors: number
 
   try {
     existingVins = await getIndexedVins(DEALER_ID)
-    ;({ vehicles, removed, errors: scrapeErrors } = await scrapeObriansInventory(existingVins))
+    ;({ vehicles, removed, gone, errors: scrapeErrors } = await scrapeObriansInventory(existingVins))
   } catch (err) {
     console.error(JSON.stringify({ evt: 'motors.sync.scraper_fatal', dealer: DEALER_ID, error: String(err) }))
     return NextResponse.json({ ok: false, error: 'Scraper threw — inventory unchanged', detail: String(err) }, { status: 500 })
@@ -78,12 +79,11 @@ export async function POST(req: Request) {
     kvRejected = result.rejected
   }
 
-  const parsedVins = new Set(vehicles.map(v => v.vin))
-  const staleVins  = [...existingVins].filter(v => !parsedVins.has(v))
-  await Promise.all([
-    ...removed.map(vin => removeVehicle(DEALER_ID, vin)),
-    ...staleVins.filter(v => !removed.includes(v)).map(vin => removeVehicle(DEALER_ID, vin)),
-  ])
+  // Only remove vehicles definitively gone — either not in the slug list at all (removed)
+  // or confirmed 404 by Webflow (gone). Vehicles that failed to parse due to network
+  // errors stay in KV and will be retried on the next cron run.
+  const confirmedGone = new Set([...removed, ...gone])
+  await Promise.all([...confirmedGone].map(vin => removeVehicle(DEALER_ID, vin)))
 
   const added      = vehicles.filter(v => !existingVins.has(v.vin)).length
   const updated    = vehicles.filter(v =>  existingVins.has(v.vin)).length

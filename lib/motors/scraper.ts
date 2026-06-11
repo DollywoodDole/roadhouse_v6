@@ -212,7 +212,7 @@ export type SyncResult = {
 
 export async function scrapeObriansInventory(
   existingVins: Set<string>
-): Promise<{ vehicles: Vehicle[]; removed: string[]; errors: number }> {
+): Promise<{ vehicles: Vehicle[]; removed: string[]; gone: string[]; errors: number }> {
   const slugs = await fetchInventorySlugs()
   if (slugs.length === 0) {
     throw new Error('Failed to fetch O\'Brian\'s inventory index — 0 slugs returned')
@@ -224,6 +224,7 @@ export async function scrapeObriansInventory(
   const removed = [...existingVins].filter(v => !liveVins.has(v))
 
   let errors = 0
+  const gone: string[] = []
   const vehicles: Vehicle[] = []
 
   const parsed = await withConcurrency(slugs, MAX_CONCURRENT, async (slug) => {
@@ -233,11 +234,12 @@ export async function scrapeObriansInventory(
     return parseListing(html, slug)
   })
 
-  for (const v of parsed) {
-    if (v === GONE) continue  // expected 404 — ignore
+  for (let i = 0; i < parsed.length; i++) {
+    const v = parsed[i]
+    if (v === GONE) { gone.push(vinFromSlug(slugs[i])); continue }
     if (v) vehicles.push(v)
     else errors++
   }
 
-  return { vehicles, removed, errors }
+  return { vehicles, removed, gone, errors }
 }
