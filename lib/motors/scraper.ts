@@ -142,6 +142,11 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     group.push(url)
     batchGroups.set(key, group)
   }
+  // O'Brian's uses a generic VW stock photo set as a placeholder on listings with no
+  // real photos. These appear as a qualifying batch (≥ 3 images) on every such page.
+  // Block known placeholder batch prefixes so they fall through to rh-coming-soon.svg.
+  const PLACEHOLDER_BATCH_PREFIXES = new Set(['6a28aa6e74a929965b'])
+
   // Walk batches in appearance order and pick the first with ≥ 3 images.
   // The vehicle's own gallery precedes the "similar vehicles" section, so the
   // first qualifying batch is always the correct one. A leading batch of 1-2
@@ -152,7 +157,9 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     const key = (url.split('/').pop() ?? '').split('_')[0].slice(0, 18)
     if (!seenKeys.has(key)) { seenKeys.add(key); orderedKeys.push(key) }
   }
-  const firstQualifying = orderedKeys.find(k => (batchGroups.get(k) ?? []).length >= 3) ?? null
+  const firstQualifying = orderedKeys.find(k =>
+    (batchGroups.get(k) ?? []).length >= 3 && !PLACEHOLDER_BATCH_PREFIXES.has(k)
+  ) ?? null
   const images = firstQualifying ? (batchGroups.get(firstQualifying) ?? []) : []
 
   const body_style = bodyRaw || specs['Body'] || 'Vehicle'
