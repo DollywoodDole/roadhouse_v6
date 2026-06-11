@@ -9,7 +9,11 @@ const UA = 'Mozilla/5.0 (compatible; RoadHouseMotorsBot/1.0; +https://motors.roa
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function fetchPage(url: string): Promise<string | null> {
+// Sentinel: Webflow CMS lists archived entries in the index but their pages 404.
+// Distinguish from null (real fetch failure) so they don't inflate error counts.
+const GONE = 'GONE' as const
+
+async function fetchPage(url: string): Promise<string | typeof GONE | null> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {
@@ -21,7 +25,7 @@ async function fetchPage(url: string): Promise<string | null> {
         },
         cache: 'no-store',
       })
-      if (res.status === 404) return null
+      if (res.status === 404) return GONE
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       return await res.text()
     } catch {
@@ -209,16 +213,15 @@ export async function scrapeObriansInventory(
 
   const parsed = await withConcurrency(slugs, MAX_CONCURRENT, async (slug) => {
     const html = await fetchPage(`${OBRIANS_BASE}/inventory/${slug}`)
-    if (!html) return null
+    if (html === GONE) return GONE  // archived CMS entry — skip, not an error
+    if (!html) return null          // real fetch failure — count as error
     return parseListing(html, slug)
   })
 
   for (const v of parsed) {
-    if (v) {
-      vehicles.push(v)
-    } else {
-      errors++
-    }
+    if (v === GONE) continue  // expected 404 — ignore
+    if (v) vehicles.push(v)
+    else errors++
   }
 
   return { vehicles, removed, errors }
