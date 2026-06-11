@@ -36,7 +36,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     `${new Intl.NumberFormat('en-CA').format(vehicle.mileage)} km, ` +
     `${vehicle.exterior_color}, ${vehicle.transmission}. ` +
     `${fmt(vehicle.price)} CAD. Saskatchewan delivery available.`
-  const image = vehicle.images[0] ?? `${BASE}/motors/rh-motors-header.jpg`
   const url = `${BASE}/vehicle/${vin}`
 
   return {
@@ -49,13 +48,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url,
       siteName: 'RoadHouse Motors',
       type: 'website',
-      images: [{ url: image, width: 1200, height: 800, alt: `${vehicle.year} ${vehicle.make} ${vehicle.model}` }],
+      // OG image served by opengraph-image.tsx file convention — not hardcoded here
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [image],
     },
   }
 }
