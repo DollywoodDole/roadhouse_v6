@@ -62,7 +62,7 @@ function LockedPage() {
 export default async function AdminPage() {
   const cookieStore = await cookies()
   const token  = cookieStore.get('motors-admin')?.value?.trim()
-  const secret = process.env.ADMIN_SECRET?.trim()
+  const secret = process.env.MOTORS_ADMIN_SECRET?.trim()
 
   if (!token || !secret || token !== secret) {
     return <LockedPage />

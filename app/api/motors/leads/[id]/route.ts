@@ -16,7 +16,7 @@ function auth(req: NextRequest): boolean {
 
   // Human: httpOnly motors-admin cookie (admin panel browser session)
   const cookie = req.cookies.get('motors-admin')?.value
-  const secret = process.env.ADMIN_SECRET?.trim()
+  const secret = process.env.MOTORS_ADMIN_SECRET?.trim()
   return !!(cookie && secret && cookie === secret)
 }
 

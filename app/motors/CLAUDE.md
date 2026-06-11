@@ -16,7 +16,7 @@
   /credit/page.tsx        ← pre-qualification form → /api/motors/leads → KV + Resend
   /trade-in/page.tsx      ← sell or trade form
   /privacy/page.tsx       ← privacy policy
-  /admin/page.tsx + AdminPanel.tsx (co-located) ← lead admin panel; ?token={CRON_SECRET} gated
+  /admin/page.tsx + AdminPanel.tsx (co-located) ← lead admin panel; httpOnly cookie auth (motors-admin, 7d)
   /team/page.tsx          ← Meet the Team; 2-col hero + team grid
 
 /components/motors/
@@ -63,7 +63,11 @@ Vercel cron `0 15 * * *` (9am CST) → `POST /api/motors/sync`. Scrapes obrians.
 
 **CRON_SECRET:** must have NO trailing whitespace — use `printf` not `echo` when setting via Vercel CLI.
 
-**Admin panel:** `https://motors.roadhouse.capital/motors/admin?token={CRON_SECRET}`
+**Admin panel:** `https://motors.roadhouse.capital/motors/admin` — login form POSTs to `/api/motors/admin/auth`; sets httpOnly `motors-admin` cookie (7d); no token in URL.
+
+**Admin env vars:**
+- `MOTORS_ADMIN_SECRET` — gates the admin cookie auth and admin panel page read. Convention: `{ARM}_ADMIN_SECRET` (future arms: `CAPITAL_ADMIN_SECRET`, `STUDIO_ADMIN_SECRET`).
+- `CRON_SECRET` — gates machine endpoints (`/api/motors/sync` POST/GET, `/api/motors/feed`, `/api/motors/leads` GET, `/api/motors/leads/[id]` PATCH). Never shared with browser.
 
 ## Constraints (permanent)
 

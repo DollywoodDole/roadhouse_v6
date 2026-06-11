@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.redirect(MOTORS_ADMIN, { status: 303 })
   }
 
-  const secret = process.env.ADMIN_SECRET?.trim()
+  const secret = process.env.MOTORS_ADMIN_SECRET?.trim()
   if (!secret || token !== secret) {
     return NextResponse.redirect(MOTORS_ADMIN, { status: 303 })
   }
