@@ -145,7 +145,11 @@ export function parseListing(html: string, slug: string): Vehicle | null {
   // O'Brian's uses a generic VW stock photo set as a placeholder on listings with no
   // real photos. These appear as a qualifying batch (≥ 3 images) on every such page.
   // Block known placeholder batch prefixes so they fall through to rh-coming-soon.svg.
-  const PLACEHOLDER_BATCH_PREFIXES = new Set(['6a28aa6e74a929965b'])
+  const PLACEHOLDER_BATCH_PREFIXES = new Set([
+    '6a28aa6e74a929965b', // VW generic stock set (~36 listings)
+    '6a2758b3a0ffd403f5', // truck stock set (Silverado/Ram/Sierra/F-150)
+    '6a2758dc39bf0edc08', // mixed stock set (Mustang/Forte/Ram3500/boat)
+  ])
 
   // Walk batches in appearance order and pick the first with ≥ 3 images.
   // The vehicle's own gallery precedes the "similar vehicles" section, so the
