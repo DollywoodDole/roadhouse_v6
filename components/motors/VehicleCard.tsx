@@ -159,16 +159,22 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
         {/* Price + CTA */}
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
           <div>
-            {formattedMsrp && (
-              <p className="text-white/50 text-xs md:text-sm line-through">{formattedMsrp}</p>
-            )}
-            <p className="text-white font-bold text-lg md:text-2xl">{formattedPrice}</p>
-            {bw ? (
-              <p className="text-white/40 text-[11px] md:text-xs">
-                From {fmtCAD(bw)} b/w · est. OAC
-              </p>
+            {vehicle.price === 0 ? (
+              <p className="text-white font-bold text-lg md:text-2xl">Contact for Price</p>
             ) : (
-              <p className="text-white/50 text-[11px] md:text-xs">CAD + taxes</p>
+              <>
+                {formattedMsrp && (
+                  <p className="text-white/50 text-xs md:text-sm line-through">{formattedMsrp}</p>
+                )}
+                <p className="text-white font-bold text-lg md:text-2xl">{formattedPrice}</p>
+                {bw ? (
+                  <p className="text-white/40 text-[11px] md:text-xs">
+                    From {fmtCAD(bw)} b/w · est. OAC
+                  </p>
+                ) : (
+                  <p className="text-white/50 text-[11px] md:text-xs">CAD + taxes</p>
+                )}
+              </>
             )}
           </div>
 

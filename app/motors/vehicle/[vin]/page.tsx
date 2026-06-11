@@ -31,11 +31,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim} for Sale | RoadHouse Motors SK`
+  const priceStr = vehicle.price > 0 ? `${fmt(vehicle.price)} CAD. ` : 'Contact for price. '
   const description =
     `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim} — ` +
     `${new Intl.NumberFormat('en-CA').format(vehicle.mileage)} km, ` +
     `${vehicle.exterior_color}, ${vehicle.transmission}. ` +
-    `${fmt(vehicle.price)} CAD. Saskatchewan delivery available.`
+    `${priceStr}Saskatchewan delivery available.`
   const url = `${BASE}/vehicle/${vin}`
 
   return {
@@ -102,8 +103,7 @@ function vehicleJsonLd(v: Vehicle) {
     },
     offers: {
       '@type': 'Offer',
-      price: v.price,
-      priceCurrency: 'CAD',
+      ...(v.price > 0 ? { price: v.price, priceCurrency: 'CAD' } : {}),
       availability,
       url: `${BASE}/vehicle/${v.vin}`,
       seller: {
@@ -247,11 +247,17 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
             {/* Price */}
             <div className="bg-[#111111] border border-white/10 rounded-xl p-5 space-y-1">
-              {formattedMsrp && (
-                <p className="text-white/35 text-sm line-through">MSRP {formattedMsrp}</p>
+              {vehicle.price === 0 ? (
+                <p className="text-white text-3xl font-bold">Contact for Price</p>
+              ) : (
+                <>
+                  {formattedMsrp && (
+                    <p className="text-white/35 text-sm line-through">MSRP {formattedMsrp}</p>
+                  )}
+                  <p className="text-white text-3xl font-bold">{formattedPrice}</p>
+                  <p className="text-white/35 text-xs">CAD + applicable taxes</p>
+                </>
               )}
-              <p className="text-white text-3xl font-bold">{formattedPrice}</p>
-              <p className="text-white/35 text-xs">CAD + applicable taxes</p>
             </div>
 
             {/* CTAs */}

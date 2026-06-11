@@ -103,8 +103,9 @@ export function parseListing(html: string, slug: string): Vehicle | null {
   const transmission = htmlAttr(tag, 'formTransmission') || 'Automatic'
   const bodyRaw      = htmlAttr(tag, 'formBody')
 
-  // 1000 is O'Brian's sentinel for "contact for price" — skip unpublished pricing
-  if (!vin || !year || !price || price === 1000 || !mileage || !make || !model) return null
+  // 1000 is O'Brian's sentinel for "contact for price" — include with price: 0
+  const listingPrice = price === 1000 ? 0 : price
+  if (!vin || !year || !price || !mileage || !make || !model) return null
 
   // Spec pairs: text-block-8 (label) → text-block-9 (value)
   const specs: Record<string, string> = {}
@@ -170,7 +171,7 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     trim:           trim || specs['Trim'] || '',
     body_style,
     mileage,
-    price,
+    price:          listingPrice,
     msrp:           undefined,
     status:         'available',
     images:         images.length ? images : ['/motors/rh-coming-soon.svg'],

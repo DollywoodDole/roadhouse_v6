@@ -50,7 +50,9 @@ export default async function VehicleOGImage({
   const imgData = imgSrc ? await imageToBase64(imgSrc) : null
 
   const label   = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
-  const price   = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0 }).format(vehicle.price)
+  const price   = vehicle.price > 0
+    ? new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0 }).format(vehicle.price)
+    : 'Contact for Price'
   const mileage = `${new Intl.NumberFormat('en-CA').format(vehicle.mileage)} km`
   const specs   = [mileage, vehicle.transmission, vehicle.fuel_type].filter(Boolean).join('  ·  ')
 
@@ -80,7 +82,9 @@ export default async function VehicleOGImage({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ color: '#F0C060', fontSize: 30, fontWeight: 700 }}>{price}</div>
-              <div style={{ color: '#8A7D6A', fontSize: 14 }}>CAD + applicable taxes</div>
+              {vehicle.price > 0 && (
+                <div style={{ color: '#8A7D6A', fontSize: 14 }}>CAD + applicable taxes</div>
+              )}
             </div>
             <div style={{ color: '#4A4238', fontSize: 13, marginTop: 4 }}>{specs}</div>
           </div>
