@@ -12,7 +12,10 @@ export function mergeVehicleHistory(
     return { ...incoming, firstSeenAt: now }
   }
 
-  const firstSeenAt = existing.firstSeenAt ?? now
+  // Existing vehicles without firstSeenAt are pre-feature — backdate past the
+  // 7-day Just Arrived window so they don't all badge on first migration sync.
+  const firstSeenAt = existing.firstSeenAt
+    ?? new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
   const priceDrop =
     incoming.price > 0 && existing.price > 0 && incoming.price < existing.price
 
