@@ -142,18 +142,17 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     group.push(url)
     batchGroups.set(key, group)
   }
-  // O'Brian's uses a generic VW stock photo set as a placeholder on listings with no
-  // real photos. These appear as a qualifying batch (≥ 3 images) on every such page.
-  // Block known placeholder batch prefixes so they fall through to rh-coming-soon.svg.
   // O'Brian's stock photo sets — appear on every listing without real photos.
-  // '6a2758' blocks the entire stock-photo family (all confirmed placeholders).
-  // '6a28aa6e74a929965b' and '6a275914ebcbf12273' are exact prefixes within
-  // otherwise-legitimate upload families — block them specifically.
-  const PLACEHOLDER_PREFIXES = [
-    '6a28aa6e74a929965b',  // VW generic stock (~36 listings)
-    '6a2758',              // truck/car/boat stock family (entire family is stock)
-    '6a275914ebcbf12273',  // HISUN/AODES ATV stock set
-  ]
+  // Each entry is an exact 18-char batch key confirmed to appear on multiple
+  // unrelated vehicle makes (i.e. cannot be a real per-vehicle photo set).
+  // Do NOT block by prefix family — real vehicle photos share the same upload dates.
+  const PLACEHOLDER_BATCH_PREFIXES = new Set([
+    '6a28aa6e74a929965b', // VW generic stock (~36 listings)
+    '6a2758b3a0ffd403f5', // truck stock (Silverado/Ram/Sierra/F-150 — identical URL)
+    '6a2758dc39bf0edc08', // mixed stock (Mustang/Forte/Ram3500/boat — identical URL)
+    '6a2758a4ebcbf12273', // mixed stock 2 (Mustang/Forte/Ram3500/Lund — identical URL)
+    '6a275914ebcbf12273', // ATV stock (HISUN/AODES — identical URL across models)
+  ])
 
   // Walk batches in appearance order and pick the first with ≥ 3 images.
   // The vehicle's own gallery precedes the "similar vehicles" section, so the
@@ -165,9 +164,8 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     const key = (url.split('/').pop() ?? '').split('_')[0].slice(0, 18)
     if (!seenKeys.has(key)) { seenKeys.add(key); orderedKeys.push(key) }
   }
-  const isPlaceholder = (k: string) => PLACEHOLDER_PREFIXES.some(p => k.startsWith(p))
   const firstQualifying = orderedKeys.find(k =>
-    (batchGroups.get(k) ?? []).length >= 3 && !isPlaceholder(k)
+    (batchGroups.get(k) ?? []).length >= 3 && !PLACEHOLDER_BATCH_PREFIXES.has(k)
   ) ?? null
   const images = firstQualifying ? (batchGroups.get(firstQualifying) ?? []) : []
 
