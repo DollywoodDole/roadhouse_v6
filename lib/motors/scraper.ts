@@ -145,11 +145,9 @@ export function parseListing(html: string, slug: string): Vehicle | null {
   // O'Brian's uses a generic VW stock photo set as a placeholder on listings with no
   // real photos. These appear as a qualifying batch (≥ 3 images) on every such page.
   // Block known placeholder batch prefixes so they fall through to rh-coming-soon.svg.
-  const PLACEHOLDER_BATCH_PREFIXES = new Set([
-    '6a28aa6e74a929965b', // VW generic stock set (~36 listings)
-    '6a2758b3a0ffd403f5', // truck stock set (Silverado/Ram/Sierra/F-150)
-    '6a2758dc39bf0edc08', // mixed stock set (Mustang/Forte/Ram3500/boat)
-  ])
+  // O'Brian's stock photo families — all share a common Webflow upload-batch prefix.
+  // Block by prefix-starts-with rather than exact key to cover the whole family.
+  const PLACEHOLDER_PREFIXES = ['6a28aa6e74a929965b', '6a2758']
 
   // Walk batches in appearance order and pick the first with ≥ 3 images.
   // The vehicle's own gallery precedes the "similar vehicles" section, so the
@@ -161,8 +159,9 @@ export function parseListing(html: string, slug: string): Vehicle | null {
     const key = (url.split('/').pop() ?? '').split('_')[0].slice(0, 18)
     if (!seenKeys.has(key)) { seenKeys.add(key); orderedKeys.push(key) }
   }
+  const isPlaceholder = (k: string) => PLACEHOLDER_PREFIXES.some(p => k.startsWith(p))
   const firstQualifying = orderedKeys.find(k =>
-    (batchGroups.get(k) ?? []).length >= 3 && !PLACEHOLDER_BATCH_PREFIXES.has(k)
+    (batchGroups.get(k) ?? []).length >= 3 && !isPlaceholder(k)
   ) ?? null
   const images = firstQualifying ? (batchGroups.get(firstQualifying) ?? []) : []
 
