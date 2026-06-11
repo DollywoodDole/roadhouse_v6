@@ -6,11 +6,19 @@ import Link from 'next/link'
 import { clsx } from 'clsx'
 import type { Vehicle } from '@/types/inventory'
 import VehicleImage from './VehicleImage'
+import { biWeeklyPayment } from '@/lib/motors/payments'
 
 const STATUS_BADGE: Record<Vehicle['status'], { label: string; className: string }> = {
   available: { label: 'Available',  className: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' },
   pending:   { label: 'Pending',    className: 'bg-amber-500/20  text-amber-400  border border-amber-500/30'  },
   sold:      { label: 'Sold',       className: 'bg-red-500/20    text-red-400    border border-red-500/30'    },
+}
+
+function fmtCAD(n: number) {
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency', currency: 'CAD',
+    minimumFractionDigits: 0, maximumFractionDigits: 0,
+  }).format(n)
 }
 
 interface VehicleCardProps {
@@ -20,23 +28,15 @@ interface VehicleCardProps {
 
 export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
   const badge = STATUS_BADGE[vehicle.status]
-  const formattedPrice = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(vehicle.price)
+  const formattedPrice = fmtCAD(vehicle.price)
 
-  const formattedMsrp = vehicle.msrp
-    ? new Intl.NumberFormat('en-CA', {
-        style: 'currency',
-        currency: 'CAD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(vehicle.msrp)
-    : null
+  const formattedMsrp = vehicle.msrp ? fmtCAD(vehicle.msrp) : null
 
   const formattedMileage = new Intl.NumberFormat('en-CA').format(vehicle.mileage)
+
+  const bw = vehicle.price > 0 && vehicle.status !== 'sold'
+    ? Math.round(biWeeklyPayment(vehicle.price))
+    : null
 
   return (
     <motion.div
@@ -112,14 +112,20 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
         {/* Divider */}
         <div className="border-t border-white/10" />
 
-        {/* Price + CTA — stacked on mobile, inline on desktop */}
+        {/* Price + CTA */}
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
           <div>
             {formattedMsrp && (
               <p className="text-white/50 text-xs md:text-sm line-through">{formattedMsrp}</p>
             )}
             <p className="text-white font-bold text-lg md:text-2xl">{formattedPrice}</p>
-            <p className="text-white/50 text-[11px] md:text-xs">CAD + taxes</p>
+            {bw ? (
+              <p className="text-white/40 text-[11px] md:text-xs">
+                From {fmtCAD(bw)} b/w · est. OAC
+              </p>
+            ) : (
+              <p className="text-white/50 text-[11px] md:text-xs">CAD + taxes</p>
+            )}
           </div>
 
           <Link

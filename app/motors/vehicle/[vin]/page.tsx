@@ -168,8 +168,9 @@ export default async function VehicleDetailPage({ params }: PageProps) {
   const formattedPrice    = fmt(vehicle.price)
   const formattedMsrp     = vehicle.msrp ? fmt(vehicle.msrp) : null
   const formattedMileage  = `${new Intl.NumberFormat('en-CA').format(vehicle.mileage)} km`
-  const creditHref        = `/motors/credit?vehicle=${encodeURIComponent(`${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`)}`
-  const vehicleInterest   = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
+  const vehicleLabel      = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
+  const vehicleInterest   = vehicleLabel
+  const creditHref        = `/motors/credit?vin=${encodeURIComponent(vin)}&v=${encodeURIComponent(vehicleLabel)}`
 
   return (
     <>
@@ -286,7 +287,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
             {/* Payment Estimator */}
             {vehicle.status !== 'sold' && vehicle.price > 0 && (
-              <PaymentEstimator price={vehicle.price} vin={vehicle.vin} />
+              <PaymentEstimator price={vehicle.price} vin={vehicle.vin} vehicleLabel={vehicleLabel} />
             )}
 
             {/* Lead Form */}
@@ -354,7 +355,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      <StickyCallBar />
+      <StickyCallBar vin={vin} vehicleLabel={vehicleLabel} />
     </>
   )
 }

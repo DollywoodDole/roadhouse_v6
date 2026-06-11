@@ -170,15 +170,22 @@ export default function CreditForm() {
     street: '', city: '', province: 'Saskatchewan', postalCode: '', timeAtAddress: '',
     employmentStatus: '', employer: '', position: '', annualIncome: '', timeAtJob: '',
     downPayment: '', monthlyPayment: '', bankruptcy: '', repossession: '', creditRating: '', coSigner: '',
-    vehicleInterest: '', tradeIn: '', notes: '',
+    vehicleInterest: '', vin: '', tradeIn: '', notes: '',
     consent: false,
   })
   const [status,   setStatus]   = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
+  // Vehicle context — ?v={label}&?vin={vin} (new format) or ?vehicle={label} (legacy)
+  const [vehicleContext, setVehicleContext] = useState<{ label: string; vin: string } | null>(null)
+
   useEffect(() => {
-    const vehicle = searchParams.get('vehicle')
-    if (vehicle) setForm((f) => ({ ...f, vehicleInterest: vehicle }))
+    const v       = searchParams.get('v') ?? searchParams.get('vehicle') ?? ''
+    const vinParam = searchParams.get('vin') ?? ''
+    if (v || vinParam) {
+      setVehicleContext({ label: v, vin: vinParam })
+      setForm((f) => ({ ...f, vehicleInterest: v || vinParam, vin: vinParam }))
+    }
   }, [searchParams])
 
   const set = (key: keyof typeof form) =>
@@ -194,7 +201,10 @@ export default function CreditForm() {
       const res = await fetch('/api/motors/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          vin: form.vin || undefined,
+        }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -249,6 +259,23 @@ export default function CreditForm() {
                   Complete the form below and we&apos;ll get back to you within one business day.
                   All information is kept confidential.
                 </p>
+
+                {vehicleContext && (vehicleContext.label || vehicleContext.vin) && (
+                  <div className="mt-4 flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                    <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0M13 17H9m0 0l-1-4m1 4H5m4 0l-1-4m0 0H5m4 0h4M5 13l1-5h12l1 5" />
+                    </svg>
+                    <div>
+                      <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">Applying for</p>
+                      {vehicleContext.label && (
+                        <p className="text-gray-900 text-sm font-medium">{vehicleContext.label}</p>
+                      )}
+                      {vehicleContext.vin && (
+                        <p className="text-gray-400 text-xs font-mono mt-0.5">VIN: {vehicleContext.vin}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-10">

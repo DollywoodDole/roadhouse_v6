@@ -2,15 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { DOC_FEE, DEFAULT_RATE, DEFAULT_TERM } from '@/lib/motors/payments'
 
 const TERMS = [36, 48, 60, 72, 84]
 
-// Typical Saskatchewan dealer doc/admin fee — makes estimates more realistic
-const DOC_FEE = 499
-
 const RATE_TIERS = [
   { label: 'Prime (4.99%)',       rate: 0.0499 },
-  { label: 'Near-Prime (7.99%)',  rate: 0.0799 },
+  { label: 'Near-Prime (7.99%)',  rate: DEFAULT_RATE },
   { label: 'Sub-Prime (9.99%)',   rate: 0.0999 },
   { label: 'Sub-Prime (14.99%)',  rate: 0.1499 },
   { label: 'Sub-Prime (19.99%)',  rate: 0.1999 },
@@ -36,20 +34,24 @@ function calcPayments(price: number, down: number, termMonths: number, annualRat
 }
 
 interface Props {
-  price: number
-  vin: string
+  price:         number
+  vin:           string
+  vehicleLabel?: string
 }
 
-export default function PaymentEstimator({ price, vin }: Props) {
+export default function PaymentEstimator({ price, vin, vehicleLabel }: Props) {
   const maxDown     = Math.floor(price * 0.5)
   const defaultDown = Math.min(Math.floor(price * 0.1), maxDown)
 
   const [down,    setDown]    = useState(defaultDown)
-  const [term,    setTerm]    = useState(72)
-  const [rateIdx, setRateIdx] = useState(1) // Near-Prime default
+  const [term,    setTerm]    = useState(DEFAULT_TERM)
+  const [rateIdx, setRateIdx] = useState(1)
 
   const { monthly, biweekly } = calcPayments(price, down, term, RATE_TIERS[rateIdx].rate)
-  const creditHref = `/motors/credit?vehicle=${encodeURIComponent(vin)}`
+
+  const creditHref = vehicleLabel
+    ? `/motors/credit?vin=${encodeURIComponent(vin)}&v=${encodeURIComponent(vehicleLabel)}`
+    : `/motors/credit?vin=${encodeURIComponent(vin)}`
 
   return (
     <div className="bg-[#111111] border border-white/10 rounded-xl p-5 space-y-5">
