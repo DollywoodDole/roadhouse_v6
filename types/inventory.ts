@@ -24,19 +24,35 @@ export interface Vehicle {
   updated_at: string
 }
 
+export interface MotorsLeadTradeIn {
+  category: string
+  year: string
+  make: string
+  model: string
+  trim?: string
+  mileage: string
+  condition: string
+  ownership: string
+  postalCode?: string
+  upgrade?: string
+}
+
 export interface MotorsLead {
   id: string
   submittedAt: string
   name: string
   phone: string
-  email: string
+  email?: string
   vehicleInterest?: string
-  creditRange: string
-  monthlyIncome: string
-  employmentStatus: string
+  vin?: string
+  creditRange?: string
+  monthlyIncome?: string
+  employmentStatus?: string
   message?: string
   status: 'new' | 'contacted' | 'approved' | 'closed' | 'dead'
-  source: 'credit-form'
+  source: 'credit-form' | 'vehicle-form' | 'trade-in'
+  deliveryStatus: 'sent' | 'failed'
+  tradeIn?: MotorsLeadTradeIn
 }
 
 export interface InventoryFilters {

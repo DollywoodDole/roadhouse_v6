@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
+import type { MotorsLead } from '@/types/inventory'
+import { checkPhoneRateLimit } from '@/lib/motors/ratelimit'
 
 const RESEND_API = 'https://api.resend.com/emails'
 const TO_EMAIL   = 'roadhousesyndicate@gmail.com'
+
+function getRedis(): Redis {
+  const url   = process.env.KV_REST_API_URL
+  const token = process.env.KV_REST_API_TOKEN
+  if (!url || !token) throw new Error('KV_REST_API_URL / KV_REST_API_TOKEN not set')
+  return new Redis({ url, token })
+}
 
 function esc(s: string): string {
   return s
@@ -12,20 +21,7 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;')
 }
 
-function getRedis(): Redis {
-  const url   = process.env.KV_REST_API_URL
-  const token = process.env.KV_REST_API_TOKEN
-  if (!url || !token) throw new Error('KV_REST_API_URL / KV_REST_API_TOKEN not set')
-  return new Redis({ url, token })
-}
-
-async function sendLeadEmail(params: {
-  name: string
-  phone: string
-  vehicleInterest: string
-  vin: string
-  timestamp: string
-}): Promise<void> {
+async function sendLeadEmail(lead: MotorsLead): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const from   = process.env.RESEND_FROM_EMAIL ?? 'hello@roadhouse.capital'
 
@@ -34,42 +30,44 @@ async function sendLeadEmail(params: {
     return
   }
 
+  const vehicleInterest = lead.vehicleInterest ?? 'not specified'
+  const vin             = lead.vin             ?? 'not specified'
+
   const text = [
-    'New lead from motors.roadhouse.capital',
+    'New vehicle inquiry from motors.roadhouse.capital',
     '',
-    `Name:             ${params.name}`,
-    `Phone:            ${params.phone}`,
-    `Vehicle Interest: ${params.vehicleInterest}`,
-    `VIN:              ${params.vin}`,
-    `Timestamp:        ${params.timestamp}`,
+    `Name:             ${lead.name}`,
+    `Phone:            ${lead.phone}`,
+    `Vehicle Interest: ${vehicleInterest}`,
+    `VIN:              ${vin}`,
+    `Lead ID:          ${lead.id}`,
+    `Timestamp:        ${lead.submittedAt}`,
     `Source:           motors.roadhouse.capital`,
     '',
     'DL#331386',
   ].join('\n')
 
   const html = `
-    <p><strong>New lead from motors.roadhouse.capital</strong></p>
+    <p><strong>New vehicle inquiry from motors.roadhouse.capital</strong></p>
     <table cellpadding="4" style="border-collapse:collapse;font-family:monospace;font-size:14px">
-      <tr><td style="color:#888">Name</td><td>${esc(params.name)}</td></tr>
-      <tr><td style="color:#888">Phone</td><td><a href="tel:${esc(params.phone)}">${esc(params.phone)}</a></td></tr>
-      <tr><td style="color:#888">Vehicle Interest</td><td>${esc(params.vehicleInterest)}</td></tr>
-      <tr><td style="color:#888">VIN</td><td>${esc(params.vin)}</td></tr>
-      <tr><td style="color:#888">Timestamp</td><td>${esc(params.timestamp)}</td></tr>
+      <tr><td style="color:#888">Name</td><td>${esc(lead.name)}</td></tr>
+      <tr><td style="color:#888">Phone</td><td><a href="tel:${esc(lead.phone)}">${esc(lead.phone)}</a></td></tr>
+      <tr><td style="color:#888">Vehicle Interest</td><td>${esc(vehicleInterest)}</td></tr>
+      <tr><td style="color:#888">VIN</td><td>${esc(vin)}</td></tr>
+      <tr><td style="color:#888">Lead ID</td><td>${esc(lead.id)}</td></tr>
+      <tr><td style="color:#888">Timestamp</td><td>${esc(lead.submittedAt)}</td></tr>
       <tr><td style="color:#888">Source</td><td>motors.roadhouse.capital</td></tr>
     </table>
     <p style="color:#888;font-size:12px;margin-top:16px">DL#331386</p>
   `
 
   const res = await fetch(RESEND_API, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type':  'application/json',
-    },
+    method:  'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from:    `RoadHouse Motors <${from}>`,
       to:      [TO_EMAIL],
-      subject: `New Motors Lead — ${params.vehicleInterest}`,
+      subject: `Vehicle Inquiry — ${vehicleInterest}`,
       text,
       html,
     }),
@@ -110,36 +108,38 @@ export async function POST(req: Request) {
 
   const cleanPhone = phone.trim().replace(/\s+/g, '')
 
-  // Basic rate limit: reject same phone within 60 seconds
-  try {
-    const redis    = getRedis()
-    const rateKey  = `lead:phone:${cleanPhone}`
-    const existing = await redis.get(rateKey)
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Request already submitted. Please wait a moment before trying again.' },
-        { status: 429 }
-      )
-    }
-    await redis.set(rateKey, '1', { ex: 60 })
-  } catch (err) {
-    // KV failure should not block the user — log and continue
-    console.error('[motors/lead] KV rate limit check failed:', err)
+  const allowed = await checkPhoneRateLimit(cleanPhone)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Request already submitted. Please wait a moment before trying again.' },
+      { status: 429 }
+    )
   }
 
-  const timestamp = new Date().toISOString()
+  const id   = globalThis.crypto.randomUUID()
+  const lead: MotorsLead = {
+    id,
+    submittedAt:     new Date().toISOString(),
+    name:            name.trim(),
+    phone:           cleanPhone,
+    vehicleInterest: typeof vehicleInterest === 'string' && vehicleInterest ? vehicleInterest : undefined,
+    vin:             typeof vin === 'string' && vin ? vin : undefined,
+    status:          'new',
+    source:          'vehicle-form',
+    deliveryStatus:  'sent',
+  }
+
+  const redis = getRedis()
+  await redis.set(`motors:leads:${id}`, JSON.stringify(lead))
+  await redis.sadd('motors:leads:index', id)
 
   try {
-    await sendLeadEmail({
-      name:            name.trim(),
-      phone:           cleanPhone,
-      vehicleInterest: typeof vehicleInterest === 'string' ? vehicleInterest : 'not specified',
-      vin:             typeof vin === 'string' && vin ? vin : 'not specified',
-      timestamp,
-    })
+    await sendLeadEmail(lead)
   } catch (err) {
     console.error('[motors/lead] Email send failed:', err)
-    // Still return success — lead was rate-limited/stored; email failure non-blocking
+    await redis
+      .set(`motors:leads:${id}`, JSON.stringify({ ...lead, deliveryStatus: 'failed' }))
+      .catch(() => {})
   }
 
   return NextResponse.json({ success: true })

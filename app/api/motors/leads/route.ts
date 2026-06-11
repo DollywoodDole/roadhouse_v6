@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import type { MotorsLead } from '@/types/inventory'
+import { checkPhoneRateLimit } from '@/lib/motors/ratelimit'
 
 function getRedis(): Redis {
   const url   = process.env.KV_REST_API_URL
@@ -35,7 +36,7 @@ async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
     ``,
     `── CONTACT ──────────────────────────────────────────`,
     `Name:           ${lead.name}`,
-    `Email:          ${lead.email}`,
+    `Email:          ${lead.email ?? '—'}`,
     `Phone:          ${lead.phone}`,
   ]
 
@@ -49,7 +50,7 @@ async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
   }
 
   lines.push(``, `── EMPLOYMENT & INCOME ──────────────────────────────`)
-  lines.push(`Status:         ${lead.employmentStatus}`)
+  lines.push(`Status:         ${lead.employmentStatus ?? '—'}`)
   if (raw.employer)    lines.push(`Employer:       ${raw.employer}`)
   if (raw.position)    lines.push(`Position:       ${raw.position}`)
   if (raw.annualIncome)
@@ -68,20 +69,25 @@ async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
 
   lines.push(``, `── VEHICLE INTEREST ─────────────────────────────────`)
   lines.push(`Looking for:    ${lead.vehicleInterest || '—'}`)
+  if (lead.vin)      lines.push(`VIN:            ${lead.vin}`)
   if (raw.tradeIn)   lines.push(`Trade-in:       ${raw.tradeIn}`)
   if (lead.message)  lines.push(`Notes:          ${lead.message}`)
 
   lines.push(``, `Admin panel: ${adminUrl}`)
 
+  const subject = lead.vehicleInterest
+    ? `Credit App — ${lead.name} — ${lead.vehicleInterest}`
+    : `New Lead: ${lead.name} — General Inquiry`
+
   const res = await fetch(RESEND_API, {
-    method: 'POST',
+    method:  'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:     `RoadHouse Motors <${MOTORS_FROM}>`,
-      to:       [MOTORS_ADMIN],
-      subject:  `New Lead: ${lead.name} — ${lead.vehicleInterest ?? 'General Inquiry'}`,
-      text:     lines.join('\n'),
-      reply_to: lead.email,
+      from:      `RoadHouse Motors <${MOTORS_FROM}>`,
+      to:        [MOTORS_ADMIN],
+      subject,
+      text:      lines.join('\n'),
+      reply_to:  lead.email,
     }),
   })
 
@@ -101,7 +107,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  // Accept full credit form body OR simplified lead body
   const firstName = body.firstName ?? ''
   const lastName  = body.lastName  ?? ''
   const name      = (body.name ?? `${firstName} ${lastName}`).trim()
@@ -121,6 +126,7 @@ export async function POST(req: NextRequest) {
   }
 
   const vehicleInterest = body.vehicleInterest || undefined
+  const vin             = body.vin             || undefined
   const creditRange     = body.creditRange ?? body.creditRating ?? ''
   const monthlyIncome   = body.monthlyIncome ??
     (body.annualIncome
@@ -128,22 +134,14 @@ export async function POST(req: NextRequest) {
       : '')
   const message = (body.message ?? body.notes) || undefined
 
-  // Rate limit: 60s per phone number (matches /api/motors/lead pattern)
   const cleanPhone = phone.replace(/\s+/g, '')
-  try {
-    const redis    = getRedis()
-    const rateKey  = `leads:ratelimit:${cleanPhone}`
-    const existing = await redis.get(rateKey)
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Request already submitted. Please wait a moment before trying again.' },
-        { status: 429 }
-      )
-    }
-    await redis.set(rateKey, '1', { ex: 60 })
-  } catch (err) {
-    // KV failure is non-blocking
-    console.error('[motors/leads] KV rate limit check failed:', err)
+
+  const allowed = await checkPhoneRateLimit(cleanPhone)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Request already submitted. Please wait a moment before trying again.' },
+      { status: 429 }
+    )
   }
 
   const id: string = globalThis.crypto.randomUUID()
@@ -151,15 +149,17 @@ export async function POST(req: NextRequest) {
     id,
     submittedAt: new Date().toISOString(),
     name,
-    phone,
+    phone:           cleanPhone,
     email,
     vehicleInterest,
+    vin,
     creditRange,
     monthlyIncome,
     employmentStatus,
     message,
-    status: 'new',
-    source: 'credit-form',
+    status:          'new',
+    source:          'credit-form',
+    deliveryStatus:  'sent',
   }
 
   const redis = getRedis()
@@ -170,7 +170,9 @@ export async function POST(req: NextRequest) {
     await sendNotification(lead, body)
   } catch (err) {
     console.error('[motors/leads] notification email failed:', err)
-    // Lead is persisted — don't block the user on email failure
+    await redis
+      .set(`motors:leads:${id}`, JSON.stringify({ ...lead, deliveryStatus: 'failed' }))
+      .catch(() => {})
   }
 
   return NextResponse.json({ success: true, id })

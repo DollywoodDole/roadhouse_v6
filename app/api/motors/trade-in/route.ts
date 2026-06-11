@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
+import type { MotorsLead, MotorsLeadTradeIn } from '@/types/inventory'
+import { checkPhoneRateLimit } from '@/lib/motors/ratelimit'
 
 const RESEND_API = 'https://api.resend.com/emails'
 const TO_EMAIL   = 'roadhousesyndicate@gmail.com'
@@ -9,23 +11,6 @@ function getRedis(): Redis {
   const token = process.env.KV_REST_API_TOKEN
   if (!url || !token) throw new Error('KV_REST_API_URL / KV_REST_API_TOKEN not set')
   return new Redis({ url, token })
-}
-
-interface TradeInPayload {
-  category: string
-  year: string
-  make: string
-  model: string
-  trim?: string
-  mileage: string
-  condition: string
-  postalCode?: string
-  notes?: string
-  upgrade?: string
-  ownership: string
-  name: string
-  phone: string
-  email?: string
 }
 
 function esc(s: string): string {
@@ -40,7 +25,7 @@ function row(label: string, value: string): string {
   return `<tr><td style="color:#888;padding:4px 12px 4px 0;white-space:nowrap">${label}</td><td style="padding:4px 0">${value}</td></tr>`
 }
 
-async function sendTradeInEmail(p: TradeInPayload & { timestamp: string }): Promise<void> {
+async function sendTradeInEmail(lead: MotorsLead): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const from   = process.env.RESEND_FROM_EMAIL ?? 'hello@roadhouse.capital'
   if (!apiKey) {
@@ -48,46 +33,49 @@ async function sendTradeInEmail(p: TradeInPayload & { timestamp: string }): Prom
     return
   }
 
-  const vehicle = `${p.year} ${p.make} ${p.model}${p.trim ? ` ${p.trim}` : ''}`
-  const subject = `Trade-in lead: ${vehicle} — ${p.name} (${p.phone})`
+  const ti = lead.tradeIn!
+  const vehicle = `${ti.year} ${ti.make} ${ti.model}${ti.trim ? ` ${ti.trim}` : ''}`
+  const subject = `Trade-in Inquiry: ${vehicle} — ${lead.name} (${lead.phone})`
 
   const text = [
-    'New trade-in lead from motors.roadhouse.capital',
+    'New trade-in inquiry from motors.roadhouse.capital',
     '',
-    `Name:        ${p.name}`,
-    `Phone:       ${p.phone}`,
-    p.email ? `Email:       ${p.email}` : '',
+    `Name:        ${lead.name}`,
+    `Phone:       ${lead.phone}`,
+    lead.email   ? `Email:       ${lead.email}` : '',
+    `Lead ID:     ${lead.id}`,
     '',
     `Vehicle:     ${vehicle}`,
-    `Category:    ${p.category}`,
-    `Mileage:     ${p.mileage} km`,
-    `Condition:   ${p.condition}`,
-    `Ownership:   ${p.ownership}`,
-    p.postalCode ? `Postal code: ${p.postalCode}` : '',
-    p.notes      ? `Notes:       ${p.notes}` : '',
-    p.upgrade    ? `Upgrade to:  ${p.upgrade}` : '',
+    `Category:    ${ti.category}`,
+    `Mileage:     ${ti.mileage} km`,
+    `Condition:   ${ti.condition}`,
+    `Ownership:   ${ti.ownership}`,
+    ti.postalCode ? `Postal code: ${ti.postalCode}` : '',
+    lead.message  ? `Notes:       ${lead.message}` : '',
+    ti.upgrade    ? `Upgrade to:  ${ti.upgrade}` : '',
     '',
-    `Timestamp:   ${p.timestamp}`,
+    `Timestamp:   ${lead.submittedAt}`,
     `Source:      /motors/trade-in`,
     '',
     'DL#331386',
-  ].filter((l) => l !== null).join('\n')
+  ].filter(Boolean).join('\n')
 
   const html = `
-    <p><strong>New trade-in lead from motors.roadhouse.capital</strong></p>
+    <p><strong>New trade-in inquiry from motors.roadhouse.capital</strong></p>
     <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:monospace;font-size:14px">
-      ${row('Name', esc(p.name))}
-      ${row('Phone', `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`)}
-      ${p.email ? row('Email', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`) : ''}
+      ${row('Name',    esc(lead.name))}
+      ${row('Phone',   `<a href="tel:${esc(lead.phone)}">${esc(lead.phone)}</a>`)}
+      ${lead.email ? row('Email', `<a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a>`) : ''}
+      ${row('Lead ID', esc(lead.id))}
       ${row('Vehicle', esc(vehicle))}
-      ${row('Category', esc(p.category))}
-      ${row('Mileage', `${esc(p.mileage)} km`)}
-      ${row('Condition', esc(p.condition))}
-      ${row('Ownership', esc(p.ownership))}
-      ${p.postalCode ? row('Postal code', esc(p.postalCode)) : ''}
-      ${p.notes      ? row('Notes', esc(p.notes).replace(/\n/g, '<br>')) : ''}
-      ${p.upgrade    ? row('Upgrade to', esc(p.upgrade)) : ''}
-      ${row('Timestamp', p.timestamp)}
+      ${row('Category', esc(ti.category))}
+      ${row('Mileage',  `${esc(ti.mileage)} km`)}
+      ${row('Condition', esc(ti.condition))}
+      ${row('Ownership', esc(ti.ownership))}
+      ${ti.postalCode ? row('Postal code', esc(ti.postalCode)) : ''}
+      ${lead.message  ? row('Notes', esc(lead.message).replace(/\n/g, '<br>')) : ''}
+      ${ti.upgrade    ? row('Upgrade to', esc(ti.upgrade)) : ''}
+      ${row('Timestamp', lead.submittedAt)}
       ${row('Source', '/motors/trade-in')}
     </table>
     <p style="color:#888;font-size:12px;margin-top:16px">DL#331386</p>
@@ -100,7 +88,7 @@ async function sendTradeInEmail(p: TradeInPayload & { timestamp: string }): Prom
     text,
     html,
   }
-  if (p.email) body['reply_to'] = p.email
+  if (lead.email) body['reply_to'] = lead.email
 
   const res = await fetch(RESEND_API, {
     method:  'POST',
@@ -128,17 +116,16 @@ export async function POST(req: Request) {
 
   const p = body as Record<string, unknown>
 
-  // Required field validation
   const required: Array<[string, string]> = [
-    ['category', 'Category is required'],
-    ['year',     'Year is required'],
-    ['make',     'Make is required'],
-    ['model',    'Model is required'],
-    ['mileage',  'Mileage is required'],
-    ['condition','Condition is required'],
-    ['ownership','Ownership status is required'],
-    ['name',     'Name is required'],
-    ['phone',    'Phone is required'],
+    ['category',  'Category is required'],
+    ['year',      'Year is required'],
+    ['make',      'Make is required'],
+    ['model',     'Model is required'],
+    ['mileage',   'Mileage is required'],
+    ['condition', 'Condition is required'],
+    ['ownership', 'Ownership status is required'],
+    ['name',      'Name is required'],
+    ['phone',     'Phone is required'],
   ]
   for (const [field, msg] of required) {
     if (typeof p[field] !== 'string' || !(p[field] as string).trim()) {
@@ -153,24 +140,15 @@ export async function POST(req: Request) {
 
   const cleanPhone = phone.replace(/\s+/g, '')
 
-  // Rate limit: 60s per phone number
-  try {
-    const redis    = getRedis()
-    const rateKey  = `tradein:ratelimit:${cleanPhone}`
-    const existing = await redis.get(rateKey)
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Already submitted. Please wait a moment before trying again.' },
-        { status: 429 }
-      )
-    }
-    await redis.set(rateKey, '1', { ex: 60 })
-  } catch (err) {
-    // KV failure is non-blocking
-    console.error('[motors/trade-in] KV rate limit check failed:', err)
+  const allowed = await checkPhoneRateLimit(cleanPhone)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Already submitted. Please wait a moment before trying again.' },
+      { status: 429 }
+    )
   }
 
-  const payload: TradeInPayload & { timestamp: string } = {
+  const tradeIn: MotorsLeadTradeIn = {
     category:   (p.category   as string).trim(),
     year:       (p.year       as string).trim(),
     make:       (p.make       as string).trim(),
@@ -178,21 +156,36 @@ export async function POST(req: Request) {
     trim:       typeof p.trim       === 'string' ? p.trim.trim()       : undefined,
     mileage:    (p.mileage    as string).trim(),
     condition:  (p.condition  as string).trim(),
-    postalCode: typeof p.postalCode === 'string' ? p.postalCode.trim() : undefined,
-    notes:      typeof p.notes      === 'string' ? p.notes.trim()      : undefined,
-    upgrade:    typeof p.upgrade    === 'string' ? p.upgrade.trim()    : undefined,
     ownership:  (p.ownership  as string).trim(),
-    name,
-    phone:      cleanPhone,
-    email:      typeof p.email === 'string' && p.email.trim() ? p.email.trim() : undefined,
-    timestamp:  new Date().toISOString(),
+    postalCode: typeof p.postalCode === 'string' ? p.postalCode.trim() : undefined,
+    upgrade:    typeof p.upgrade    === 'string' ? p.upgrade.trim()    : undefined,
   }
 
+  const id   = globalThis.crypto.randomUUID()
+  const lead: MotorsLead = {
+    id,
+    submittedAt:    new Date().toISOString(),
+    name,
+    phone:          cleanPhone,
+    email:          typeof p.email === 'string' && p.email.trim() ? p.email.trim() : undefined,
+    message:        typeof p.notes === 'string' && p.notes.trim() ? p.notes.trim() : undefined,
+    status:         'new',
+    source:         'trade-in',
+    deliveryStatus: 'sent',
+    tradeIn,
+  }
+
+  const redis = getRedis()
+  await redis.set(`motors:leads:${id}`, JSON.stringify(lead))
+  await redis.sadd('motors:leads:index', id)
+
   try {
-    await sendTradeInEmail(payload)
+    await sendTradeInEmail(lead)
   } catch (err) {
     console.error('[motors/trade-in] Email send failed:', err)
-    // Email failure is non-blocking — return success regardless (matches /api/motors/lead pattern)
+    await redis
+      .set(`motors:leads:${id}`, JSON.stringify({ ...lead, deliveryStatus: 'failed' }))
+      .catch(() => {})
   }
 
   return NextResponse.json({ success: true })

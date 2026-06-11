@@ -10,8 +10,14 @@ function getRedis(): Redis {
 }
 
 function auth(req: NextRequest): boolean {
+  // Machine: Bearer CRON_SECRET (cron / programmatic tools)
   const header = req.headers.get('authorization') ?? ''
-  return header === `Bearer ${process.env.CRON_SECRET?.trim()}`
+  if (process.env.CRON_SECRET && header === `Bearer ${process.env.CRON_SECRET.trim()}`) return true
+
+  // Human: httpOnly motors-admin cookie (admin panel browser session)
+  const cookie = req.cookies.get('motors-admin')?.value
+  const secret = process.env.ADMIN_SECRET?.trim()
+  return !!(cookie && secret && cookie === secret)
 }
 
 const VALID_STATUSES: MotorsLead['status'][] = ['new', 'contacted', 'approved', 'closed', 'dead']

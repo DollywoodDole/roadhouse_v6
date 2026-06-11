@@ -18,14 +18,15 @@ function dealerIndexKey(dealer_id: string): string {
   return `motors:index:${dealer_id}`
 }
 
-export async function seedInventory(vehicles: Vehicle[]): Promise<void> {
-  const redis = getRedis()
-  await Promise.all(
+export async function seedInventory(vehicles: Vehicle[]): Promise<{ rejected: number }> {
+  const redis   = getRedis()
+  const results = await Promise.allSettled(
     vehicles.map(async (v) => {
       await redis.set(vehicleKey(v.dealer_id, v.vin), v)
       await redis.sadd(dealerIndexKey(v.dealer_id), v.vin)
     })
   )
+  return { rejected: results.filter(r => r.status === 'rejected').length }
 }
 
 export async function getInventory(

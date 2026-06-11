@@ -1,10 +1,7 @@
+import { cookies } from 'next/headers'
 import { Redis } from '@upstash/redis'
 import type { MotorsLead } from '@/types/inventory'
 import AdminPanel from './AdminPanel'
-
-interface PageProps {
-  searchParams: Promise<{ token?: string }>
-}
 
 function getRedis(): Redis {
   const url   = process.env.KV_REST_API_URL
@@ -39,8 +36,8 @@ function LockedPage() {
           <p className="text-white/40 text-sm mt-1">Enter your admin token to continue.</p>
         </div>
         <form
-          method="GET"
-          action="/motors/admin"
+          method="POST"
+          action="/api/motors/admin/auth"
           className="space-y-3"
         >
           <input
@@ -62,11 +59,12 @@ function LockedPage() {
   )
 }
 
-export default async function AdminPage({ searchParams }: PageProps) {
-  const { token } = await searchParams
-  const secret    = process.env.CRON_SECRET?.trim()
+export default async function AdminPage() {
+  const cookieStore = await cookies()
+  const token  = cookieStore.get('motors-admin')?.value?.trim()
+  const secret = process.env.ADMIN_SECRET?.trim()
 
-  if (!token || token !== secret) {
+  if (!token || !secret || token !== secret) {
     return <LockedPage />
   }
 
@@ -78,12 +76,17 @@ export default async function AdminPage({ searchParams }: PageProps) {
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="text-white text-xl font-semibold">Leads</h1>
-            <p className="text-white/35 text-sm mt-0.5">{leads.length} total · Access via <code className="text-white/50">/motors/admin?token=…</code></p>
+            <p className="text-white/35 text-sm mt-0.5">{leads.length} total</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold tracking-wider uppercase px-3 py-1.5 rounded-full">
               {leads.filter(l => l.status === 'new').length} new
             </span>
+            {leads.filter(l => l.deliveryStatus === 'failed').length > 0 && (
+              <span className="bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold tracking-wider uppercase px-3 py-1.5 rounded-full">
+                {leads.filter(l => l.deliveryStatus === 'failed').length} email failed
+              </span>
+            )}
             <a
               href="/motors/inventory"
               className="text-white/40 hover:text-white text-sm transition-colors"
@@ -94,7 +97,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
         </div>
 
         <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
-          <AdminPanel leads={leads} token={token} />
+          <AdminPanel leads={leads} />
         </div>
       </div>
     </div>
