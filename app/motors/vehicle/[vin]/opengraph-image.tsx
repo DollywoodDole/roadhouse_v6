@@ -46,7 +46,7 @@ export default async function VehicleOGImage({
     return new ImageResponse(<BrandedFallback />, size)
   }
 
-  const imgSrc = vehicle.images[0] ?? null
+  const imgSrc = vehicle.images[0]?.startsWith('https://') ? vehicle.images[0] : null
   const imgData = imgSrc ? await imageToBase64(imgSrc) : null
 
   const label   = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
