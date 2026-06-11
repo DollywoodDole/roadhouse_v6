@@ -14,6 +14,39 @@ const STATUS_BADGE: Record<Vehicle['status'], { label: string; className: string
   sold:      { label: 'Sold',       className: 'bg-red-500/20    text-red-400    border border-red-500/30'    },
 }
 
+const SEVEN_DAYS_MS   = 7  * 24 * 60 * 60 * 1000
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000
+
+function getMotionBadge(v: Vehicle): { label: string; className: string } | null {
+  const now = Date.now()
+
+  if (v.priceDroppedAt && v.previousPrice) {
+    const age = now - new Date(v.priceDroppedAt).getTime()
+    if (age <= FOURTEEN_DAYS_MS) {
+      const delta = v.previousPrice - v.price
+      const deltaStr = delta > 0
+        ? ` -$${new Intl.NumberFormat('en-CA').format(delta)}`
+        : ''
+      return {
+        label: `Price Reduced${deltaStr}`,
+        className: 'bg-[#C9922A]/20 text-[#F0C060] border border-[#C9922A]/40',
+      }
+    }
+  }
+
+  if (v.firstSeenAt) {
+    const age = now - new Date(v.firstSeenAt).getTime()
+    if (age <= SEVEN_DAYS_MS) {
+      return {
+        label: 'Just Arrived',
+        className: 'bg-sky-500/20 text-sky-300 border border-sky-500/30',
+      }
+    }
+  }
+
+  return null
+}
+
 function fmtCAD(n: number) {
   return new Intl.NumberFormat('en-CA', {
     style: 'currency', currency: 'CAD',
@@ -27,7 +60,8 @@ interface VehicleCardProps {
 }
 
 export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
-  const badge = STATUS_BADGE[vehicle.status]
+  const badge       = STATUS_BADGE[vehicle.status]
+  const motionBadge = getMotionBadge(vehicle)
   const formattedPrice = fmtCAD(vehicle.price)
 
   const formattedMsrp = vehicle.msrp ? fmtCAD(vehicle.msrp) : null
@@ -69,7 +103,17 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
           />
         </div>
 
-        {/* Status badge */}
+        {/* Motion badge — top-left */}
+        {motionBadge && (
+          <span className={clsx(
+            'absolute top-2 left-2 text-[10px] md:text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full backdrop-blur-sm',
+            motionBadge.className
+          )}>
+            {motionBadge.label}
+          </span>
+        )}
+
+        {/* Status badge — top-right */}
         <span
           className={clsx(
             'absolute top-2 right-2 text-[11px] md:text-xs font-semibold tracking-widest uppercase px-2 py-0.5 md:px-3 md:py-1 rounded-full backdrop-blur-sm',

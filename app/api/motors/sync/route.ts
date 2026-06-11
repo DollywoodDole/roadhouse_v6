@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { seedInventory, getIndexedVins, removeVehicle, getInventoryCount } from '@/lib/motors/storage'
+import { seedInventory, getIndexedVins, removeVehicle, getInventoryCount, getVehiclesByVins } from '@/lib/motors/storage'
 import { scrapeObriansInventory } from '@/lib/motors/scraper'
+import { mergeVehicleHistory } from '@/lib/motors/diff'
 
 const DEALER_ID    = 'obrians'
 const ALERT_EMAIL  = 'roadhousesyndicate@gmail.com'
@@ -71,7 +72,9 @@ export async function POST(req: Request) {
 
   let kvRejected = 0
   if (vehicles.length > 0) {
-    const result = await seedInventory(vehicles)
+    const existingMap = await getVehiclesByVins(DEALER_ID, vehicles.map((v) => v.vin))
+    const merged = vehicles.map((v) => mergeVehicleHistory(v, existingMap.get(v.vin) ?? null))
+    const result = await seedInventory(merged)
     kvRejected = result.rejected
   }
 

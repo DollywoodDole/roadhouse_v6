@@ -209,6 +209,9 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               images={vehicle.images.length > 0 ? vehicle.images : ['/motors/rh-coming-soon.svg']}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               status={vehicle.status}
+              firstSeenAt={vehicle.firstSeenAt}
+              previousPrice={vehicle.previousPrice}
+              priceDroppedAt={vehicle.priceDroppedAt}
             />
 
             {/* Spec table */}

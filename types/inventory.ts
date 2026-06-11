@@ -22,6 +22,9 @@ export interface Vehicle {
   features: string[]
   description?: string
   updated_at: string
+  firstSeenAt?: string
+  previousPrice?: number
+  priceDroppedAt?: string
 }
 
 export interface MotorsLeadTradeIn {

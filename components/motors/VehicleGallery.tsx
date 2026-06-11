@@ -12,14 +12,47 @@ const STATUS_STYLE: Record<Vehicle['status'], string> = {
   sold:      'bg-red-500/20    text-red-400    border border-red-500/30',
 }
 
-interface VehicleGalleryProps {
-  images: string[]
-  alt: string
-  status: Vehicle['status']
+const SEVEN_DAYS_MS    = 7  * 24 * 60 * 60 * 1000
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000
+
+function getMotionBadge(props: Pick<VehicleGalleryProps, 'firstSeenAt' | 'previousPrice' | 'priceDroppedAt'>): { label: string; className: string } | null {
+  const now = Date.now()
+
+  if (props.priceDroppedAt && props.previousPrice != null) {
+    const age = now - new Date(props.priceDroppedAt).getTime()
+    if (age <= FOURTEEN_DAYS_MS) {
+      return {
+        label: 'Price Reduced',
+        className: 'bg-[#C9922A]/20 text-[#F0C060] border border-[#C9922A]/40',
+      }
+    }
+  }
+
+  if (props.firstSeenAt) {
+    const age = now - new Date(props.firstSeenAt).getTime()
+    if (age <= SEVEN_DAYS_MS) {
+      return {
+        label: 'Just Arrived',
+        className: 'bg-sky-500/20 text-sky-300 border border-sky-500/30',
+      }
+    }
+  }
+
+  return null
 }
 
-export default function VehicleGallery({ images, alt, status }: VehicleGalleryProps) {
+interface VehicleGalleryProps {
+  images:         string[]
+  alt:            string
+  status:         Vehicle['status']
+  firstSeenAt?:   string
+  previousPrice?: number
+  priceDroppedAt?: string
+}
+
+export default function VehicleGallery({ images, alt, status, firstSeenAt, previousPrice, priceDroppedAt }: VehicleGalleryProps) {
   const [current, setCurrent] = useState(0)
+  const motionBadge = getMotionBadge({ firstSeenAt, previousPrice, priceDroppedAt })
   const total = images.length
   const src = images[current] ?? '/motors/rh-coming-soon.svg'
 
@@ -45,7 +78,17 @@ export default function VehicleGallery({ images, alt, status }: VehicleGalleryPr
           <Image src="/motors/rh-logo.png" alt="RoadHouse" width={96} height={33} className="object-contain" unoptimized />
         </div>
 
-        {/* Status badge */}
+        {/* Motion badge — top-left */}
+        {motionBadge && (
+          <span className={clsx(
+            'absolute top-4 left-4 text-xs font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full backdrop-blur-sm',
+            motionBadge.className
+          )}>
+            {motionBadge.label}
+          </span>
+        )}
+
+        {/* Status badge — top-right */}
         <span className={clsx(
           'absolute top-4 right-4 text-xs font-semibold tracking-widest uppercase px-3 py-1.5 rounded-full backdrop-blur-sm',
           STATUS_STYLE[status]

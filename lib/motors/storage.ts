@@ -98,6 +98,22 @@ export async function getIndexedVins(dealer_id: string): Promise<Set<string>> {
   return new Set(vins ?? [])
 }
 
+export async function getVehiclesByVins(
+  dealer_id: string,
+  vins: string[],
+): Promise<Map<string, Vehicle>> {
+  if (vins.length === 0) return new Map()
+  const redis = getRedis()
+  const keys = vins.map((vin) => vehicleKey(dealer_id, vin))
+  const records = await redis.mget<(Vehicle | null)[]>(...keys)
+  const map = new Map<string, Vehicle>()
+  vins.forEach((vin, i) => {
+    const r = records[i]
+    if (r) map.set(vin, r)
+  })
+  return map
+}
+
 export async function removeVehicle(dealer_id: string, vin: string): Promise<void> {
   const redis = getRedis()
   await Promise.all([
