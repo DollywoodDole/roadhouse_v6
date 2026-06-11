@@ -145,9 +145,15 @@ export function parseListing(html: string, slug: string): Vehicle | null {
   // O'Brian's uses a generic VW stock photo set as a placeholder on listings with no
   // real photos. These appear as a qualifying batch (≥ 3 images) on every such page.
   // Block known placeholder batch prefixes so they fall through to rh-coming-soon.svg.
-  // O'Brian's stock photo families — all share a common Webflow upload-batch prefix.
-  // Block by prefix-starts-with rather than exact key to cover the whole family.
-  const PLACEHOLDER_PREFIXES = ['6a28aa6e74a929965b', '6a2758']
+  // O'Brian's stock photo sets — appear on every listing without real photos.
+  // '6a2758' blocks the entire stock-photo family (all confirmed placeholders).
+  // '6a28aa6e74a929965b' and '6a275914ebcbf12273' are exact prefixes within
+  // otherwise-legitimate upload families — block them specifically.
+  const PLACEHOLDER_PREFIXES = [
+    '6a28aa6e74a929965b',  // VW generic stock (~36 listings)
+    '6a2758',              // truck/car/boat stock family (entire family is stock)
+    '6a275914ebcbf12273',  // HISUN/AODES ATV stock set
+  ]
 
   // Walk batches in appearance order and pick the first with ≥ 3 images.
   // The vehicle's own gallery precedes the "similar vehicles" section, so the
