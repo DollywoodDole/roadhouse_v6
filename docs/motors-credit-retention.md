@@ -35,6 +35,14 @@ All lead data is also delivered to the dealer's notification email inbox (roadho
 
 ---
 
+## Transmission
+
+The full Social Insurance Number is **never transmitted in plaintext email**. When a SIN is provided, the admin notification email contains only a masked form (e.g. `•••-•••-789`, last 3 digits) with a note directing the recipient to retrieve the full SIN via the authenticated admin panel. The unmasked SIN exists only in the AES-256-GCM encrypted PII blob stored in KV, decrypted server-side exclusively through the authenticated `GET /api/motors/leads` endpoint. This ensures a compromised email account cannot expose a customer's full SIN.
+
+All other PII fields (DOB, address, income, bankruptcy/repo flags, employer) appear in full in the admin notification email. If email-at-rest encryption is required (e.g., under a lender data-handling agreement), enable Gmail or Workspace confidential mode for the receiving inbox.
+
+---
+
 ## Retention window
 
 **90 days** from the date of submission.

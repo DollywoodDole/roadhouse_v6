@@ -335,7 +335,7 @@ export default function CreditForm() {
                         />
                         <p className="mt-1.5 text-gray-400 text-xs leading-relaxed">
                           Required by lenders to pull a credit bureau report. You can provide this later if preferred.
-                          Your SIN is encrypted and never shared without your knowledge.
+                          Your SIN is stored encrypted and used only for your credit bureau report.
                         </p>
                       </Field>
                     </div>

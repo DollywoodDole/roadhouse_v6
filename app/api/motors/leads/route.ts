@@ -47,7 +47,11 @@ async function sendAdminNotification(lead: MotorsLead, raw: Record<string, strin
   ]
 
   if (raw.dob)           lines.push(`Date of Birth:  ${raw.dob}`)
-  if (raw.sin)           lines.push(`SIN:            ${raw.sin}`)
+  if (raw.sin) {
+    const digits = raw.sin.replace(/\D/g, '')
+    const masked = digits.length >= 3 ? `•••-•••-${digits.slice(-3)}` : '•••-•••-•••'
+    lines.push(`SIN:            ${masked}  (full SIN encrypted — retrieve via admin panel)`)
+  }
   if (raw.maritalStatus) lines.push(`Marital Status: ${raw.maritalStatus}`)
 
   if (raw.street) {
