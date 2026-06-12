@@ -212,6 +212,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               firstSeenAt={vehicle.firstSeenAt}
               previousPrice={vehicle.previousPrice}
               priceDroppedAt={vehicle.priceDroppedAt}
+              currentPrice={vehicle.price}
             />
 
             {/* Spec table */}

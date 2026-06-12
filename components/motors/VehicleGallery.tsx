@@ -15,14 +15,18 @@ const STATUS_STYLE: Record<Vehicle['status'], string> = {
 const SEVEN_DAYS_MS    = 7  * 24 * 60 * 60 * 1000
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000
 
-function getMotionBadge(props: Pick<VehicleGalleryProps, 'firstSeenAt' | 'previousPrice' | 'priceDroppedAt'>): { label: string; className: string } | null {
+function getMotionBadge(props: Pick<VehicleGalleryProps, 'firstSeenAt' | 'previousPrice' | 'priceDroppedAt' | 'currentPrice'>): { label: string; className: string } | null {
   const now = Date.now()
 
   if (props.priceDroppedAt && props.previousPrice != null) {
     const age = now - new Date(props.priceDroppedAt).getTime()
     if (age <= FOURTEEN_DAYS_MS) {
+      const delta = props.currentPrice != null ? props.previousPrice - props.currentPrice : 0
+      const deltaStr = delta > 0
+        ? ` -$${new Intl.NumberFormat('en-CA').format(delta)}`
+        : ''
       return {
-        label: 'Price Reduced',
+        label: `Price Reduced${deltaStr}`,
         className: 'bg-[#C9922A]/20 text-[#F0C060] border border-[#C9922A]/40',
       }
     }
@@ -48,11 +52,12 @@ interface VehicleGalleryProps {
   firstSeenAt?:   string
   previousPrice?: number
   priceDroppedAt?: string
+  currentPrice?:  number
 }
 
-export default function VehicleGallery({ images, alt, status, firstSeenAt, previousPrice, priceDroppedAt }: VehicleGalleryProps) {
+export default function VehicleGallery({ images, alt, status, firstSeenAt, previousPrice, priceDroppedAt, currentPrice }: VehicleGalleryProps) {
   const [current, setCurrent] = useState(0)
-  const motionBadge = getMotionBadge({ firstSeenAt, previousPrice, priceDroppedAt })
+  const motionBadge = getMotionBadge({ firstSeenAt, previousPrice, priceDroppedAt, currentPrice })
   const total = images.length
   const src = images[current] ?? '/motors/rh-coming-soon.svg'
 
