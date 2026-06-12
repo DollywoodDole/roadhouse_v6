@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
   const appSecret = process.env.MOTORS_FB_APP_SECRET
 
   if (!token) {
-    return NextResponse.json({ error: 'MOTORS_FB_PAGE_ACCESS_TOKEN not set' }, { status: 500 })
+    return NextResponse.json({ status: 'unconfigured', note: 'MOTORS_FB_PAGE_ACCESS_TOKEN not set — skipping check' })
   }
 
   // Step 1: basic validity check via /me
