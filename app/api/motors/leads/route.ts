@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis'
 import type { MotorsLead } from '@/types/inventory'
 import { checkPhoneRateLimit } from '@/lib/motors/ratelimit'
 import { encryptPII, decryptPII } from '@/lib/motors/encrypt'
+import { toE164 } from '@/lib/motors/phone'
 
 // 90-day TTL for pre-qualification leads (PIPEDA: retain only while purpose is active).
 // Funded deals must be migrated to the DMS before this window closes.
@@ -183,7 +184,10 @@ export async function POST(req: NextRequest) {
   const message  = (body.message ?? body.notes) || undefined
   const coSigner = body.coSigner || undefined
 
-  const cleanPhone = phone.replace(/\s+/g, '')
+  const cleanPhone = toE164(phone)
+  if (!cleanPhone) {
+    return NextResponse.json({ error: 'Please enter a valid Canadian or US phone number' }, { status: 400 })
+  }
 
   const allowed = await checkPhoneRateLimit(cleanPhone)
   if (!allowed) {
