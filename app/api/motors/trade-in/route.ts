@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import type { MotorsLead, MotorsLeadTradeIn } from '@/types/inventory'
 import { checkPhoneRateLimit } from '@/lib/motors/ratelimit'
+import { toE164 } from '@/lib/motors/phone'
 
 const RESEND_API = 'https://api.resend.com/emails'
 const TO_EMAIL   = 'roadhousesyndicate@gmail.com'
@@ -138,7 +139,10 @@ export async function POST(req: Request) {
   if (name.length  > 100) return NextResponse.json({ error: 'Name too long' },  { status: 400 })
   if (phone.length > 30)  return NextResponse.json({ error: 'Phone too long' }, { status: 400 })
 
-  const cleanPhone = phone.replace(/\s+/g, '')
+  const cleanPhone = toE164(phone)
+  if (!cleanPhone) {
+    return NextResponse.json({ error: 'Please enter a valid Canadian or US phone number' }, { status: 400 })
+  }
 
   const allowed = await checkPhoneRateLimit(cleanPhone)
   if (!allowed) {

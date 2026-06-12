@@ -10,7 +10,7 @@ function getRedis(): Redis {
 /**
  * Shared 60-second per-phone rate limit for all motors lead endpoints.
  * Returns true if the request may proceed; false if rate-limited.
- * Never throws — KV failure is non-blocking (allows the request through).
+ * Fails closed on KV error — a KV outage should not allow unbounded lead spam.
  */
 export async function checkPhoneRateLimit(cleanPhone: string): Promise<boolean> {
   try {
@@ -20,7 +20,8 @@ export async function checkPhoneRateLimit(cleanPhone: string): Promise<boolean> 
     if (hit) return false
     await redis.set(key, '1', { ex: 60 })
     return true
-  } catch {
-    return true
+  } catch (err) {
+    console.error('[motors/ratelimit] KV error — failing closed:', err)
+    return false
   }
 }

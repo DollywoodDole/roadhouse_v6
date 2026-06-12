@@ -51,11 +51,15 @@ export interface MotorsLead {
   creditRange?: string
   monthlyIncome?: string
   employmentStatus?: string
+  coSigner?: string
   message?: string
   status: 'new' | 'contacted' | 'approved' | 'closed' | 'dead'
   source: 'credit-form' | 'vehicle-form' | 'trade-in'
   deliveryStatus: 'sent' | 'failed'
   tradeIn?: MotorsLeadTradeIn
+  // AES-256-GCM encrypted JSON blob of sensitive PII fields (DOB, SIN, address,
+  // income, bankruptcy/repo flags, employer). Set only on credit-form leads.
+  pii?: string
 }
 
 export interface InventoryFilters {

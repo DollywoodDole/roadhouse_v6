@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import type { MotorsLead } from '@/types/inventory'
 import { checkPhoneRateLimit } from '@/lib/motors/ratelimit'
+import { encryptPII, decryptPII } from '@/lib/motors/encrypt'
+import { toE164 } from '@/lib/motors/phone'
+
+// 90-day TTL for pre-qualification leads (PIPEDA: retain only while purpose is active).
+// Funded deals must be migrated to the DMS before this window closes.
+const LEAD_TTL_SECONDS = 90 * 24 * 60 * 60
 
 function getRedis(): Redis {
   const url   = process.env.KV_REST_API_URL
@@ -19,7 +25,7 @@ const RESEND_API   = 'https://api.resend.com/emails'
 const MOTORS_FROM  = 'hello@roadhouse.capital'
 const MOTORS_ADMIN = 'roadhousesyndicate@gmail.com'
 
-async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
+async function sendAdminNotification(lead: MotorsLead, raw: Record<string, string>) {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
     console.warn('[motors/leads] RESEND_API_KEY not set — email suppressed')
@@ -41,6 +47,11 @@ async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
   ]
 
   if (raw.dob)           lines.push(`Date of Birth:  ${raw.dob}`)
+  if (raw.sin) {
+    const digits = raw.sin.replace(/\D/g, '')
+    const masked = digits.length >= 3 ? `•••-•••-${digits.slice(-3)}` : '•••-•••-•••'
+    lines.push(`SIN:            ${masked}  (full SIN encrypted — retrieve via admin panel)`)
+  }
   if (raw.maritalStatus) lines.push(`Marital Status: ${raw.maritalStatus}`)
 
   if (raw.street) {
@@ -65,7 +76,7 @@ async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
   if (raw.monthlyPayment) lines.push(`Monthly Housing: $${Number(raw.monthlyPayment).toLocaleString('en-CA')} CAD`)
   if (raw.bankruptcy)     lines.push(`Bankruptcy:     ${raw.bankruptcy}`)
   if (raw.repossession)   lines.push(`Repossession:   ${raw.repossession}`)
-  if (raw.coSigner)       lines.push(`Co-signer:      ${raw.coSigner}`)
+  if (lead.coSigner)      lines.push(`Co-signer:      ${lead.coSigner}`)
 
   lines.push(``, `── VEHICLE INTEREST ─────────────────────────────────`)
   lines.push(`Looking for:    ${lead.vehicleInterest || '—'}`)
@@ -97,6 +108,42 @@ async function sendNotification(lead: MotorsLead, raw: Record<string, string>) {
   }
 }
 
+async function sendCustomerReceipt(lead: MotorsLead) {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey || !lead.email) return
+
+  const firstName  = lead.name.split(' ')[0]
+  const vehicleLine = lead.vehicleInterest ? `\n\nApplied for: ${lead.vehicleInterest}` : ''
+
+  const text = [
+    `Hi ${firstName},`,
+    ``,
+    `We've received your pre-qualification request and will be in touch within 1 business day.${vehicleLine}`,
+    ``,
+    `Questions? Call us at (306) 381-8222.`,
+    ``,
+    `— RoadHouse Motors`,
+    `Dealer Licence DL331386 · Saskatchewan, Canada`,
+    `https://motors.roadhouse.capital`,
+  ].join('\n')
+
+  const res = await fetch(RESEND_API, {
+    method:  'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from:    `RoadHouse Motors <${MOTORS_FROM}>`,
+      to:      [lead.email],
+      subject: `Application received — RoadHouse Motors`,
+      text,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    console.error(`[motors/leads] receipt email: Resend ${res.status}: ${err}`)
+  }
+}
+
 // ── POST /api/motors/leads ─────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -105,6 +152,12 @@ export async function POST(req: NextRequest) {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  // Server-side consent enforcement — never trust the client
+  const consent = body.consent === 'true' || (body.consent as unknown) === true
+  if (!consent) {
+    return NextResponse.json({ error: 'Consent is required to submit this form' }, { status: 400 })
   }
 
   const firstName = body.firstName ?? ''
@@ -132,9 +185,13 @@ export async function POST(req: NextRequest) {
     (body.annualIncome
       ? `$${Math.round(Number(body.annualIncome) / 12).toLocaleString('en-CA')} CAD/mo`
       : '')
-  const message = (body.message ?? body.notes) || undefined
+  const message  = (body.message ?? body.notes) || undefined
+  const coSigner = body.coSigner || undefined
 
-  const cleanPhone = phone.replace(/\s+/g, '')
+  const cleanPhone = toE164(phone)
+  if (!cleanPhone) {
+    return NextResponse.json({ error: 'Please enter a valid Canadian or US phone number' }, { status: 400 })
+  }
 
   const allowed = await checkPhoneRateLimit(cleanPhone)
   if (!allowed) {
@@ -144,10 +201,29 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Collect sensitive PII fields and encrypt before KV write
+  const piiFields: Record<string, string> = {}
+  for (const k of [
+    'dob', 'sin', 'annualIncome', 'street', 'city', 'province', 'postalCode',
+    'timeAtAddress', 'employer', 'position', 'timeAtJob', 'maritalStatus',
+    'bankruptcy', 'repossession',
+  ]) {
+    if (body[k]) piiFields[k] = body[k]
+  }
+
+  let pii: string | undefined
+  if (Object.keys(piiFields).length > 0) {
+    try {
+      pii = encryptPII(JSON.stringify(piiFields))
+    } catch (err) {
+      console.warn('[motors/leads] PII encryption skipped (MOTORS_LEAD_ENCRYPTION_KEY not configured):', err instanceof Error ? err.message : err)
+    }
+  }
+
   const id: string = globalThis.crypto.randomUUID()
   const lead: MotorsLead = {
     id,
-    submittedAt: new Date().toISOString(),
+    submittedAt:     new Date().toISOString(),
     name,
     phone:           cleanPhone,
     email,
@@ -156,24 +232,31 @@ export async function POST(req: NextRequest) {
     creditRange,
     monthlyIncome,
     employmentStatus,
+    coSigner,
     message,
     status:          'new',
     source:          'credit-form',
     deliveryStatus:  'sent',
+    ...(pii ? { pii } : {}),
   }
 
   const redis = getRedis()
-  await redis.set(`motors:leads:${id}`, JSON.stringify(lead))
+  await redis.set(`motors:leads:${id}`, JSON.stringify(lead), { ex: LEAD_TTL_SECONDS })
   await redis.sadd('motors:leads:index', id)
 
   try {
-    await sendNotification(lead, body)
+    await sendAdminNotification(lead, body)
   } catch (err) {
-    console.error('[motors/leads] notification email failed:', err)
+    console.error('[motors/leads] admin notification failed:', err)
     await redis
-      .set(`motors:leads:${id}`, JSON.stringify({ ...lead, deliveryStatus: 'failed' }))
+      .set(`motors:leads:${id}`, JSON.stringify({ ...lead, deliveryStatus: 'failed' }), { ex: LEAD_TTL_SECONDS })
       .catch(() => {})
   }
+
+  // Customer receipt — non-blocking; failure does not affect lead save status
+  sendCustomerReceipt(lead).catch((err) => {
+    console.error('[motors/leads] receipt email fire-and-forget error:', err)
+  })
 
   return NextResponse.json({ success: true, id })
 }
@@ -195,10 +278,24 @@ export async function GET(req: NextRequest) {
   const leads = raw
     .map(r => {
       if (!r) return null
-      try { return typeof r === 'string' ? JSON.parse(r) : r } catch { return null }
+      try {
+        const lead: MotorsLead & Record<string, unknown> = typeof r === 'string' ? JSON.parse(r) : r
+        // Decrypt PII blob and merge fields into admin response
+        if (lead.pii) {
+          try {
+            const decrypted = JSON.parse(decryptPII(lead.pii as string)) as Record<string, string>
+            Object.assign(lead, decrypted)
+          } catch {
+            lead.piiDecryptError = true
+          }
+        }
+        return lead
+      } catch {
+        return null
+      }
     })
-    .filter(Boolean)
-    .sort((a: MotorsLead, b: MotorsLead) => b.submittedAt.localeCompare(a.submittedAt))
+    .filter((x): x is MotorsLead & Record<string, unknown> => x !== null)
+    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
 
   return NextResponse.json(leads)
 }

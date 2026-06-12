@@ -4,6 +4,7 @@ import VehicleGallery from '@/components/motors/VehicleGallery'
 import PaymentEstimator from '@/components/motors/PaymentEstimator'
 import StickyCallBar from '@/components/motors/StickyCallBar'
 import VehicleLeadForm from '@/components/motors/VehicleLeadForm'
+import PixelViewContent from '@/components/motors/PixelViewContent'
 import { getVehicleByVin, DEALER_ID } from '@/lib/motors/storage'
 import type { Vehicle } from '@/types/inventory'
 import ReviewCarousel from '@/components/motors/ReviewCarousel'
@@ -181,6 +182,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(vehicle)) }}
       />
 
+      <PixelViewContent vin={vin} name={vehicleLabel} price={vehicle.price} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 space-y-10">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm flex-wrap">
@@ -210,6 +212,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
               firstSeenAt={vehicle.firstSeenAt}
               previousPrice={vehicle.previousPrice}
               priceDroppedAt={vehicle.priceDroppedAt}
+              currentPrice={vehicle.price}
             />
 
             {/* Spec table */}

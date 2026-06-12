@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { REVIEWS, REVIEWS_ENABLED } from '@/lib/motors/reviews'
 import ScrollToTop from '@/components/motors/ScrollToTop'
+import MetaPixel from '@/components/motors/MetaPixel'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://motors.roadhouse.capital'),
@@ -95,8 +96,10 @@ function buildAutoDealer() {
 }
 
 export default function MotorsLayout({ children }: { children: React.ReactNode }) {
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-roboto flex flex-col">
+      {pixelId && <MetaPixel pixelId={pixelId} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildAutoDealer()) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }} />
 
