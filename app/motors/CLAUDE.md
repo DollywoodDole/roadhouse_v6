@@ -46,6 +46,7 @@
   trade-in/route.ts       ← POST (public); trade-in form → Resend; 60s KV rate limit/phone
   feed/route.ts           ← GET (Bearer CRON_SECRET) JSON + AAMVA XML export
   feed/catalog/route.ts   ← GET (Bearer CRON_SECRET) RFC 4180 CSV for FB Marketplace
+  fb-token-check/route.ts ← GET (Bearer CRON_SECRET) FB page token validity + expiry alert via Resend; daily cron
 ```
 
 ## KV keys
@@ -68,6 +69,17 @@ Vercel cron `0 15 * * *` (9am CST) → `POST /api/motors/sync`. Scrapes obrians.
 **Admin env vars:**
 - `MOTORS_ADMIN_SECRET` — gates the admin cookie auth and admin panel page read. Convention: `{ARM}_ADMIN_SECRET` (future arms: `CAPITAL_ADMIN_SECRET`, `STUDIO_ADMIN_SECRET`).
 - `CRON_SECRET` — gates machine endpoints (`/api/motors/sync` POST/GET, `/api/motors/feed`, `/api/motors/leads` GET, `/api/motors/leads/[id]` PATCH). Never shared with browser.
+
+**PII encryption env var:**
+- `MOTORS_LEAD_ENCRYPTION_KEY` — base64-encoded 32-byte AES-256-GCM key for credit app PII at rest. Generate: `openssl rand -base64 32`. Set in Vercel dashboard only — never commit. If unset, PII fields are not stored in KV (still delivered via email). See `docs/motors-credit-retention.md`.
+
+**Analytics env var:**
+- `NEXT_PUBLIC_META_PIXEL_ID` — Meta Pixel ID for motors subdomain. Set to your Pixel ID (e.g. `1234567890123456`). Fails silently if unset — no pixel fires.
+
+**FB token alert env vars (BATCH 4):**
+- `MOTORS_FB_PAGE_ACCESS_TOKEN` — copy of the FB_PAGE_ACCESS_TOKEN GitHub Secret, set in Vercel for the token-check cron.
+- `MOTORS_FB_APP_ID` + `MOTORS_FB_APP_SECRET` — Meta app credentials for debug_token expiry introspection.
+- `MOTORS_FB_ALERT_EMAIL` — address to receive token-expiry warnings (e.g. `roadhousesyndicate@gmail.com`).
 
 ## Constraints (permanent)
 

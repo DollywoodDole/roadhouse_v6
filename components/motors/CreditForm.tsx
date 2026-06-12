@@ -167,6 +167,7 @@ export default function CreditForm() {
   const searchParams = useSearchParams()
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', dob: '', maritalStatus: '',
+    sin: '',
     street: '', city: '', province: 'Saskatchewan', postalCode: '', timeAtAddress: '',
     employmentStatus: '', employer: '', position: '', annualIncome: '', timeAtJob: '',
     downPayment: '', monthlyPayment: '', bankruptcy: '', repossession: '', creditRating: '', coSigner: '',
@@ -310,6 +311,23 @@ export default function CreditForm() {
                         </select>
                       </SelectWrapper>
                     </Field>
+                    <div className="sm:col-span-2">
+                      <Field label="Social Insurance Number (optional)">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={form.sin}
+                          onChange={set('sin')}
+                          placeholder="XXX-XXX-XXX"
+                          maxLength={11}
+                          className={inputClass}
+                        />
+                        <p className="mt-1.5 text-gray-400 text-xs leading-relaxed">
+                          Required by lenders to pull a credit bureau report. You can provide this later if preferred.
+                          Your SIN is encrypted and never shared without your knowledge.
+                        </p>
+                      </Field>
+                    </div>
                   </div>
                 </section>
 
