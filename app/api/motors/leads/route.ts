@@ -290,8 +290,8 @@ export async function GET(req: NextRequest) {
         return null
       }
     })
-    .filter(Boolean)
-    .sort((a: MotorsLead, b: MotorsLead) => b.submittedAt.localeCompare(a.submittedAt))
+    .filter((x): x is MotorsLead & Record<string, unknown> => x !== null)
+    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
 
   return NextResponse.json(leads)
 }
