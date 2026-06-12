@@ -405,6 +405,12 @@ Guild leads elected annually → Squads multisig co-signers (3-of-5). Regular+ c
 
 ---
 
+## OPERATING PROTOCOL
+
+- Never read, extract, or reuse stored credentials (CLI auth tokens, `.env` files, keychain/config auth) from disk to work around tool failures. If a tool path is blocked, stop and report — credential improvisation is never the fallback.
+
+---
+
 ## BRANCH STATE — 2026-06-08
 
 | Branch | Status | Notes |
