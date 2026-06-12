@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { fbq } from '@/lib/motors/pixel'
 
 interface VehicleLeadFormProps {
   vehicleInterest: string
@@ -39,6 +40,7 @@ export default function VehicleLeadForm({ vehicleInterest, vin }: VehicleLeadFor
       }
 
       setStatus('success')
+      fbq('track', 'Lead', { content_name: vehicleInterest, content_category: 'vehicle-inquiry' })
     } catch {
       setStatus('error')
       setErrorMsg('Connection error. Please call us at (306) 381-8222.')

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { fbq } from '@/lib/motors/pixel'
 
 const provinces = [
   'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick',
@@ -187,6 +188,11 @@ export default function CreditForm() {
       setVehicleContext({ label: v, vin: vinParam })
       setForm((f) => ({ ...f, vehicleInterest: v || vinParam, vin: vinParam }))
     }
+    fbq('track', 'InitiateCheckout', {
+      content_category: 'credit-application',
+      ...(v ? { content_name: v } : {}),
+      ...(vinParam ? { content_ids: [vinParam] } : {}),
+    })
   }, [searchParams])
 
   const set = (key: keyof typeof form) =>
@@ -212,6 +218,11 @@ export default function CreditForm() {
         throw new Error(data.error ?? 'Submission failed')
       }
       setStatus('success')
+      fbq('track', 'Lead', {
+        content_category: 'credit-application',
+        ...(form.vehicleInterest ? { content_name: form.vehicleInterest } : {}),
+        ...(form.vin ? { content_ids: [form.vin] } : {}),
+      })
     } catch (err) {
       setStatus('error')
       setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
