@@ -15,7 +15,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T17:20:46.369725+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-21T16:48:25.671003+00:00",
+    "reel_fb_success": true
   },
   "1FMCU9GN1RUA72365": {
     "title": "2024 Ford Escape Active AWD",
@@ -293,7 +295,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-16T16:09:38.776603+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-21T16:47:19.873323+00:00",
+    "reel_fb_success": true
   },
   "1G1ZD5ST7RF171783": {
     "title": "2024 Chevrolet Malibu 1LT",
