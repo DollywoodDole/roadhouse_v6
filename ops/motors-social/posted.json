@@ -189,7 +189,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-12T17:12:27.392727+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-25T17:14:41.379819+00:00",
+    "reel_fb_success": true
   },
   "JA4AJVAW6MU605084": {
     "title": "2021 Mitsubishi RVR SE",
@@ -197,7 +199,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-13T15:49:42.687453+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-25T17:13:32.479732+00:00",
+    "reel_fb_success": true
   },
   "KMHRC8A39MU095254": {
     "title": "2021 Hyundai Venue Preferred",
