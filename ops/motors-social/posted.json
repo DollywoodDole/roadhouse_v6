@@ -329,7 +329,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-17T16:01:29.317549+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-29T17:38:32.803650+00:00",
+    "reel_fb_success": true
   },
   "3TYDZ5BNXPT030244": {
     "title": "2023 Toyota Tacoma 4x4 Double Cab Auto",
@@ -363,7 +365,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-20T15:41:24.285994+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-06-29T17:39:40.880308+00:00",
+    "reel_fb_success": true
   },
   "KMHLM4AG1MU127483": {
     "title": "2021 Hyundai Elantra Preferred",
