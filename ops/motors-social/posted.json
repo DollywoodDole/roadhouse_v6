@@ -339,7 +339,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-19T17:39:00.539680+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-07-05T16:10:32.884281+00:00",
+    "reel_fb_success": true
   },
   "2C3CDXL98PH542297": {
     "title": "2023 Dodge Charger SRT Hellcat Widebody Jailbreak",
@@ -609,7 +611,9 @@
     "dry_run": false,
     "success": true,
     "ig_posted_at": "2026-05-21T20:33:03.738108+00:00",
-    "ig_success": true
+    "ig_success": true,
+    "reel_posted_at": "2026-07-05T16:11:39.894320+00:00",
+    "reel_fb_success": true
   },
   "H0JAGRA28S0000170": {
     "title": "2025 AODES Pathcross 1000 L MUD Pro ATV",
